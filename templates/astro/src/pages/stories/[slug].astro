@@ -1,0 +1,44 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { config, getPosts, plainText } from "../../lib/dashless.mjs";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post: any) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: any };
+const description = plainText(post.excerpt || post.content).slice(0, 180);
+---
+
+<SiteLayout title={post.title} description={description} digest={post.digest} image={post.socialImage || post.featuredImage?.src} imageAlt={post.socialImageAlt || post.featuredImage?.alt || post.title} article publishedTime={post.date} modifiedTime={post.modified}>
+  <article class="article-shell">
+    <header class="article-header retro-window">
+      <div class="window-bar"><span>entry://{post.slug}</span><span aria-hidden="true">— □ ×</span></div>
+      <div class="article-heading-copy">
+        <a class="back-link" href={`/${config.postsPath}/`}>← RETURN TO ARCHIVE</a>
+        <p class="kicker"><time datetime={post.date}>{new Date(post.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</time></p>
+        <h1 style={`view-transition-name: dashless-story-title-${post.id};`}>{post.title}</h1>
+        {post.excerpt && <p class="dek">{plainText(post.excerpt)}</p>}
+        {post.categoryTerms.length > 0 && <div class="term-list" aria-label="Topics">{post.categoryTerms.map((term: any) => <a href={term.url}>#{term.name}</a>)}</div>}
+      </div>
+    </header>
+    {post.featuredImage && (
+      <figure class="article-hero" style={`view-transition-name: dashless-story-image-${post.id};`}>
+        <span class="article-hero-fallback" aria-hidden="true"><b>✦</b><small>MEDIA SIGNAL LOST</small></span>
+        <img
+          src={post.featuredImage.src}
+          alt={post.featuredImage.alt}
+          width={post.featuredImage.width}
+          height={post.featuredImage.height}
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+        {post.featuredImage.caption && <figcaption set:html={post.featuredImage.caption} />}
+      </figure>
+    )}
+    <div class="article-body paper-panel" set:html={post.content} />
+    {post.tagTerms.length > 0 && <footer class="article-tags"><span>Tagged</span>{post.tagTerms.map((term: any) => <a href={term.url}>{term.name}</a>)}</footer>}
+  </article>
+</SiteLayout>

@@ -1,0 +1,11 @@
+---
+import Archive from "../../components/Archive.astro";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { archivePages, config, getPosts } from "../../lib/dashless.mjs";
+const posts = await getPosts();
+const pages = archivePages(posts);
+---
+
+<SiteLayout title="Stories" description={`All stories from ${config.siteName}.`}>
+  <Archive title="All stories" description={`The complete ${config.siteName} archive.`} posts={pages[0]} current={1} total={pages.length} base={`/${config.postsPath}`} />
+</SiteLayout>

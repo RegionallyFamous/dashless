@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Teddy on the open web</title>
+  <desc id="description">A cheerful geometric teddy bear sits in front of a colorful retro browser window.</desc>
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#1f1b2d" stroke-opacity=".12" stroke-width="3"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="800" fill="#ffd84d"/>
+  <rect width="1200" height="800" fill="url(#grid)"/>
+  <path d="M0 620 390 390l230 142 260-244 320 214v298H0Z" fill="#ff6b8a" stroke="#1f1b2d" stroke-width="14"/>
+  <rect x="92" y="76" width="1016" height="574" rx="22" fill="#fffaf0" stroke="#1f1b2d" stroke-width="14"/>
+  <path d="M92 138h1016" stroke="#1f1b2d" stroke-width="14"/>
+  <circle cx="132" cy="108" r="12" fill="#ff6b8a" stroke="#1f1b2d" stroke-width="6"/>
+  <circle cx="172" cy="108" r="12" fill="#ffd84d" stroke="#1f1b2d" stroke-width="6"/>
+  <circle cx="212" cy="108" r="12" fill="#55d6be" stroke="#1f1b2d" stroke-width="6"/>
+  <rect x="260" y="91" width="720" height="34" rx="17" fill="#dde4ff" stroke="#1f1b2d" stroke-width="6"/>
+  <text x="288" y="116" fill="#1f1b2d" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">https://teddy.wpcomstaging.com</text>
+  <g transform="translate(615 395)">
+    <circle cx="-118" cy="-118" r="82" fill="#d9965b" stroke="#1f1b2d" stroke-width="14"/>
+    <circle cx="118" cy="-118" r="82" fill="#d9965b" stroke="#1f1b2d" stroke-width="14"/>
+    <circle cx="-118" cy="-118" r="42" fill="#ffbd7a"/>
+    <circle cx="118" cy="-118" r="42" fill="#ffbd7a"/>
+    <ellipse rx="190" ry="178" fill="#d9965b" stroke="#1f1b2d" stroke-width="14"/>
+    <circle cx="-67" cy="-38" r="17" fill="#1f1b2d"/>
+    <circle cx="67" cy="-38" r="17" fill="#1f1b2d"/>
+    <ellipse cy="42" rx="86" ry="66" fill="#ffbd7a" stroke="#1f1b2d" stroke-width="9"/>
+    <path d="M-24 14Q0-4 24 14Q20 42 0 45Q-20 42-24 14Z" fill="#1f1b2d"/>
+    <path d="M0 44v18M0 62q-34 28-62 0M0 62q34 28 62 0" fill="none" stroke="#1f1b2d" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <g fill="#1f1b2d" font-family="Arial, Helvetica, sans-serif" font-weight="900">
+    <text x="140" y="214" font-size="44" letter-spacing="5">TEDDY.EXE</text>
+    <text x="140" y="264" font-size="26" letter-spacing="3">PERSONAL WEB LOG</text>
+  </g>
+  <rect x="806" y="183" width="242" height="70" rx="8" fill="#55d6be" stroke="#1f1b2d" stroke-width="8" transform="rotate(5 927 218)"/>
+  <text x="839" y="228" fill="#1f1b2d" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="900" transform="rotate(5 927 218)">NO ALGORITHM!</text>
+  <path d="m165 287 16 34 37 5-27 26 7 37-33-18-33 18 7-37-27-26 37-5Z" fill="#4757ff" stroke="#1f1b2d" stroke-width="7"/>
+  <path d="m1010 511 14 29 32 5-23 22 5 32-28-15-29 15 6-32-23-22 32-5Z" fill="#ffd84d" stroke="#1f1b2d" stroke-width="7"/>
+</svg>

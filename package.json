@@ -1,0 +1,20 @@
+{
+  "name": "dashless-codex-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The local-first Dashless Codex plugin.",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "check": "node --check server/dashless-mcp.mjs && node --check server/lib/frontend.mjs && node --check server/lib/setup.mjs && node --check server/lib/storage.mjs && node --check server/lib/wordpress.mjs && node --check scripts/package.mjs && node --check templates/astro/src/lib/dashless.mjs && php -l wordpress/dashless-wpcloud.php && php -l wordpress/uninstall.php && php -l tests/helpers/wpcloud-bridge-harness.php && php -l tests/helpers/wp-uninstall-harness.php && node --test tests/*.test.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:coverage": "node --test --experimental-test-coverage tests/*.test.mjs",
+    "test:template": "node --test tests/astro-template.test.mjs",
+    "test:wordpress:playground": "npx --yes @wp-playground/cli@3.1.48 run-blueprint --mount=./wordpress:/wordpress/wp-content/plugins/dashless --blueprint=./tests/fixtures/playground-compatibility.json --verbosity=quiet && npx --yes @wp-playground/cli@3.1.48 run-blueprint --mount=./wordpress:/wordpress/wp-content/plugins/dashless --blueprint=./tests/fixtures/playground-current-compatibility.json --verbosity=quiet",
+    "package": "node scripts/package.mjs",
+    "release": "npm run check && npm run package"
+  },
+  "license": "MIT"
+}

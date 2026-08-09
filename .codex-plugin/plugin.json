@@ -1,0 +1,42 @@
+{
+  "name": "dashless",
+  "version": "1.0.0",
+  "description": "WordPress without the dashboard: draft, preview, publish, and restore through Codex with an owned Astro frontend.",
+  "author": {
+    "name": "Regionally Famous",
+    "url": "https://github.com/RegionallyFamous"
+  },
+  "license": "MIT",
+  "keywords": [
+    "wordpress",
+    "astro",
+    "publishing",
+    "headless-cms",
+    "editorial"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Dashless",
+    "shortDescription": "WordPress without the dashboard.",
+    "longDescription": "Turns local Codex into a complete WordPress newsroom and generates a fast, owned Astro publication. Inspect the site, create drafts and nested Pages, manage media and taxonomy, preview the complete site or an exact revision, publish only approved content, deploy atomically, detect WordPress changes, and restore older revisions without making wp-admin the daily workspace.",
+    "developerName": "Regionally Famous",
+    "category": "Productivity",
+    "capabilities": [
+      "WordPress publishing",
+      "WordPress site inspection",
+      "Astro site generation",
+      "Astro theme design and quality audits",
+      "Archives and static search",
+      "Revision-locked previews",
+      "Local, SSH, and WP Cloud deployment"
+    ],
+    "defaultPrompt": [
+      "Connect my WordPress site to Dashless.",
+      "Create a draft and show me the real site preview.",
+      "Review my drafts for anything blocking publication.",
+      "Design and quality-check my Astro publication."
+    ],
+    "brandColor": "#E14B32"
+  }
+}

@@ -1,0 +1,10 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { config, getCategories } from "../../lib/dashless.mjs";
+const terms = await getCategories();
+---
+
+<SiteLayout title="Topics" description={`Browse ${config.siteName} stories by topic.`}>
+  <header class="archive-header retro-window"><div class="window-bar"><span>directory://topics</span><span aria-hidden="true">— □ ×</span></div><div><p class="eyebrow">BROWSE BY SUBJECT</p><h1>Topics</h1><p>Follow the rabbit holes shaping this publication.</p></div></header>
+  <div class="term-cloud">{terms.map((term: any) => <a href={term.url}><strong>{term.name}</strong><span>{term.count} {term.count === 1 ? "story" : "stories"}</span></a>)}</div>
+</SiteLayout>

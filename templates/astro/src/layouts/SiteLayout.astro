@@ -1,0 +1,181 @@
+---
+import "../styles/global.css";
+import { config, getNavigation } from "../lib/dashless.mjs";
+
+const {
+  title = config.siteName,
+  description = config.siteDescription,
+  digest,
+  image,
+  imageAlt = "",
+  article = false,
+  noindex = false,
+  publishedTime,
+  modifiedTime,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, config.publicUrl).toString();
+const displayHost = new URL(config.publicUrl).hostname || "localhost";
+const navigation = await getNavigation();
+const isCurrent = (url: string) => url === "/" ? Astro.url.pathname === "/" : Astro.url.pathname.startsWith(url);
+const structuredData = article ? {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description,
+  url: canonical,
+  ...(image ? { image: new URL(image, config.publicUrl).toString() } : {}),
+  ...(publishedTime ? { datePublished: publishedTime } : {}),
+  ...(modifiedTime ? { dateModified: modifiedTime } : {}),
+  publisher: { "@type": "Organization", name: config.siteName },
+} : {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: config.siteName,
+  description: config.siteDescription,
+  url: config.publicUrl,
+  potentialAction: { "@type": "SearchAction", target: `${config.publicUrl}/search/?q={search_term_string}`, "query-input": "required name=search_term_string" },
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="color-scheme" content="light dark" />
+    <title>{title === config.siteName ? title : `${title} · ${config.siteName}`}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    <link rel="alternate" type="application/rss+xml" title={config.siteName} href="/rss.xml" />
+    {digest && <meta name="dashless-content-digest" content={digest} />}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={article ? "article" : "website"} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={config.siteName} />
+    <meta property="og:locale" content="en_US" />
+    {image && <meta property="og:image" content={new URL(image, config.publicUrl).toString()} />}
+    {image && <meta property="og:image:alt" content={imageAlt || title} />}
+    <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {image && <meta name="twitter:image" content={new URL(image, config.publicUrl).toString()} />}
+    {image && <meta name="twitter:image:alt" content={imageAlt || title} />}
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData).replaceAll("<", "\\u003c")} />
+    <meta id="theme-color" name="theme-color" content="#4757ff" />
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem("dashless-theme");
+        const dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        if (dark) document.documentElement.dataset.theme = "dark";
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="page-grid" aria-hidden="true"></div>
+    <div class="site-frame">
+      <header class="site-header">
+        <div class="browser-bar">
+          <div class="browser-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <p><span aria-hidden="true">⌂</span> https://{displayHost}{Astro.url.pathname}</p>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme">NIGHT MODE</button>
+        </div>
+        <div class="masthead">
+          <a class="wordmark" href="/">
+            <span class="wordmark-mark" aria-hidden="true">✦</span>
+            <span>{config.siteName}</span>
+            <small>PERSONAL WEB LOG</small>
+          </a>
+          <nav aria-label="Main navigation">
+            {navigation.map((item: any) => <a href={item.url} aria-current={isCurrent(item.url) ? "page" : undefined}>{item.label}</a>)}
+          </nav>
+        </div>
+        <div class="signal-strip" aria-label="Site status">
+          <span><i aria-hidden="true"></i> LIVE ON THE OPEN WEB</span>
+          <span aria-hidden="true">✦ FRESH POSTS ✦ STRANGE LINKS ✦ GOOD INTERNET ✦</span>
+          <a href="/rss.xml">RSS FEED ↗</a>
+        </div>
+      </header>
+      <main id="main-content"><slot /></main>
+      <footer class="site-footer">
+        <div><span class="footer-star" aria-hidden="true">✦</span><p><strong>{config.siteName}</strong><br />A small corner of the big internet.</p></div>
+        <p>Made with WordPress, Astro, and unreasonable enthusiasm.<br /><a href="/rss.xml">Subscribe via RSS</a> · <a href="#main-content">Back to top ↑</a></p>
+        <div class="web-badge" aria-label="Independent website"><span>WORLD</span><strong>WIDE WEB</strong><small>BEST VIEWED WITH CURIOSITY</small></div>
+      </footer>
+    </div>
+    <script>
+      (() => {
+        const button = document.querySelector<HTMLButtonElement>("#theme-toggle");
+        const themeColor = document.querySelector("#theme-color");
+        const colorPreference = matchMedia("(prefers-color-scheme: dark)");
+        const sync = () => {
+          const dark = document.documentElement.dataset.theme === "dark";
+          if (!button) return;
+          button.textContent = dark ? "DAY MODE" : "NIGHT MODE";
+          button.setAttribute("aria-pressed", String(dark));
+          button.setAttribute("aria-label", dark ? "Switch to day mode" : "Switch to night mode");
+          button.title = dark ? "Lights on" : "Lights off";
+          if (themeColor) themeColor.setAttribute("content", dark ? "#111024" : "#4757ff");
+        };
+        sync();
+        button?.addEventListener("click", () => {
+          const useDarkTheme = document.documentElement.dataset.theme !== "dark";
+          document.documentElement.dataset.theme = useDarkTheme ? "dark" : "light";
+          try { localStorage.setItem("dashless-theme", useDarkTheme ? "dark" : "light"); } catch {}
+          sync();
+        });
+        colorPreference.addEventListener("change", (event) => {
+          try { if (localStorage.getItem("dashless-theme") !== null) return; } catch {}
+          document.documentElement.dataset.theme = event.matches ? "dark" : "light";
+          sync();
+        });
+
+        const replaceBrokenImage = (image: HTMLImageElement) => {
+          if (!image.isConnected || image.dataset.fallbackReady === "true") return;
+          image.dataset.fallbackReady = "true";
+          const fallback = document.createElement("span");
+          fallback.className = "inline-image-fallback";
+          fallback.setAttribute("role", "img");
+          fallback.setAttribute("aria-label", image.alt ? `${image.alt} (image unavailable)` : "Image unavailable");
+          const mark = document.createElement("b");
+          mark.setAttribute("aria-hidden", "true");
+          mark.textContent = "✦";
+          const label = document.createElement("small");
+          label.textContent = image.alt || "IMAGE UNAVAILABLE";
+          fallback.append(mark, label);
+          image.replaceWith(fallback);
+        };
+        const markMediaMissing = (image: HTMLImageElement) => {
+          const storyMedia = image.closest<HTMLElement>(".story-image");
+          if (storyMedia) {
+            storyMedia.classList.add("is-missing");
+            image.remove();
+            return;
+          }
+          const articleHero = image.closest<HTMLElement>(".article-hero");
+          if (articleHero) {
+            articleHero.classList.add("is-missing");
+            const fallback = articleHero.querySelector<HTMLElement>(".article-hero-fallback");
+            fallback?.removeAttribute("aria-hidden");
+            fallback?.setAttribute("role", "img");
+            fallback?.setAttribute("aria-label", image.alt ? `${image.alt} (image unavailable)` : "Image unavailable");
+            image.remove();
+            return;
+          }
+          replaceBrokenImage(image);
+        };
+        document.querySelectorAll<HTMLImageElement>(".story-image img, .article-hero img, .article-body img").forEach((image) => {
+          image.addEventListener("error", () => markMediaMissing(image), { once: true });
+          if (image.complete && image.naturalWidth === 0) markMediaMissing(image);
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { getPages, plainText } from "../lib/dashless.mjs";
+
+export async function getStaticPaths() {
+  const pages = await getPages();
+  return pages.filter((page: any) => !page.isHome && !page.isPostsIndex).map((page: any) => ({ params: { slug: page.path }, props: { page } }));
+}
+
+const { page } = Astro.props as { page: any };
+const description = plainText(page.excerpt || page.content).slice(0, 180);
+---
+
+<SiteLayout title={page.title} description={description} digest={page.digest}>
+  <article class="article-shell page-shell">
+    <header class="article-header retro-window"><div class="window-bar"><span>page://{page.path}</span><span aria-hidden="true">— □ ×</span></div><div class="article-heading-copy"><p class="eyebrow">STATIC PAGE</p><h1>{page.title}</h1></div></header>
+    <div class="article-body paper-panel" set:html={page.content} />
+  </article>
+</SiteLayout>

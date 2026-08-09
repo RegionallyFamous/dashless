@@ -1,0 +1,50 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import StoryCard from "../components/StoryCard.astro";
+import { config, getCategories, getPages, getPosts, plainText } from "../lib/dashless.mjs";
+
+const [posts, pages, categories] = await Promise.all([getPosts(), getPages(), getCategories()]);
+const [lead, ...remaining] = posts.slice(0, 10);
+const homePage = pages.find((page: any) => page.isHome);
+---
+
+<SiteLayout>
+  <section class="hero retro-window">
+    <div class="window-bar"><span>home.html</span><span aria-hidden="true">— □ ×</span></div>
+    <div class="hero-copy">
+      <p class="online-status"><span aria-hidden="true"></span> TRANSMITTING FROM THE INDIE WEB</p>
+      <h1>{homePage?.title || config.siteName}</h1>
+      <p>{homePage ? plainText(homePage.excerpt || homePage.content).slice(0, 220) : config.siteDescription}</p>
+      <div class="hero-badges" aria-label="Site features"><span>WORDPRESS POWERED</span><span>HANDMADE HTML</span><span>NO ALGORITHM</span></div>
+    </div>
+    <div class="hero-sticker" aria-hidden="true"><span>NEW!</span><strong>WELCOME<br />TO MY<br />WEBSITE</strong><small>EST. {new Date().getFullYear()}</small></div>
+  </section>
+  {homePage?.content && <section class="home-content paper-panel article-body" set:html={homePage.content} />}
+  {lead ? (
+    <div class="home-layout">
+      <section class="post-stream">
+        <div class="section-heading"><div><span aria-hidden="true">✦</span><h2>Latest transmissions</h2></div><p>Sorted newest to oldest, just like nature intended.</p></div>
+        <StoryCard story={lead} featured />
+        {remaining.length > 0 && <div class="story-grid">{remaining.map((story: any) => <StoryCard story={story} />)}</div>}
+        <p class="archive-link"><a href={`/${config.postsPath}/`}>OPEN THE COMPLETE ARCHIVE <span aria-hidden="true">→</span></a></p>
+      </section>
+      <aside class="blog-sidebar" aria-label="Blog extras">
+        <section class="sidebar-widget currently-widget">
+          <div class="widget-title">SITE_STATUS.TXT</div>
+          <dl><div><dt>Stories</dt><dd>{posts.length}</dd></div><div><dt>Topics</dt><dd>{categories.length}</dd></div><div><dt>Source</dt><dd>WordPress</dd></div></dl>
+        </section>
+        <section class="sidebar-widget">
+          <div class="widget-title">BROWSE_BY_TOPIC</div>
+          <div class="topic-buttons">{categories.slice(0, 8).map((term: any) => <a href={term.url}><span>{term.name}</span><small>{term.count}</small></a>)}</div>
+        </section>
+        <section class="sidebar-widget guestbook-widget">
+          <div class="widget-title">DON'T MISS A POST</div>
+          <p>RSS: the original follow button. Quiet, chronological, perfect.</p>
+          <a class="chunky-button" href="/rss.xml">ADD TO READER ↗</a>
+        </section>
+      </aside>
+    </div>
+  ) : (
+    <section class="empty-state retro-window"><div class="window-bar"><span>archive.txt</span><span>×</span></div><h2>No published stories yet.</h2><p>This site will update when a story is published in WordPress.</p></section>
+  )}
+</SiteLayout>

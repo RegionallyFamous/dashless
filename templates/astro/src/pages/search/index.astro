@@ -1,0 +1,45 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { config, getPages, getPosts, searchIndex } from "../../lib/dashless.mjs";
+const [posts, pages] = await Promise.all([getPosts(), getPages()]);
+const index = JSON.stringify(searchIndex(posts, pages)).replaceAll("<", "\\u003c");
+---
+
+<SiteLayout title="Search" description={`Search ${config.siteName}.`} noindex>
+  <header class="archive-header retro-window"><div class="window-bar"><span>find.exe</span><span aria-hidden="true">— □ ×</span></div><div><p class="eyebrow">SEARCH THE DATABASE</p><h1>Find something weird.</h1><p>Search every published story and Page. No tracking, no sponsored results, no funny business.</p></div></header>
+  <form class="search-form" role="search"><label for="dashless-search">Search this site</label><div><input id="dashless-search" name="q" type="search" autocomplete="off" autocapitalize="none" enterkeyhint="search" aria-describedby="search-summary" /><button type="submit">Search</button></div></form>
+  <p id="search-summary" class="search-summary" aria-live="polite"></p>
+  <div id="search-results" class="search-results"></div>
+  <script is:inline type="application/json" id="dashless-search-index" set:html={index} />
+  <script>
+    (() => {
+      const form = document.querySelector<HTMLFormElement>('.search-form');
+      const input = document.querySelector<HTMLInputElement>('#dashless-search');
+      const results = document.querySelector<HTMLElement>('#search-results');
+      const summary = document.querySelector<HTMLElement>('#search-summary');
+      const source = document.querySelector<HTMLScriptElement>('#dashless-search-index');
+      if (!form || !input || !results || !summary || !source) return;
+      type SearchEntry = { type: string; title: string; url: string; text: string };
+      const entries: SearchEntry[] = JSON.parse(source.textContent || '[]');
+      const render = () => {
+        const query = input.value.trim().toLocaleLowerCase();
+        const matches = query.length < 2 ? [] : entries.filter((entry) => `${entry.title} ${entry.text}`.toLocaleLowerCase().includes(query)).slice(0, 50);
+        summary.textContent = query.length < 2 ? 'Enter at least two characters.' : `${matches.length} result${matches.length === 1 ? '' : 's'} for “${input.value.trim()}”.`;
+        results.replaceChildren(...matches.map((entry) => {
+          const article = document.createElement('article');
+          const label = document.createElement('p');
+          const heading = document.createElement('h2');
+          const link = document.createElement('a');
+          const text = document.createElement('p');
+          label.className = 'kicker'; label.textContent = entry.type;
+          link.href = entry.url; link.textContent = entry.title; heading.append(link);
+          text.textContent = entry.text.slice(0, 180) + (entry.text.length > 180 ? '…' : '');
+          article.append(label, heading, text); return article;
+        }));
+        const url = new URL(location.href); query ? url.searchParams.set('q', input.value.trim()) : url.searchParams.delete('q'); history.replaceState(null, '', url);
+      };
+      form.addEventListener('submit', (event) => { event.preventDefault(); render(); });
+      const initial = new URL(location.href).searchParams.get('q') || ''; input.value = initial; if (initial) render();
+    })();
+  </script>
+</SiteLayout>

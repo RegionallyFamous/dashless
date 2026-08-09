@@ -1,0 +1,10 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { config, getTags } from "../../lib/dashless.mjs";
+const terms = await getTags();
+---
+
+<SiteLayout title="Tags" description={`Browse ${config.siteName} stories by tag.`}>
+  <header class="archive-header retro-window"><div class="window-bar"><span>index://tags</span><span aria-hidden="true">— □ ×</span></div><div><p class="eyebrow">THE BIG MESSY INDEX</p><h1>Tags</h1><p>Every little label, obsession, and recurring bit.</p></div></header>
+  <div class="term-cloud">{terms.map((term: any) => <a href={term.url}><strong>{term.name}</strong><span>{term.count}</span></a>)}</div>
+</SiteLayout>

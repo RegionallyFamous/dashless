@@ -1,0 +1,35 @@
+---
+import { plainText } from "../lib/dashless.mjs";
+const { story, featured = false } = Astro.props;
+const description = plainText(story.excerpt || story.content).slice(0, featured ? 240 : 150);
+const transitionName = (part: string) => `dashless-story-${part}-${story.id}`;
+---
+
+<article class:list={["story-card", { featured }]}>
+  {featured && (
+    <div class="story-window-bar" aria-hidden="true">
+      <span>featured_story.html</span>
+      <span>★ EDITOR'S PICK</span>
+    </div>
+  )}
+  {story.featuredImage && (
+    <a class="story-image" href={story.url} tabindex="-1" aria-hidden="true" data-fallback="MEDIA SIGNAL LOST" style={`view-transition-name: ${transitionName("image")};`}>
+      <span class="story-image-fallback"><b>✦</b><small>IMAGE_OFFLINE.GIF</small></span>
+      <img
+        src={story.featuredImage.src}
+        alt=""
+        width={story.featuredImage.width}
+        height={story.featuredImage.height}
+        loading={featured ? "eager" : "lazy"}
+        decoding="async"
+        fetchpriority={featured ? "high" : "auto"}
+      />
+    </a>
+  )}
+  <div class="story-copy">
+    <div class="story-meta"><time datetime={story.date}>{new Date(story.date).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</time>{story.categoryTerms?.[0] && <a href={story.categoryTerms[0].url}>{story.categoryTerms[0].name}</a>}</div>
+    <h2 style={`view-transition-name: ${transitionName("title")};`}><a href={story.url}>{story.title}</a></h2>
+    {description && <p class="summary">{description}{description.length >= (featured ? 240 : 150) ? "…" : ""}</p>}
+    <a class="read-more" href={story.url}>OPEN ENTRY <span aria-hidden="true">→</span></a>
+  </div>
+</article>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dashless Astro Site Director"
+  short_description: "Design and audit distinctive Astro publications"
+  default_prompt: "Use $design-dashless-astro-sites to design, build, and quality-check a distinctive Astro publication for my WordPress content."

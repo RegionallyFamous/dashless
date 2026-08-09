@@ -1,0 +1,20 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "preferredVersions": {
+    "php": "8.0",
+    "wp": "6.5"
+  },
+  "features": {
+    "networking": false
+  },
+  "steps": [
+    {
+      "step": "activatePlugin",
+      "pluginPath": "/wordpress/wp-content/plugins/dashless/dashless-wpcloud.php"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php\nrequire '/wordpress/wp-load.php';\nif ( ! defined( 'DASHLESS_WPCLOUD_BRIDGE_VERSION' ) || '1.0.0' !== DASHLESS_WPCLOUD_BRIDGE_VERSION ) { throw new Exception( 'Dashless did not activate.' ); }\n$post_id = wp_insert_post( array( 'post_title' => 'Dashless compatibility fixture', 'post_content' => '<p>Compatibility.</p>', 'post_status' => 'publish', 'post_author' => 1 ), true );\nif ( is_wp_error( $post_id ) ) { throw new Exception( $post_id->get_error_message() ); }\n$generation = get_option( 'dashless_content_version' );\nif ( empty( $generation['generation'] ) ) { throw new Exception( 'Content generation did not advance.' ); }\nwp_set_current_user( 1 );\ndo_action( 'rest_api_init' );\n$response = rest_do_request( new WP_REST_Request( 'GET', '/dashless/v1/site' ) );\n$data = $response->get_data();\nif ( '1.0.0' !== ( $data['plugin_version'] ?? null ) ) { throw new Exception( 'Site contract did not return Dashless 1.0.0.' ); }\necho json_encode( array( 'dashless' => DASHLESS_WPCLOUD_BRIDGE_VERSION, 'generation' => $generation['generation'], 'wordpress' => get_bloginfo( 'version' ), 'php' => PHP_VERSION ) );\n"
+    }
+  ]
+}

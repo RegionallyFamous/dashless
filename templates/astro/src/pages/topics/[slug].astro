@@ -1,0 +1,14 @@
+---
+import Archive from "../../components/Archive.astro";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { config, getCategories, getPosts, plainText } from "../../lib/dashless.mjs";
+export async function getStaticPaths() {
+  const [terms, posts] = await Promise.all([getCategories(), getPosts()]);
+  return terms.map((term: any) => ({ params: { slug: term.slug }, props: { term, posts: posts.filter((post: any) => post.categories.includes(term.id)) } }));
+}
+const { term, posts } = Astro.props as { term: any; posts: any[] };
+---
+
+<SiteLayout title={term.name} description={plainText(term.description) || `${config.siteName} stories filed under ${term.name}.`}>
+  <Archive title={term.name} description={plainText(term.description)} posts={posts} base={term.url.replace(/\/$/, "")} />
+</SiteLayout>
