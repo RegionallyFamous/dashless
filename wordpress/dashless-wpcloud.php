@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name: Dashless for WordPress
+ * Plugin Name: Dashless
  * Description: Connects WordPress to the local Dashless Codex workflow and serves atomic Astro releases on WP Cloud.
  * Version: 1.0.0
  * Author: Regionally Famous
  * License: GPL-2.0-or-later
  */
 
-// Legacy upgrade marker retained so Dashless WP Cloud Bridge 0.3 can verify this staged successor: Plugin Name: Dashless WP Cloud Bridge.
+// Legacy upgrade markers retained so older bridges can verify this staged successor: Plugin Name: Dashless WP Cloud Bridge. Plugin Name: Dashless for WordPress.
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -393,11 +393,12 @@ function dashless_wpcloud_upgrade_bridge( WP_REST_Request $request ) {
 	}
 
 	$source = (string) file_get_contents( $staged ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-	if ( false === strpos( $source, 'Plugin Name: Dashless for WordPress' ) || ! preg_match( "/DASHLESS_WPCLOUD_BRIDGE_VERSION = '" . preg_quote( $version, '/' ) . "'/", $source ) ) {
+	if ( ! preg_match( '/^\s*\*\s*Plugin Name:\s*Dashless\s*$/m', $source ) || ! preg_match( "/DASHLESS_WPCLOUD_BRIDGE_VERSION = '" . preg_quote( $version, '/' ) . "'/", $source ) ) {
 		return new WP_Error( 'dashless_bridge_upgrade_invalid', 'The staged file is not the expected Dashless bridge version.', array( 'status' => 409 ) );
 	}
 
-	if ( ! rename( $staged, __FILE__ ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename
+	// Dashless runs as an MU plugin on WP Cloud. This authenticated, hash-verified operation replaces only its own bridge file.
+	if ( ! rename( $staged, __FILE__ ) ) { // phpcs:ignore PluginCheck.CodeAnalysis.WriteFile.PluginDirectoryWrite,WordPress.WP.AlternativeFunctions.rename_rename
 		return new WP_Error( 'dashless_bridge_upgrade_failed', 'WordPress could not atomically install the staged bridge.', array( 'status' => 500 ) );
 	}
 	if ( function_exists( 'opcache_invalidate' ) ) {
@@ -425,7 +426,7 @@ function dashless_mailbox_string_length( $value ) {
 function dashless_mailbox_consume_rate_limit() {
 	$limit  = max( 1, min( 20, (int) apply_filters( 'dashless_mailbox_rate_limit', 5 ) ) );
 	$window = max( 60, min( DAY_IN_SECONDS, (int) apply_filters( 'dashless_mailbox_rate_window', 15 * MINUTE_IN_SECONDS ) ) );
-	$ip     = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	$ip     = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
 	$ip     = filter_var( $ip, FILTER_VALIDATE_IP ) ? $ip : 'unknown';
 	$key    = 'dashless_mailbox_' . substr( hash_hmac( 'sha256', $ip, wp_salt( 'nonce' ) ), 0, 40 );
 	$now    = time();
@@ -1096,7 +1097,8 @@ function dashless_wpcloud_send_file( $file, $release_id, $status = 200, $content
 		header( 'X-Dashless-Content-Generation: ' . (string) absint( $content_generation ) );
 	}
 
-	if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && trim( wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) === $etag ) {
+	$if_none_match = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) : '';
+	if ( trim( $if_none_match ) === $etag ) {
 		header_remove( 'Content-Length' );
 		status_header( 304 );
 		exit;
@@ -1145,7 +1147,7 @@ function dashless_wpcloud_route_request() {
 		return;
 	}
 
-	$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/';
+	$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';
 	$path        = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
 	$sitemap_redirect = dashless_wpcloud_sitemap_redirect_target( $path );
 	if ( false !== $sitemap_redirect && wp_safe_redirect( $sitemap_redirect, 301, 'Dashless' ) ) {

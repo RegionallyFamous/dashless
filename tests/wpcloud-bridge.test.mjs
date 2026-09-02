@@ -307,7 +307,7 @@ test("Webmentions are verified, hidden pending email moderation, and public only
 
 test("the WordPress companion exposes the local workflow and content-generation contract", async () => {
   const source = await readFile(path.resolve("wordpress/dashless-wpcloud.php"), "utf8");
-  assert.match(source, /Plugin Name: Dashless for WordPress/);
+  assert.match(source, /^ \* Plugin Name: Dashless$/m);
   assert.match(source, /Version: 1\.0\.0/);
   assert.match(source, /DASHLESS_CONTENT_VERSION_OPTION/);
   assert.match(source, /'\/site'/);
