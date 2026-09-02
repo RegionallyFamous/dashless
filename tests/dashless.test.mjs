@@ -14,8 +14,8 @@ const { canonicalPost, contentDigest } = await import("../server/lib/digest.mjs"
 const { saveSiteConnection } = await import("../server/lib/storage.mjs");
 const { WordPressClient } = await import("../server/lib/wordpress.mjs");
 const { createDraft, savePreviewLock, stageUpdate } = await import("../server/lib/editorial.mjs");
-const { handleRequest } = await import("../server/dashless-mcp.mjs");
-const { buildWpCloudSftpBatch, createReleaseId, createWpCloudReleaseManifest, deployFrontend, validateDeployment, verifyPublicDigest, wpCloudReleasePrefix } = await import("../server/lib/frontend.mjs");
+const { buildAtStableContentGeneration, handleRequest, verifyActivatedWpCloudRelease } = await import("../server/dashless-mcp.mjs");
+const { assertContentGenerationMatches, buildWpCloudSftpBatch, createReleaseId, createWpCloudReleaseManifest, deployFrontend, validateDeployment, verifyPublicDigest, wpCloudReleasePrefix } = await import("../server/lib/frontend.mjs");
 
 test("content digests are stable across taxonomy ordering and ignore status", () => {
   const first = { id: 8, slug: "hello", title: "Hello", content: "<p>World</p>", excerpt: "", featured_media: 2, categories: [4, 1, 4], tags: [9], status: "draft" };
@@ -132,6 +132,72 @@ test("publication refuses a preview after WordPress changes", async (t) => {
   assert.equal(mock.state.posts.get(draft.id).status, "draft");
 });
 
+test("preview and production builds fail closed when target or other WordPress content changes during the build", async () => {
+  for (const mutation of ["target_post", "other_content"]) {
+    let generation = 41;
+    const client = {
+      inspectSite: async () => ({ dashless_plugin: { content_version: { generation } } }),
+    };
+    await assert.rejects(
+      () => buildAtStableContentGeneration({
+        client,
+        build: async () => {
+          generation += 1;
+          return { dist_path: `/tmp/${mutation}` };
+        },
+      }),
+      (error) => error.code === "content_changed_during_build"
+        && error.details.before_generation === 41
+        && error.details.after_generation === 42,
+      mutation,
+    );
+  }
+
+  const stable = await buildAtStableContentGeneration({
+    client: { inspectSite: async () => ({ dashless_plugin: { content_version: { generation: 77 } } }) },
+    build: async () => ({ dist_path: "/tmp/stable" }),
+  });
+  assert.equal(stable.generation, 77);
+  assert.equal(stable.generation_verified, true);
+  assert.equal(stable.result.dist_path, "/tmp/stable");
+});
+
+test("failed WP Cloud public verification automatically restores the prior release", async () => {
+  let rollbackCalls = 0;
+  let rollbackTarget = null;
+  await assert.rejects(
+    () => verifyActivatedWpCloudRelease({
+      deployment: { kind: "wpcloud" },
+      site: { site_url: "https://example.com" },
+      password: "secret",
+      url: "https://example.com/story/",
+      digest: "a".repeat(64),
+      releaseId: "20260811T120000000Z-abcdef",
+      verify: async () => ({ verified: false, last: { found_release_id: "wrong" } }),
+      rollback: async ({ expectedReleaseId }) => {
+        rollbackCalls += 1;
+        rollbackTarget = expectedReleaseId;
+        return { rolled_back: true, release_id: "20260810T120000000Z-123456" };
+      },
+    }),
+    (error) => error.code === "wpcloud_public_verification_failed"
+      && error.details.rollback.release_id === "20260810T120000000Z-123456",
+  );
+  assert.equal(rollbackCalls, 1);
+  assert.equal(rollbackTarget, "20260811T120000000Z-abcdef");
+
+  const verified = await verifyActivatedWpCloudRelease({
+    deployment: { kind: "wpcloud" },
+    site: { site_url: "https://example.com" },
+    password: "secret",
+    url: "https://example.com/",
+    releaseId: "20260811T120000000Z-abcdef",
+    verify: async () => ({ verified: true, found_release_id: "20260811T120000000Z-abcdef" }),
+    rollback: async () => { throw new Error("must not roll back a verified release"); },
+  });
+  assert.equal(verified.rolled_back, false);
+});
+
 test("local deployments switch an atomic current symlink without replacing prior releases", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dashless-deploy-"));
   const dist = path.join(root, "dist");
@@ -195,18 +261,35 @@ test("WP Cloud deployment rejects server-executable files before upload", async 
   );
 });
 
-test("WP Cloud release manifests lock every build file by size and digest", async () => {
+test("WP Cloud release manifests lock every build file, digest, and WordPress generation", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dashless-wpcloud-manifest-"));
   await mkdir(path.join(root, "_astro"));
   await writeFile(path.join(root, "index.html"), "home");
   await writeFile(path.join(root, "404.html"), "missing");
   await writeFile(path.join(root, "_astro", "site.css"), "body{}");
+  await writeFile(path.join(root, "indexnow-key.txt"), "86c1d4af20bf4c5e97a3d8126e4b09fc\n");
   const deployment = validateDeployment({ kind: "wpcloud", public_url: "https://example.com", host: "ssh.wp.cloud", user: "dashless" });
-  const manifest = await createWpCloudReleaseManifest({ distPath: root, deployment, releaseId: "20260808T120000000Z-abcdef" });
+  const manifest = await createWpCloudReleaseManifest({ distPath: root, deployment, releaseId: "20260808T120000000Z-abcdef", contentGeneration: 77 });
   assert.equal(manifest.public_host, "example.com");
-  assert.deepEqual(manifest.files.map((entry) => entry.path), ["404.html", "_astro/site.css", "index.html"]);
+  assert.equal(manifest.content_generation, 77);
+  assert.equal(manifest.indexnow_key, "86c1d4af20bf4c5e97a3d8126e4b09fc");
+  assert.deepEqual(manifest.files.map((entry) => entry.path), ["404.html", "_astro/site.css", "index.html", "indexnow-key.txt"]);
   assert.ok(manifest.files.every((entry) => /^[a-f0-9]{64}$/.test(entry.sha256)));
   assert.deepEqual(JSON.parse(await readFile(path.join(root, "dashless-release.json"), "utf8")), manifest);
+});
+
+test("WP Cloud refuses activation when WordPress no longer matches the built generation", () => {
+  assert.deepEqual(assertContentGenerationMatches(77, 77, "pre_activation"), {
+    expected_generation: 77,
+    current_generation: 77,
+    verified: true,
+  });
+  assert.throws(
+    () => assertContentGenerationMatches(77, 78, "pre_activation"),
+    (error) => error.code === "content_changed_during_deployment"
+      && error.details.expected_generation === 77
+      && error.details.current_generation === 78,
+  );
 });
 
 test("WP Cloud SFTP batches quote paths and create new release files", async () => {
@@ -228,19 +311,24 @@ test("WP Cloud SFTP batches quote paths and create new release files", async () 
 test("public verification requires the activated WP Cloud release as well as the content digest", async (t) => {
   const digest = "a".repeat(64);
   let releaseId = "old-release";
+  let contentGeneration = 76;
   const server = createServer((request, response) => {
     response.setHeader("Content-Type", "text/html");
     response.setHeader("X-Dashless-Release", releaseId);
+    response.setHeader("X-Dashless-Content-Generation", String(contentGeneration));
     response.end(`<meta name="dashless-content-digest" content="${digest}">`);
   });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   t.after(() => new Promise((resolve) => server.close(resolve)));
   const url = `http://127.0.0.1:${server.address().port}/story/`;
-  const stale = await verifyPublicDigest({ url, digest, releaseId: "new-release", attempts: 1 });
+  const stale = await verifyPublicDigest({ url, digest, releaseId: "new-release", contentGeneration: 77, attempts: 1 });
   assert.equal(stale.verified, false);
   assert.equal(stale.last.found_digest, digest);
   assert.equal(stale.last.found_release_id, "old-release");
+  assert.equal(stale.last.found_content_generation, 76);
   releaseId = "new-release";
-  const current = await verifyPublicDigest({ url, digest, releaseId: "new-release", attempts: 1 });
+  contentGeneration = 77;
+  const current = await verifyPublicDigest({ url, digest, releaseId: "new-release", contentGeneration: 77, attempts: 1 });
   assert.equal(current.verified, true);
+  assert.equal(current.content_generation, 77);
 });

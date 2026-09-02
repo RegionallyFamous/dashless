@@ -10,3 +10,5 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 delete_option( 'dashless_wpcloud_release' );
 delete_option( 'dashless_content_version' );
+delete_option( 'dashless_receiver_list' );
+delete_option( 'dashless_webmentions' );

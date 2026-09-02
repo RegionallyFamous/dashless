@@ -12,12 +12,12 @@ const homePage = pages.find((page: any) => page.isHome);
   <section class="hero retro-window">
     <div class="window-bar"><span>home.html</span><span aria-hidden="true">— □ ×</span></div>
     <div class="hero-copy">
-      <p class="online-status"><span aria-hidden="true"></span> TRANSMITTING FROM THE INDIE WEB</p>
+      <p class="online-status"><span aria-hidden="true"></span> TRANSMITTING FROM THE WEIRD LITTLE WEB</p>
       <h1>{homePage?.title || config.siteName}</h1>
       <p>{homePage ? plainText(homePage.excerpt || homePage.content).slice(0, 220) : config.siteDescription}</p>
-      <div class="hero-badges" aria-label="Site features"><span>WORDPRESS POWERED</span><span>HANDMADE HTML</span><span>NO ALGORITHM</span></div>
+      <div class="hero-badges" aria-label="Site features"><span>HUMAN-MADE</span><span>NO ALGORITHM</span><span>SLIGHTLY HAUNTED</span></div>
     </div>
-    <div class="hero-sticker" aria-hidden="true"><span>NEW!</span><strong>WELCOME<br />TO MY<br />WEBSITE</strong><small>EST. {new Date().getFullYear()}</small></div>
+    <div class="hero-sticker" aria-hidden="true"><span>LOOK!</span><strong>CERTIFIED<br />STRANGE<br />SIGNAL</strong><small>EST. {new Date().getFullYear()}</small></div>
   </section>
   {homePage?.content && <section class="home-content paper-panel article-body" set:html={homePage.content} />}
   {lead ? (
@@ -28,7 +28,7 @@ const homePage = pages.find((page: any) => page.isHome);
         {remaining.length > 0 && <div class="story-grid">{remaining.map((story: any) => <StoryCard story={story} />)}</div>}
         <p class="archive-link"><a href={`/${config.postsPath}/`}>OPEN THE COMPLETE ARCHIVE <span aria-hidden="true">→</span></a></p>
       </section>
-      <aside class="blog-sidebar" aria-label="Blog extras">
+      <aside class="blog-sidebar" aria-label="Site extras">
         <section class="sidebar-widget currently-widget">
           <div class="widget-title">SITE_STATUS.TXT</div>
           <dl><div><dt>Stories</dt><dd>{posts.length}</dd></div><div><dt>Topics</dt><dd>{categories.length}</dd></div><div><dt>Source</dt><dd>WordPress</dd></div></dl>

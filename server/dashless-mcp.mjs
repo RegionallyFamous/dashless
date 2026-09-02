@@ -72,6 +72,55 @@ function validationWarnings(payload) {
   return warnings;
 }
 
+function contentGenerationFromInspection(inspection) {
+  const value = inspection?.dashless_plugin?.content_version?.generation;
+  if (value === null || value === undefined || value === "") return null;
+  const generation = Number(value);
+  if (!Number.isSafeInteger(generation) || generation < 0) {
+    throw new DashlessError("content_generation_invalid", "WordPress reported an invalid Dashless content generation.", { generation: value });
+  }
+  return generation;
+}
+
+async function inspectContentGeneration(client) {
+  return contentGenerationFromInspection(await client.inspectSite());
+}
+
+export async function buildAtStableContentGeneration({ client, build }) {
+  const before = await inspectContentGeneration(client);
+  const result = await build();
+  const after = await inspectContentGeneration(client);
+  if (before !== after) {
+    throw new DashlessError(
+      "content_changed_during_build",
+      "WordPress changed while Astro was building. The prior static release remains live; build again from the current WordPress generation.",
+      { before_generation: before, after_generation: after },
+    );
+  }
+  return { result, generation: after, generation_verified: after !== null };
+}
+
+export async function verifyActivatedWpCloudRelease({ deployment, site, password, url, digest = null, releaseId, contentGeneration = null, attempts = 12, verify = verifyPublicDigest, rollback = rollbackWpCloudRelease }) {
+  const verification = await verify({ url, digest, releaseId, contentGeneration, attempts });
+  if (verification.verified) return { verification, rolled_back: false, rollback: null };
+  let rollbackResult;
+  try {
+    rollbackResult = await rollback({ deployment, site, password, expectedReleaseId: releaseId });
+  } catch (error) {
+    const failure = asDashlessError(error);
+    throw new DashlessError(
+      "wpcloud_public_verification_rollback_failed",
+      "The activated release failed public verification and the automatic rollback also failed. Check the public site and run rollback_wpcloud_release immediately.",
+      { verification, rollback_error: { code: failure.code, message: failure.message, details: failure.details } },
+    );
+  }
+  throw new DashlessError(
+    "wpcloud_public_verification_failed",
+    "The activated release failed public verification, so Dashless restored the previous verified release.",
+    { verification, rollback: rollbackResult },
+  );
+}
+
 async function safeStatus() {
   const environment = await getActiveConnection({ requireCredentials: false });
   const state = await loadConnections();
@@ -464,7 +513,12 @@ const tools = [
       const target = project_path || resolved.site.frontend?.project_path;
       if (!target) throw new DashlessError("frontend_not_configured", "Create a Dashless frontend before previewing.");
       const payloadPath = await writePreviewPayload({ ...resolved.payload, post_type }, resolved.site.id);
-      const build = await buildFrontend({ projectPath: target, site: resolved.site, password: (await getActiveConnection()).password, previewPayloadPath: payloadPath });
+      const password = (await getActiveConnection()).password;
+      const stableBuild = await buildAtStableContentGeneration({
+        client: resolved.client,
+        build: () => buildFrontend({ projectPath: target, site: resolved.site, password, previewPayloadPath: payloadPath }),
+      });
+      const build = stableBuild.result;
       const route = post_type === "page"
         ? await resolved.client.pageRoute(resolved.payload)
         : routeFor(post_type, resolved.payload.slug, resolved.site.frontend?.posts_path || "stories");
@@ -487,6 +541,8 @@ const tools = [
         preview_url: preview.preview_url,
         preview_token: lock.token,
         digest,
+        content_generation: stableBuild.generation,
+        content_generation_verified: stableBuild.generation_verified,
         wordpress_modified_gmt: lock.base_modified_gmt,
         change_id: lock.change_id,
         warnings: validationWarnings(resolved.payload),
@@ -542,10 +598,17 @@ const tools = [
       try {
         const releaseId = site.deployment?.kind === "wpcloud" ? createReleaseId() : null;
         const releasePrefix = releaseId ? wpCloudReleasePrefix(site.deployment, releaseId) : null;
-        const build = await buildFrontend({ projectPath: lock.project_path, site, password, releasePrefix });
+        const stableBuild = await buildAtStableContentGeneration({
+          client,
+          build: () => buildFrontend({ projectPath: lock.project_path, site, password, releasePrefix }),
+        });
+        const build = stableBuild.result;
         release.production_built = true;
         release.dist_path = build.dist_path;
+        release.content_generation = stableBuild.generation;
+        release.content_generation_verified = stableBuild.generation_verified;
         if (!site.deployment) {
+          await updateActiveSite({ frontend: { ...(site.frontend || {}), project_path: lock.project_path, last_built_at: new Date().toISOString(), last_built_generation: stableBuild.generation } });
           release.next_action = "Configure deployment or deploy the built dist directory manually.";
           return release;
         }
@@ -555,20 +618,33 @@ const tools = [
           releaseId,
           site,
           password,
+          contentGeneration: stableBuild.generation,
         });
         release.deployed = true;
-        const generation = (await client.inspectSite()).dashless_plugin?.content_version?.generation ?? null;
-        await updateActiveSite({ frontend: { ...(site.frontend || {}), project_path: lock.project_path, last_built_at: new Date().toISOString(), last_deployed_at: new Date().toISOString(), last_built_generation: generation, last_deployed_generation: generation } });
         const publicUrl = `${site.deployment.public_url}${lock.route_path || routeFor(lock.post_type, lock.slug, site.frontend?.posts_path || "stories")}`;
-        release.verification = await verifyPublicDigest({
-          url: publicUrl,
-          digest: lock.digest,
-          releaseId: site.deployment.kind === "wpcloud" ? release.deployment.release_id : null,
-        });
-        release.public_verified = release.verification.verified;
+        if (site.deployment.kind === "wpcloud") {
+          const verified = await verifyActivatedWpCloudRelease({
+            deployment: site.deployment,
+            site,
+            password,
+            url: publicUrl,
+            digest: lock.digest,
+            releaseId: release.deployment.release_id,
+            contentGeneration: stableBuild.generation,
+          });
+          release.verification = verified.verification;
+          release.public_verified = true;
+        }
+        await updateActiveSite({ frontend: { ...(site.frontend || {}), project_path: lock.project_path, last_built_at: new Date().toISOString(), last_deployed_at: new Date().toISOString(), last_built_generation: stableBuild.generation, last_deployed_generation: stableBuild.generation } });
         return release;
       } catch (error) {
         const failure = asDashlessError(error);
+        if (failure.code === "wpcloud_public_verification_failed") {
+          release.deployed = false;
+          release.rolled_back = true;
+          release.rollback = failure.details?.rollback || null;
+          release.verification = failure.details?.verification || null;
+        }
         release.release_error = { code: failure.code, message: failure.message, details: failure.details };
         return release;
       }
@@ -587,17 +663,31 @@ const tools = [
       if (!target) throw new DashlessError("frontend_not_configured", "Create or select a Dashless frontend first.");
       const releaseId = site.deployment.kind === "wpcloud" ? createReleaseId() : null;
       const releasePrefix = releaseId ? wpCloudReleasePrefix(site.deployment, releaseId) : null;
-      const build = await buildFrontend({ projectPath: target, site, password, releasePrefix });
-      const deployment = await deployFrontend({ distPath: build.dist_path, deployment: site.deployment, releaseId, site, password });
-      const generation = (await client.inspectSite()).dashless_plugin?.content_version?.generation ?? null;
-      await updateActiveSite({ frontend: { ...(site.frontend || {}), project_path: target, last_built_at: new Date().toISOString(), last_deployed_at: new Date().toISOString(), last_built_generation: generation, last_deployed_generation: generation } });
-      const verification = site.deployment.kind === "wpcloud"
-        ? await verifyPublicDigest({ url: `${site.deployment.public_url}/`, releaseId: deployment.release_id })
-        : null;
+      const stableBuild = await buildAtStableContentGeneration({
+        client,
+        build: () => buildFrontend({ projectPath: target, site, password, releasePrefix }),
+      });
+      const build = stableBuild.result;
+      const deployment = await deployFrontend({ distPath: build.dist_path, deployment: site.deployment, releaseId, site, password, contentGeneration: stableBuild.generation });
+      let verification = null;
+      if (site.deployment.kind === "wpcloud") {
+        const verified = await verifyActivatedWpCloudRelease({
+          deployment: site.deployment,
+          site,
+          password,
+          url: `${site.deployment.public_url}/`,
+          releaseId: deployment.release_id,
+          contentGeneration: stableBuild.generation,
+        });
+        verification = verified.verification;
+      }
+      await updateActiveSite({ frontend: { ...(site.frontend || {}), project_path: target, last_built_at: new Date().toISOString(), last_deployed_at: new Date().toISOString(), last_built_generation: stableBuild.generation, last_deployed_generation: stableBuild.generation } });
       return {
         production_built: true,
         deployed: true,
         public_verified: verification ? verification.verified : false,
+        content_generation: stableBuild.generation,
+        content_generation_verified: stableBuild.generation_verified,
         dist_path: build.dist_path,
         deployment,
         verification,

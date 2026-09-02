@@ -1,6 +1,6 @@
 export default {
-  siteName: "Dashless Publication",
-  siteDescription: "An independent publication built with Dashless.",
+  siteName: "Teddy",
+  siteDescription: "Notes, curiosities, and other signals from Teddy.",
   wordpressUrl: "https://cms.example.com",
   publicUrl: "http://localhost:4321",
   postsPath: "stories",

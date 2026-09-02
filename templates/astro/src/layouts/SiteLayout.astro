@@ -17,6 +17,7 @@ const canonical = new URL(Astro.url.pathname, config.publicUrl).toString();
 const displayHost = new URL(config.publicUrl).hostname || "localhost";
 const navigation = await getNavigation();
 const isCurrent = (url: string) => url === "/" ? Astro.url.pathname === "/" : Astro.url.pathname.startsWith(url);
+const usesTeddyMark = /\bteddy\b/i.test(config.siteName);
 const structuredData = article ? {
   "@context": "https://schema.org",
   "@type": "Article",
@@ -48,7 +49,14 @@ const structuredData = article ? {
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex,follow" />}
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {usesTeddyMark ? (
+      <>
+        <link rel="icon" type="image/png" sizes="96x96" href="/teddy-favicon.png" />
+        <link rel="apple-touch-icon" href="/teddy-logo.png" />
+      </>
+    ) : (
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    )}
     <link rel="sitemap" href="/sitemap.xml" />
     <link rel="alternate" type="application/rss+xml" title={config.siteName} href="/rss.xml" />
     {digest && <meta name="dashless-content-digest" content={digest} />}
@@ -88,27 +96,41 @@ const structuredData = article ? {
           <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme">NIGHT MODE</button>
         </div>
         <div class="masthead">
-          <a class="wordmark" href="/">
-            <span class="wordmark-mark" aria-hidden="true">✦</span>
-            <span>{config.siteName}</span>
-            <small>PERSONAL WEB LOG</small>
+          <a class:list={["wordmark", { "has-teddy-mark": usesTeddyMark }]} href="/" aria-label={`${config.siteName} — home`}>
+            {usesTeddyMark ? (
+              <span class="wordmark-logo" aria-hidden="true"><img src="/teddy-logo.png" alt="" width="512" height="512" /></span>
+            ) : (
+              <span class="wordmark-mark" aria-hidden="true">✦</span>
+            )}
+            <span class="wordmark-name">{config.siteName}</span>
           </a>
           <nav aria-label="Main navigation">
             {navigation.map((item: any) => <a href={item.url} aria-current={isCurrent(item.url) ? "page" : undefined}>{item.label}</a>)}
           </nav>
         </div>
         <div class="signal-strip" aria-label="Site status">
-          <span><i aria-hidden="true"></i> LIVE ON THE OPEN WEB</span>
+          <span><i aria-hidden="true"></i> {config.siteName.toUpperCase()} IS ONLINE</span>
           <span aria-hidden="true">✦ FRESH POSTS ✦ STRANGE LINKS ✦ GOOD INTERNET ✦</span>
           <a href="/rss.xml">RSS FEED ↗</a>
         </div>
       </header>
       <main id="main-content"><slot /></main>
       <footer class="site-footer">
-        <div><span class="footer-star" aria-hidden="true">✦</span><p><strong>{config.siteName}</strong><br />A small corner of the big internet.</p></div>
+        <div>{usesTeddyMark ? <img class="footer-teddy" src="/teddy-logo.png" alt="" width="512" height="512" /> : <span class="footer-star" aria-hidden="true">✦</span>}<p><strong>{config.siteName}</strong><br />A small corner of the big internet.</p></div>
         <p>Made with WordPress, Astro, and unreasonable enthusiasm.<br /><a href="/rss.xml">Subscribe via RSS</a> · <a href="#main-content">Back to top ↑</a></p>
-        <div class="web-badge" aria-label="Independent website"><span>WORLD</span><strong>WIDE WEB</strong><small>BEST VIEWED WITH CURIOSITY</small></div>
+        <div class="footer-curiosities">
+          <div class="web-badge" aria-label="Independent website"><span>WORLD</span><strong>WIDE WEB</strong><small>BEST VIEWED WITH CURIOSITY</small></div>
+          <button class="oddity-switch" id="oddity-switch" type="button" aria-pressed="false" title="There may be another way in">DO NOT PRESS</button>
+        </div>
       </footer>
+    </div>
+    <!-- You found the source-code tunnel. Try typing T-E-D-D-Y. -->
+    <div class="oddity-layer" id="oddity-layer" aria-hidden="true" hidden>
+      <span>404?</span><span>✦</span><span>HELLO</span><span>⌁</span><span>★</span><span>???</span>
+    </div>
+    <div class="teddy-sighting" id="teddy-sighting" role="status" aria-live="polite" aria-atomic="true" hidden>
+      <img src="/teddy-logo.png" alt="" width="512" height="512" />
+      <p><strong>TEDDY HAS ENTERED THE BROWSER</strong><small>Please remain mostly calm.</small></p>
     </div>
     <script>
       (() => {
@@ -135,6 +157,42 @@ const structuredData = article ? {
           try { if (localStorage.getItem("dashless-theme") !== null) return; } catch {}
           document.documentElement.dataset.theme = event.matches ? "dark" : "light";
           sync();
+        });
+
+        const oddityButton = document.querySelector<HTMLButtonElement>("#oddity-switch");
+        const oddityLayer = document.querySelector<HTMLElement>("#oddity-layer");
+        const oddityToast = document.querySelector<HTMLElement>("#teddy-sighting");
+        let oddityTimer: number | undefined;
+        const setOddity = (active: boolean) => {
+          document.body.dataset.oddity = active ? "true" : "false";
+          if (oddityButton) {
+            oddityButton.textContent = active ? "UNDO WEIRD" : "DO NOT PRESS";
+            oddityButton.setAttribute("aria-pressed", String(active));
+          }
+          oddityLayer?.toggleAttribute("hidden", !active);
+          if (!oddityToast) return;
+          if (oddityTimer) window.clearTimeout(oddityTimer);
+          if (active) {
+            oddityToast.hidden = false;
+            window.requestAnimationFrame(() => oddityToast.classList.add("is-visible"));
+            oddityTimer = window.setTimeout(() => {
+              oddityToast.classList.remove("is-visible");
+              oddityTimer = window.setTimeout(() => { oddityToast.hidden = true; }, 240);
+            }, 2800);
+          } else {
+            oddityToast.classList.remove("is-visible");
+            oddityToast.hidden = true;
+          }
+        };
+        oddityButton?.addEventListener("click", () => setOddity(document.body.dataset.oddity !== "true"));
+
+        let secretBuffer = "";
+        document.addEventListener("keydown", (event) => {
+          const target = event.target as HTMLElement | null;
+          if (event.metaKey || event.ctrlKey || event.altKey || target?.matches("input, textarea, select, [contenteditable='true']")) return;
+          if (event.key.length !== 1) return;
+          secretBuffer = `${secretBuffer}${event.key.toLowerCase()}`.slice(-5);
+          if (secretBuffer === "teddy") setOddity(true);
         });
 
         const replaceBrokenImage = (image: HTMLImageElement) => {

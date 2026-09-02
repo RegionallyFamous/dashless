@@ -62,6 +62,10 @@ test("the generated Astro frontend installs and produces digest-marked static pa
   assert.equal(socialCard.readUInt32BE(16), 1200);
   assert.equal(socialCard.readUInt32BE(20), 630);
   assert.match(home, /Mock Gazette/);
+  assert.match(home, /href="\/favicon\.svg"/);
+  assert.doesNotMatch(home, /PERSONAL WEB LOG|WELCOME TO MY WEBSITE/);
+  assert.match(home, /DO NOT PRESS/);
+  assert.match(home, /Try typing T-E-D-D-Y/);
   assert.match(home, /https:\/\/gazette\.example\/wp-content\/uploads\/dashless\/releases\/20260808T120000000Z-abcdef\/_astro\//);
   assert.match(story, /dashless-content-digest/);
   assert.match(story, /Original body/);
@@ -79,6 +83,7 @@ test("the generated Astro frontend installs and produces digest-marked static pa
   assert.match(story, /view-transition-name: dashless-story-image-1/);
   assert.match(globalCss, /@view-transition\s*\{[\s\S]*navigation:\s*auto/);
   assert.match(globalCss, /prefers-reduced-motion/);
+  assert.match(globalCss, /\.teddy-sighting\[hidden\]/);
   assert.match(globalCss, /::view-transition-old\(root\)/);
   assert.match(page, /About this publication/);
   assert.match(nestedPage, /Meet the team/);
@@ -125,6 +130,8 @@ test("the generated Astro frontend installs and produces digest-marked static pa
   });
   assert.equal(previewed.result.isError, false, previewed.result.content[0].text);
   assert.match(previewed.result.structuredContent.preview_url, /\/stories\/golden-path\/$/);
+  assert.equal(previewed.result.structuredContent.content_generation_verified, true);
+  assert.equal(previewed.result.structuredContent.content_generation, mock.state.clock);
   const previewHtml = await (await fetch(previewed.result.structuredContent.preview_url)).text();
   assert.match(previewHtml, /Drafted, previewed, and published/);
 
