@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { mediaCache, copyCachedFile } from "./media-cache.mjs";
 import userConfig from "../../dashless.config.mjs";
 import { generateSocialCard } from "./social-card.mjs";
 
@@ -140,21 +141,23 @@ function mirroredMediaRelative(url, prefix) {
   return `/_dashless/media/${safeMediaName(url, prefix)}`;
 }
 
-async function mirrorUrl(url, prefix) {
+const mirroredFiles = new Map();
+function mirrorUrl(url, prefix) {
+  const key = `${prefix}:${url}`;
+  if (!mirroredFiles.has(key)) mirroredFiles.set(key, mirrorFile(url, prefix));
+  return mirroredFiles.get(key);
+}
+
+async function mirrorFile(url, prefix) {
   const relative = mirroredMediaRelative(url, prefix);
   if (!relative) return url;
   const destination = path.join(process.cwd(), "public", relative);
   const buildDestination = path.join(process.cwd(), "dist", relative);
-  try {
-    await readFile(destination);
-  } catch {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Could not mirror WordPress media: ${url}`);
-    await mkdir(path.dirname(destination), { recursive: true });
-    await writeFile(destination, Buffer.from(await response.arrayBuffer()));
-  }
+  const cached = await mediaCache.get(url);
+  await mkdir(path.dirname(destination), { recursive: true });
+  await copyCachedFile(cached.file, destination);
   await mkdir(path.dirname(buildDestination), { recursive: true });
-  await copyFile(destination, buildDestination);
+  await copyCachedFile(destination, buildDestination);
   return releasePrefix ? `${releasePrefix}${relative}` : relative;
 }
 
@@ -291,8 +294,13 @@ export function searchIndex(posts, pages) {
   ];
 }
 
-export const getPosts = () => getContent("post");
-export const getPages = () => getContent("page");
+const contentCache = new Map();
+function getContentOnce(type) {
+  if (!contentCache.has(type)) contentCache.set(type, getContent(type));
+  return contentCache.get(type);
+}
+export const getPosts = () => getContentOnce("post");
+export const getPages = () => getContentOnce("page");
 export const getCategories = () => listTerms("categories", config.topicsPath);
 export const getTags = () => listTerms("tags", config.tagsPath);
 

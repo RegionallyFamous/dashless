@@ -126,6 +126,7 @@ function dashless_wpcloud_release_status() {
 			'content_generation' => isset( $release['content_generation'] ) ? (int) $release['content_generation'] : null,
 			'previous_release_id' => isset( $release['previous']['id'] ) ? $release['previous']['id'] : null,
 			'bridge'       => DASHLESS_WPCLOUD_BRIDGE_VERSION,
+			'delta_bundles' => class_exists( 'PharData' ) && extension_loaded( 'zlib' ),
 			'bridge_sha256' => hash_file( 'sha256', __FILE__ ),
 			'content_version' => get_option( DASHLESS_CONTENT_VERSION_OPTION, array() ),
 		)
@@ -199,6 +200,146 @@ function dashless_notify_discovery_services( $release_directory, $public_url, $i
  * Atomically select a fully uploaded release. The old release stays active if
  * validation fails at any point.
  */
+/** Validate transport manifests before creating anything on disk. */
+function dashless_wpcloud_transfer_entries( $manifest, $release_id ) {
+	if ( ! is_array( $manifest ) || 1 !== ( $manifest['version'] ?? null ) || $release_id !== ( $manifest['release_id'] ?? '' ) || ! preg_match( '/^[0-9T]+Z-[a-f0-9]{6}$/', $release_id ) || empty( $manifest['public_host'] ) || empty( $manifest['files'] ) || ! is_array( $manifest['files'] ) || count( $manifest['files'] ) > 20000 ) {
+		return new WP_Error( 'dashless_manifest_invalid', 'Invalid transfer manifest.', array( 'status' => 400 ) );
+	}
+	$entries = array();
+	foreach ( $manifest['files'] as $entry ) {
+		$relative = $entry['path'] ?? '';
+		$segments = is_string( $relative ) ? explode( '/', $relative ) : array();
+		if ( ! is_string( $relative ) || '' === $relative || preg_match( '/[\\\\\x00-\x1F\x7F]/', $relative ) || in_array( '', $segments, true ) || in_array( '.', $segments, true ) || in_array( '..', $segments, true ) || preg_match( '#(^|/)(\.htaccess|\.user\.ini|\.dashless[^/]*)(/|$)|\.(php\d*|phtml|phar)$#i', $relative ) || 'dashless-release.json' === $relative || ! is_int( $entry['bytes'] ?? null ) || $entry['bytes'] < 0 || ! preg_match( '/^[a-f0-9]{64}$/', $entry['sha256'] ?? '' ) || isset( $entries[ $relative ] ) ) {
+			return new WP_Error( 'dashless_manifest_invalid', 'Unsafe or duplicate transfer file.', array( 'status' => 400 ) );
+		}
+		$entries[ $relative ] = $entry;
+	}
+	if ( ! isset( $entries['index.html'], $entries['404.html'] ) ) {
+		return new WP_Error( 'dashless_manifest_invalid', 'Missing required pages.', array( 'status' => 400 ) );
+	}
+	return $entries;
+}
+
+/** Only reuse a regular file contained in an immutable release with the exact desired hash. */
+function dashless_wpcloud_reusable_file( $directory, $entry ) {
+	$root = $directory && ! is_link( $directory ) ? realpath( $directory ) : false;
+	$file = $root ? realpath( $root . '/' . $entry['path'] ) : false;
+	if ( ! $file || 0 !== strpos( $file, trailingslashit( $root ) ) || ! is_file( $file ) || is_link( $root . '/' . $entry['path'] ) || filesize( $file ) !== $entry['bytes'] ) {
+		return false;
+	}
+	$hash = hash_file( 'sha256', $file );
+	return is_string( $hash ) && hash_equals( $entry['sha256'], $hash ) ? $file : false;
+}
+
+/** Read-only plan: the source release stays pinned even if another deployment activates. */
+function dashless_wpcloud_plan_release( WP_REST_Request $request ) {
+	$manifest = $request->get_param( 'manifest' );
+	$entries = dashless_wpcloud_transfer_entries( $manifest, $manifest['release_id'] ?? '' );
+	if ( is_wp_error( $entries ) ) { return $entries; }
+	$active = get_option( DASHLESS_WPCLOUD_OPTION, array() );
+	$base_id = $active['id'] ?? null;
+	$base = $base_id && preg_match( '/^[0-9T]+Z-[a-f0-9]{6}$/', $base_id ) && ( $active['public_host'] ?? '' ) === $manifest['public_host'] ? dashless_wpcloud_releases_directory() . '/' . $base_id : null;
+	$missing = array();
+	$reused_bytes = 0;
+	foreach ( $entries as $relative => $entry ) {
+		if ( $base && dashless_wpcloud_reusable_file( $base, $entry ) ) {
+			$reused_bytes += $entry['bytes'];
+		} else {
+			$missing[] = $relative;
+		}
+	}
+	return rest_ensure_response( array( 'base_release_id' => $base ? $base_id : null, 'upload_files' => $missing, 'reused_files' => count( $entries ) - count( $missing ), 'reused_bytes' => $reused_bytes ) );
+}
+
+/** Delete only this request's temporary assembly tree, never a published release. */
+function dashless_wpcloud_remove_assembly( $directory ) {
+	if ( ! is_dir( $directory ) || is_link( $directory ) ) { return; }
+	foreach ( new FilesystemIterator( $directory, FilesystemIterator::SKIP_DOTS ) as $entry ) {
+		if ( $entry->isDir() && ! $entry->isLink() ) {
+			dashless_wpcloud_remove_assembly( $entry->getPathname() );
+		} else {
+			unlink( $entry->getPathname() );
+		}
+	}
+	rmdir( $directory );
+}
+
+/** Assemble an isolated complete release from a compressed delta plus verified server-side copies. */
+function dashless_wpcloud_assemble_release( WP_REST_Request $request ) {
+	$id = (string) $request->get_param( 'release_id' );
+	$hash = (string) $request->get_param( 'sha256' );
+	if ( ! preg_match( '/^[0-9T]+Z-[a-f0-9]{6}$/', $id ) || ! preg_match( '/^[a-f0-9]{64}$/', $hash ) ) {
+		return new WP_Error( 'dashless_transfer_invalid', 'Invalid transfer identity.', array( 'status' => 400 ) );
+	}
+	$base = dashless_wpcloud_releases_directory();
+	$target = $base . '/' . $id;
+	$archive_path = dirname( $base ) . '/incoming/' . $id . '.tar.gz';
+	// An uncertain response can be retried, but an existing release can never be overwritten.
+	if ( file_exists( $target ) || is_link( $target ) ) {
+		$marker = $target . '/.dashless-transfer-sha256';
+		if ( ! is_link( $target ) && is_file( $marker ) && hash_equals( $hash, trim( (string) file_get_contents( $marker ) ) ) ) {
+			return rest_ensure_response( array( 'assembled' => true, 'release_id' => $id, 'reused_assembly' => true ) );
+		}
+		return new WP_Error( 'dashless_release_exists', 'This release already exists; use a new release ID.', array( 'status' => 409 ) );
+	}
+	if ( ! class_exists( 'PharData' ) || ! is_file( $archive_path ) || is_link( $archive_path ) || ! hash_equals( $hash, (string) hash_file( 'sha256', $archive_path ) ) ) {
+		return new WP_Error( 'dashless_transfer_invalid', 'The uploaded bundle is missing or failed its hash check.', array( 'status' => 409 ) );
+	}
+	$temp = null;
+	try {
+		$archive_path = realpath( $archive_path );
+		$archive = new PharData( $archive_path );
+		if ( ! isset( $archive['dashless-release.json'] ) || ! $archive['dashless-release.json']->isFile() || $archive['dashless-release.json']->isLink() || $archive['dashless-release.json']->getSize() > 8 * 1024 * 1024 ) {
+			throw new RuntimeException( 'Bundle has no valid manifest.' );
+		}
+		$manifest_text = $archive['dashless-release.json']->getContent();
+		$manifest = json_decode( $manifest_text, true );
+		$entries = dashless_wpcloud_transfer_entries( $manifest, $id );
+		if ( is_wp_error( $entries ) ) { return $entries; }
+		$base_id = $manifest['base_release_id'] ?? null;
+		if ( null !== $base_id && ( ! is_string( $base_id ) || ! preg_match( '/^[0-9T]+Z-[a-f0-9]{6}$/', $base_id ) || $base_id === $id ) ) {
+			throw new RuntimeException( 'Invalid base release.' );
+		}
+		// Never extract archive paths. Only stream explicitly allowed regular entries to new files.
+		foreach ( new RecursiveIteratorIterator( $archive ) as $file ) {
+			$relative = substr( $file->getPathname(), strlen( 'phar://' . $archive_path . '/' ) );
+			if ( ! $file->isFile() || $file->isLink() || ( 'dashless-release.json' !== $relative && ! isset( $entries[ $relative ] ) ) ) {
+				throw new RuntimeException( 'Bundle contains an unlisted or non-regular file.' );
+			}
+		}
+		if ( ! is_dir( $base ) && ! mkdir( $base, 0755, true ) ) { throw new RuntimeException( 'Cannot create releases directory.' ); }
+		$temp = $base . '/.assembling-' . $id . '-' . bin2hex( random_bytes( 6 ) );
+		if ( ! mkdir( $temp, 0755 ) ) { throw new RuntimeException( 'Cannot create assembly directory.' ); }
+		foreach ( $entries as $relative => $entry ) {
+			$destination = $temp . '/' . $relative;
+			if ( ! is_dir( dirname( $destination ) ) && ! mkdir( dirname( $destination ), 0755, true ) ) { throw new RuntimeException( 'Cannot create file directory.' ); }
+			if ( isset( $archive[ $relative ] ) ) {
+				$file = $archive[ $relative ];
+				if ( ! $file->isFile() || $file->isLink() || $file->getSize() !== $entry['bytes'] ) { throw new RuntimeException( 'Invalid bundle entry size or type: ' . $relative ); }
+				$input = fopen( $file->getPathname(), 'rb' );
+				$output = fopen( $destination, 'xb' );
+				if ( ! $input || ! $output ) { throw new RuntimeException( 'Cannot write bundle entry.' ); }
+				try { $bytes = stream_copy_to_stream( $input, $output, $entry['bytes'] + 1 ); }
+				finally { fclose( $input ); fclose( $output ); }
+				if ( $bytes !== $entry['bytes'] ) { throw new RuntimeException( 'Incomplete bundle entry.' ); }
+			} else {
+				$source = $base_id ? dashless_wpcloud_reusable_file( $base . '/' . $base_id, $entry ) : false;
+				if ( ! $source || ! copy( $source, $destination ) ) { throw new RuntimeException( 'Reusable source is missing or changed: ' . $relative ); }
+			}
+			if ( ! dashless_wpcloud_reusable_file( $temp, $entry ) ) { throw new RuntimeException( 'Assembled file failed verification: ' . $relative ); }
+		}
+		if ( false === file_put_contents( $temp . '/dashless-release.json', $manifest_text ) || false === file_put_contents( $temp . '/.dashless-transfer-sha256', $hash ) ) { throw new RuntimeException( 'Cannot save assembly manifest.' ); }
+		if ( file_exists( $target ) || ! rename( $temp, $target ) ) { throw new RuntimeException( 'Release already exists or assembly rename failed.' ); }
+		$temp = null;
+		unlink( $archive_path );
+		return rest_ensure_response( array( 'assembled' => true, 'release_id' => $id, 'file_count' => count( $entries ) ) );
+	} catch ( Throwable $error ) {
+		return new WP_Error( 'dashless_assembly_failed', $error->getMessage(), array( 'status' => 409 ) );
+	} finally {
+		if ( $temp ) { dashless_wpcloud_remove_assembly( $temp ); }
+	}
+}
+
 function dashless_wpcloud_activate_release( WP_REST_Request $request ) {
 	$release_id = sanitize_text_field( (string) $request->get_param( 'release_id' ) );
 	$public_url = esc_url_raw( (string) $request->get_param( 'public_url' ) );
@@ -911,6 +1052,9 @@ add_action(
 				),
 			)
 		);
+
+		register_rest_route( 'dashless/v1', '/release/plan', array( 'methods' => WP_REST_Server::CREATABLE, 'callback' => 'dashless_wpcloud_plan_release', 'permission_callback' => 'dashless_wpcloud_can_activate', 'args' => array( 'manifest' => array( 'required' => true, 'type' => 'object' ) ) ) );
+		register_rest_route( 'dashless/v1', '/release/assemble', array( 'methods' => WP_REST_Server::CREATABLE, 'callback' => 'dashless_wpcloud_assemble_release', 'permission_callback' => 'dashless_wpcloud_can_activate', 'args' => array( 'release_id' => array( 'required' => true, 'type' => 'string' ), 'sha256' => array( 'required' => true, 'type' => 'string' ) ) ) );
 
 		register_rest_route(
 			'dashless/v1',

@@ -130,6 +130,7 @@ export async function buildFrontend({ projectPath, site, password, previewPayloa
   if (!(await exists(path.join(target, "package.json"))) || !(await exists(path.join(target, "dashless.config.mjs")))) {
     throw new DashlessError("frontend_not_dashless", "The selected directory is not a Dashless Astro frontend.");
   }
+  const started = Date.now();
   let installed = false;
   if (!(await exists(path.join(target, "node_modules")))) {
     if (!install) throw new DashlessError("frontend_dependencies_missing", "Frontend dependencies are not installed.");
@@ -145,6 +146,7 @@ export async function buildFrontend({ projectPath, site, password, previewPayloa
       WORDPRESS_URL: site.site_url,
       WORDPRESS_USERNAME: site.username,
       WORDPRESS_APP_PASSWORD: password,
+      DASHLESS_BUILD_METRICS: "1",
       DASHLESS_PREVIEW_PAYLOAD: previewPayloadPath || "",
       DASHLESS_RELEASE_PREFIX: releasePrefix || "",
       DASHLESS_ASSETS_PREFIX: releasePrefix || "",
@@ -154,7 +156,8 @@ export async function buildFrontend({ projectPath, site, password, previewPayloa
   if (!(await exists(path.join(dist, "index.html")))) {
     throw new DashlessError("frontend_build_incomplete", "Astro completed without producing dist/index.html.");
   }
-  return { project_path: target, dist_path: dist, dependencies_installed: installed, output: result.output };
+  const cacheLine = [...result.output.matchAll(/DASHLESS_MEDIA_CACHE (\{[^\n]+\})/g)].at(-1);
+  return { project_path: target, dist_path: dist, dependencies_installed: installed, duration_ms: Date.now() - started, media_cache: cacheLine ? JSON.parse(cacheLine[1]) : null, output: result.output };
 }
 
 async function availablePort() {
@@ -643,7 +646,7 @@ async function finalizeWpCloudBridge({ deployment, site, password, plan, uploade
   if (!verified.installed || verified.bridge !== plan.descriptor.version || verified.bridge_sha256 !== plan.descriptor.sha256) {
     throw new DashlessError("wpcloud_bridge_version_mismatch", `Expected WP Cloud bridge ${plan.descriptor.version}, but WordPress reported ${verified.bridge || "none"}.`);
   }
-  return { mode: plan.mode, version: verified.bridge, content_version: verified.content_version || null };
+  return { mode: plan.mode, version: verified.bridge, content_version: verified.content_version || null, delta_bundles: verified.delta_bundles === true };
 }
 
 export async function checkWpCloudDeployment({ deployment, site, password }) {
@@ -719,17 +722,85 @@ export function wpCloudReleasePrefix(deployment, id) {
   return `${deployment.public_url}/wp-content/uploads/dashless/releases/${id}`;
 }
 
+/** Bundle only the files requested by the bridge, plus the complete activation manifest. */
+export async function createWpCloudDeltaBundle({ distPath, manifest, plan, bundlePath }) {
+  const entries = new Map(manifest.files.map((entry) => [entry.path, entry]));
+  if (!Array.isArray(plan.upload_files) || new Set(plan.upload_files).size !== plan.upload_files.length || plan.upload_files.some((file) => !entries.has(file)) || (plan.base_release_id !== null && !/^[0-9T]+Z-[a-f0-9]{6}$/.test(plan.base_release_id))) {
+    throw new DashlessError("wpcloud_plan_invalid", "The bridge returned an invalid transfer plan.");
+  }
+  if (!plan.base_release_id && plan.upload_files.length !== entries.size) {
+    throw new DashlessError("wpcloud_plan_invalid", "A first release must upload every file.");
+  }
+  const transferManifest = { ...manifest, base_release_id: plan.base_release_id };
+  await writeFile(path.join(distPath, "dashless-release.json"), `${JSON.stringify(transferManifest, null, 2)}\n`);
+  await mkdir(path.dirname(bundlePath), { recursive: true, mode: 0o700 });
+  const listPath = `${bundlePath}.files`;
+  // --null treats list entries as literal filenames, including leading hyphens.
+  await writeFile(listPath, [...plan.upload_files, "dashless-release.json"].map((file) => `${file}\0`).join(""), { mode: 0o600 });
+  try {
+    await run("tar", ["--format=ustar", "-czf", bundlePath, "--null", "-T", listPath], { cwd: distPath, env: { COPYFILE_DISABLE: "1" } });
+  } finally {
+    await rm(listPath, { force: true });
+  }
+  const uploadedBytes = (await stat(bundlePath)).size;
+  const changedBytes = plan.upload_files.reduce((total, file) => total + entries.get(file).bytes, 0);
+  return {
+    path: bundlePath,
+    sha256: await hashFile(bundlePath),
+    uploaded_files: plan.upload_files.length,
+    reused_files: entries.size - plan.upload_files.length,
+    uploaded_bytes: uploadedBytes,
+    changed_bytes: changedBytes,
+    reused_bytes: manifest.files.reduce((total, entry) => total + entry.bytes, 0) - changedBytes,
+  };
+}
+
+async function installWpCloudBridge({ deployment, id, site, password, plan }) {
+  const directory = path.posix.join(deployment.htdocs_path, "wp-content", "mu-plugins");
+  const stagedName = `dashless-wpcloud-${id}.stage`;
+  const uploaded = { staged_bridge_path: path.posix.join(directory, stagedName), staged_bridge_name: stagedName, bridge_path: path.posix.join(directory, "dashless-wpcloud.php") };
+  if (plan.mode !== "skip") {
+    const commands = parentDirectories(directory, deployment.htdocs_path).map((dir) => `-mkdir ${sftpQuote(dir)}`);
+    commands.push(`put ${sftpQuote(wpCloudBridge)} ${sftpQuote(uploaded.staged_bridge_path)}`);
+    await runSftpBatch({ deployment, batch: `${commands.join("\n")}\n`, name: `wpcloud-bridge-${id}` });
+  }
+  return finalizeWpCloudBridge({ deployment, site, password, plan, uploaded });
+}
+
+async function uploadWpCloudDelta({ distPath, deployment, id, site, password, manifest }) {
+  const plan = await wpCloudBridgeRequest({ site, password, route: "release/plan", body: { manifest } });
+  const bundlePath = dataPath("runtime", `wpcloud-${id}.tar.gz`);
+  try {
+    const bundle = await createWpCloudDeltaBundle({ distPath, manifest, plan, bundlePath });
+    const incoming = path.posix.join(deployment.releases_path, "incoming");
+    const commands = parentDirectories(incoming, deployment.htdocs_path).map((dir) => `-mkdir ${sftpQuote(dir)}`);
+    commands.push(`put ${sftpQuote(bundlePath)} ${sftpQuote(path.posix.join(incoming, `${id}.tar.gz`))}`);
+    const transfer = await runSftpBatch({ deployment, batch: `${commands.join("\n")}\n`, name: `wpcloud-upload-${id}`, attempts: 3 });
+    const assembly = await wpCloudBridgeRequest({ site, password, route: "release/assemble", body: { release_id: id, sha256: bundle.sha256 } });
+    if (!assembly?.assembled || assembly.release_id !== id) throw new DashlessError("wpcloud_assembly_failed", "The bridge did not confirm the assembled release.");
+    const { path: localPath, sha256, ...metrics } = bundle;
+    return { release_id: id, release_path: path.posix.join(deployment.releases_path, "releases", id), transport: "sftp-delta-bundle", transfer_attempts: transfer.attempts, file_count: manifest.files.length + 1, upload_operations: 1, base_release_id: plan.base_release_id, ...metrics };
+  } finally {
+    await rm(bundlePath, { force: true });
+  }
+}
+
 export async function deployFrontend({ distPath, deployment, releaseId = null, site = null, password = null, contentGeneration = null }) {
   const id = releaseId || createReleaseId();
   if (deployment.kind === "local") return deployLocal(distPath, deployment, id);
   if (deployment.kind === "ssh") return deploySsh(distPath, deployment, id);
-  await createWpCloudReleaseManifest({ distPath, deployment, releaseId: id, contentGeneration });
+  const started = Date.now();
+  const manifest = await createWpCloudReleaseManifest({ distPath, deployment, releaseId: id, contentGeneration });
   const bridgePlan = await prepareWpCloudBridge({ site, password });
-  const uploaded = await uploadWpCloudRelease(distPath, deployment, id, bridgePlan.mode, contentGeneration);
-  const bridge = await finalizeWpCloudBridge({ deployment, site, password, plan: bridgePlan, uploaded });
-  const generation = assertContentGenerationMatches(contentGeneration, bridge.content_version?.generation ?? null, "pre_activation");
+  const bridge = await installWpCloudBridge({ deployment, id, site, password, plan: bridgePlan });
+  assertContentGenerationMatches(contentGeneration, bridge.content_version?.generation ?? null, "pre_upload");
+  const uploaded = bridge.delta_bundles
+    ? await uploadWpCloudDelta({ distPath, deployment, id, site, password, manifest })
+    : await uploadWpCloudRelease(distPath, deployment, id, "skip", contentGeneration);
+  const current = await inspectWpCloudBridge({ site, password });
+  const generation = assertContentGenerationMatches(contentGeneration, current.content_version?.generation ?? null, "pre_activation");
   const activation = await activateWpCloudRelease({ deployment, id, site, password, contentGeneration });
-  return { ...uploaded, bridge, activation, content_generation: generation, active: true };
+  return { ...uploaded, bridge, activation, content_generation: generation, active: true, duration_ms: Date.now() - started };
 }
 
 export async function verifyPublicDigest({ url, digest = null, releaseId = null, contentGeneration = null, attempts = 12 }) {

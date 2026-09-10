@@ -101,7 +101,11 @@ function wp_remote_retrieve_body( $response ) { return $response['body'] ?? ''; 
 require dirname( __DIR__, 2 ) . '/wordpress/dashless-wpcloud.php';
 
 $action = $input['action'] ?? '';
-if ( 'activate' === $action ) {
+if ( 'plan' === $action || 'assemble' === $action ) {
+	$request = new WP_REST_Request( 'POST', '/dashless/v1/release/' . $action );
+	foreach ( array( 'manifest', 'release_id', 'sha256' ) as $param ) { $request->set_param( $param, $input[ $param ] ?? null ); }
+	$result = 'plan' === $action ? dashless_wpcloud_plan_release( $request ) : dashless_wpcloud_assemble_release( $request );
+} elseif ( 'activate' === $action ) {
 	$request = new WP_REST_Request( 'POST', '/dashless/v1/release/activate' );
 	$request->set_param( 'release_id', $input['release_id'] ?? '' );
 	$request->set_param( 'public_url', $input['public_url'] ?? '' );

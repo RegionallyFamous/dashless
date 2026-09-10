@@ -603,6 +603,8 @@ const tools = [
           build: () => buildFrontend({ projectPath: lock.project_path, site, password, releasePrefix }),
         });
         const build = stableBuild.result;
+        release.build_duration_ms = build.duration_ms;
+        release.media_cache = build.media_cache;
         release.production_built = true;
         release.dist_path = build.dist_path;
         release.content_generation = stableBuild.generation;
@@ -689,6 +691,8 @@ const tools = [
         content_generation: stableBuild.generation,
         content_generation_verified: stableBuild.generation_verified,
         dist_path: build.dist_path,
+        build_duration_ms: build.duration_ms,
+        media_cache: build.media_cache,
         deployment,
         verification,
       };

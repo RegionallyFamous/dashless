@@ -79,6 +79,10 @@ Dashless runs Astro locally as a static compiler, seals the build into an immuta
 
 Each candidate release is verified before activation. The old one stays beside it, ready for rollback.
 
+Routine WP Cloud releases compare SHA-256 hashes with the active release, upload one compressed bundle of changed files, and copy verified unchanged files on the server. Every candidate is still complete and independently verified before activation. The bundle path uses local `tar` and PHP Phar/zlib; hosts without bundle support retain the full SFTP path. Build results report transfer counts, reused bytes, cache hits, and elapsed time.
+
+Downloaded media and resized images persist in the frontend’s ignored `.dashless-cache/` directory. Downloads use HTTP validators, full image validation, and atomic writes. Generated public media is still rebuilt from current WordPress content, so removed assets do not leak into new releases. See [incremental deployment](docs/incremental-deployment.md) for details.
+
 ![A teddy editor sends a sealed stack of static pages into a cloud station that switches safely between immutable website releases](assets/readme/wpcloud-release.png)
 
 For an existing WP Cloud site, you need a dedicated WordPress Application Password and key-enabled SSH/SFTP access. You do **not** need a WP Cloud API key. Site purchasing, billing, provisioning, and DNS registration are outside Dashless 1.0.
