@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "widths": [
+    1440,
+    768,
+    390,
+    320
+  ],
+  "screenshots": 2,
+  "liveDemo": "https://smallproblems.dashless.blog/",
+  "signIn": "WordPress.com only",
+  "legacyEmailEndpoint": 404,
+  "invalidCallback": 403,
+  "browserErrors": []
+}

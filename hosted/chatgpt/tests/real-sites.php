@@ -9,7 +9,7 @@ function localCommand(array $command): string {
 }
 $origins=[];$accounts=[];$credentials=[];$tokenByOwner=[];$rootByOwner=[];
 foreach(['a'=>8892,'b'=>8893] as $letter=>$port){
- $name='chatgpt-real-'.$letter;$u=get_user_by('login',$name);$owner=(int)($u?$u->ID:wp_insert_user(['user_login'=>$name,'user_email'=>$name.'@example.test','user_pass'=>wp_generate_password(48),'role'=>'subscriber']));update_user_meta($owner,'dashless_email_verified',true);
+ $name='chatgpt-real-'.$letter;$u=get_user_by('login',$name);$owner=(int)($u?$u->ID:wp_insert_user(['user_login'=>$name,'user_email'=>$name.'@example.test','user_pass'=>wp_generate_password(48),'role'=>'subscriber']));update_user_meta($owner,'dashless_email_verified',true);update_user_meta($owner,'dashless_wpcom_id','fixture-'.$owner);
  $secret=bin2hex(random_bytes(32));$file=tempnam('/tmp','dashless-fixture-secret-');chmod($file,0600);file_put_contents($file,$secret);
  $siteRoot='/tmp/dashless-site-test-chatgpt-'.$letter;$origin='http://localhost:'.$port;
  try{localCommand(['php',dirname(__DIR__,2).'/site-tests/configure.php',$siteRoot,(string)(880000+$owner),(string)$owner,$file,$origin]);}finally{unlink($file);}

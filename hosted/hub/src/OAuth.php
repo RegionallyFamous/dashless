@@ -68,6 +68,7 @@ final class OAuth {
             $request=$server->validateAuthenticatedRequest((new ServerRequest('POST',Config::resource()))->withHeader('Authorization',$authorization));
             $token=(new \Lcobucci\JWT\Token\Parser(new \Lcobucci\JWT\Encoding\JoseEncoder()))->parse(substr($authorization,7));
             if (!$token->claims()->has('iss') || $token->claims()->get('iss')!==Config::origin() || !$token->isPermittedFor(Config::resource())) throw new \RuntimeException('audience');
+            if (!Identity::verified((int)$request->getAttribute('oauth_user_id'))) throw new \RuntimeException('identity');
             return ['owner'=>(int)$request->getAttribute('oauth_user_id'),'scopes'=>$request->getAttribute('oauth_scopes'),'token_id'=>$request->getAttribute('oauth_access_token_id')];
         } catch(\Throwable $e) { throw new Failure('invalid_token','Reconnect your Dashless account.',401); }
     }

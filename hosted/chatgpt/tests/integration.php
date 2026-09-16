@@ -55,7 +55,7 @@ $invoke=function($owner,$name,$args=[],$scopes=null)use($mcp,$oauth,&$authByOwne
 $accounts=[];
 foreach(['chatgpt-a','chatgpt-b'] as $n){
  $user=get_user_by('login',$n);$id=$user?$user->ID:wp_insert_user(['user_login'=>$n,'user_pass'=>wp_generate_password(40),'user_email'=>$n.'@example.test','role'=>'subscriber']);
- update_user_meta($id,'dashless_email_verified',true);$a=['user_id'=>(int)$id,'state'=>'ready','entitlement'=>'active','site_id'=>9000+(int)$id,'slug'=>$n,'domain'=>$n.'.dashless.blog','site_secret'=>Crypto::seal('fixture-site-secret')];$identity->save($a);$accounts[]=$a;
+ update_user_meta($id,'dashless_email_verified',true);update_user_meta($id,'dashless_wpcom_id','fixture-'.$id);$a=['user_id'=>(int)$id,'state'=>'ready','entitlement'=>'active','site_id'=>9000+(int)$id,'slug'=>$n,'domain'=>$n.'.dashless.blog','site_secret'=>Crypto::seal('fixture-site-secret')];$identity->save($a);$accounts[]=$a;
  $location=$oauth->approve($oauthQuery,(int)$id,true)->getHeaderLine('Location');parse_str(parse_url($location,PHP_URL_QUERY),$authResponse);
  $issued=json_decode((string)$oauth->token(['grant_type'=>'authorization_code','client_id'=>'chatgpt-fixture','code'=>$authResponse['code'],'redirect_uri'=>$oauthQuery['redirect_uri'],'code_verifier'=>$verifier,'resource'=>Config::resource()])->getBody(),true);
  $authByOwner[$id]=$issued['access_token'];check($oauth->authenticate('Bearer '.$issued['access_token'])['owner']===(int)$id,'subscriber connects through real local OAuth PKCE');
@@ -66,7 +66,7 @@ check($mcp->handle(['jsonrpc'=>'2.0','method'=>'notifications/initialized'],[])=
 check($mcp->handle(['jsonrpc'=>'2.0','method'=>'tools/list'],[])['error']['code']===-32600,'request without ID rejected');
 $r=$mcp->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'resources/read','params'=>['uri'=>'file:///etc/passwd']],[]);check($r['error']['code']===-32002,'resource path traversal rejected');
 $r=$mcp->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'resources/read','params'=>['uri'=>Chatgpt::URI]],[]);check(!empty($r['result']['contents'][0]['text']) && $r['result']['contents'][0]['text']===file_get_contents(Chatgpt::root().'/dist/workflow.html'),'packaged component served as resource');
-$r=$mcp->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list'],[]);check(count($r['result']['tools'])===26,'23 existing tools plus three additive Hub tools');
+$r=$mcp->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list'],[]);check(count($r['result']['tools'])===28,'25 site tools plus three additive Hub tools');
 foreach($r['result']['tools'] as $tool)check(isset($tool['securitySchemes'],$tool['outputSchema'],$tool['_meta']['ui']['visibility']),'descriptor auth/schema/visibility '.$tool['name']);
 $r=$invoke($aa['user_id'],'create_draft',[],['blog:read']);check($r['result']['isError'] && isset($r['result']['_meta']['mcp/www_authenticate']),'insufficient scope prompts reauthorization');
 $r=$invoke($aa['user_id'],'get_status',['account_id'=>$bb['user_id']]);check(isset($r['error']),'model cannot choose account');

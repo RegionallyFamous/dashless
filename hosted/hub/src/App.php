@@ -13,6 +13,10 @@ final class App {
         $this->maintenance=new Maintenance($this->store,$this->identity,$this->billing,$this->provisioner,$this->jobs,$this->cloud,$this->agent);
     }
     public function register(): void {
+        // Preserve operator administration; customers authenticate only at WordPress.com.
+        add_filter('authenticate',function($user){return $user instanceof \WP_User && !user_can($user,'manage_options') ? new \WP_Error('wpcom_login_required','Sign in to Dashless with WordPress.com.') : $user;},100);
+        add_filter('allow_password_reset',fn($allowed,$id)=>user_can($id,'manage_options')?$allowed:false,10,2);
+
         (new Routes($this))->register();(new Screens($this))->register();(new Admin($this))->register();
         add_action('dashless_hub_maintenance',function(){$lease=$this->store->lock('maintenance',280);if(!$lease)return;try{$this->maintenance->run();}finally{$this->store->unlock('maintenance',$lease);}});
         if(!wp_next_scheduled('dashless_hub_maintenance'))wp_schedule_event(time()+60,'hourly','dashless_hub_maintenance');
@@ -30,6 +34,19 @@ final class App {
                     }while(true);
                 }finally{$this->store->unlock('maintenance',$lease);}
                 if(!empty($pending) && !isset($assoc['once']))$this->kick();
+            });
+            \WP_CLI::add_command('dashless-hub link-wordpress',function($args,$assoc){
+                if(empty($assoc['confirm-owner']))\WP_CLI::error('Verify the account owner, then pass --confirm-owner.');
+                $user=get_user_by('login',(string)($assoc['user']??''));
+                if(!$user)\WP_CLI::error('Use the exact existing WordPress login.');
+                $pending=$this->store->rows('wpcom_pending',(int)$user->ID);
+                if(count($pending)!==1)\WP_CLI::error('Expected exactly one recent verified provider identity for this owner.');
+                $this->identity->linkExisting((int)$user->ID,(string)$pending[0]['data']['wpcom_id']);
+                \WP_CLI::success('Existing account linked. Ask the owner to sign in again.');
+            });
+            \WP_CLI::add_command('dashless-hub pending-wordpress',function(){
+                $rows=$this->store->rows('wpcom_pending');
+                \WP_CLI::log(wp_json_encode(array_map(fn($r)=>['user'=>$r['owner'],'wpcom_id'=>$r['data']['wpcom_id'],'expires'=>$r['expires']],$rows)));
             });
             \WP_CLI::add_command('dashless-hub install-pages',fn()=> Screens::installPages());
             \WP_CLI::add_command('dashless-hub health',function(){\WP_CLI::log(wp_json_encode(['version'=>'0.1.0','checkout_enabled'=>Config::checkoutAllowed(),'blockers'=>Config::blockers()]));});

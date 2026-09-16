@@ -4,8 +4,7 @@ final class Routes {
     public function __construct(private App $app) {}
     public function register(): void {
         add_action('rest_api_init',function(){
-            $public=fn()=>true;$private=fn()=>is_user_logged_in() && (bool)get_user_meta(get_current_user_id(),'dashless_email_verified',true);
-            $this->route('/auth/request','POST',$public,function($r){$this->sameOrigin($r);$this->app->identity->request((string)$r['email'],(string)($_SERVER['REMOTE_ADDR']??'unknown'),(string)($r['return']??'/account/'));return ['sent'=>true];});
+            $public=fn()=>true;$private=fn()=>is_user_logged_in() && Identity::verified(get_current_user_id());
             $this->route('/account','GET',$private,fn()=>Screens::publicAccount($this->app->identity->account(get_current_user_id())));
             $this->route('/checkout','POST',$private,fn($r)=>$this->app->billing->checkout(get_current_user_id(),(string)$r['slug']));
             $browser=function($r){return $this->browserPermission($r);};
@@ -49,12 +48,11 @@ final class Routes {
             if(is_user_logged_in())try{$a=$this->app->identity->account(get_current_user_id());if(($a['domain']??'')===Identity::slug($a['slug']).'.'.Config::domain())$frame='https://'.$a['domain'];}catch(Failure $e){}
             header("Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; connect-src 'self'; frame-src ".$frame);
         },-90);
-        add_action('admin_post_nopriv_dashless_magic',[$this,'magic']);add_action('admin_post_dashless_magic',[$this,'magic']);
     }
     public function browserPermission($r): bool {
         // WordPress application passwords and OAuth are not browser user events.
         $owner=get_current_user_id();$cookie=wp_validate_auth_cookie('', 'logged_in');
-        return $owner>0 && (int)$cookie===$owner && (bool)get_user_meta($owner,'dashless_email_verified',true)
+        return $owner>0 && (int)$cookie===$owner && Identity::verified($owner)
             && wp_verify_nonce((string)$r->get_header('x-wp-nonce'),'wp_rest')!==false
             && (!$r->get_header('origin') || $r->get_header('origin')===Config::origin());
     }
@@ -70,17 +68,6 @@ final class Routes {
         $origin=$r->get_header('origin');
         if($origin && $origin!==Config::origin())throw new Failure('origin_invalid','Request origin not allowed.',403);
     }
-    public function magic(): void {
-        nocache_headers();header('Referrer-Policy: no-referrer');
-        if($_SERVER['REQUEST_METHOD']!=='POST')wp_die('Use the sign-in form.',405);
-        if(!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce']??'')),'dashless_magic'))wp_die('Please reopen your sign-in link.',403);
-        try {
-            $this->app->identity->consume((string)wp_unslash($_POST['token']??''));
-            $target=(string)wp_unslash($_POST['return']??'/account/');
-            $target=Identity::returnPath($target);
-            wp_safe_redirect(Config::origin().$target,303);exit;
-        }catch(Failure $e){wp_die(esc_html($e->getMessage()),'Sign-in link', ['response'=>$e->status]);}
-    }
     private function json(array $body,int $status=200): never { nocache_headers();header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');wp_send_json($body,$status); }
     private function emit(\Psr\Http\Message\ResponseInterface $response): never {
         nocache_headers();status_header($response->getStatusCode());
@@ -89,6 +76,22 @@ final class Routes {
     }
     public function native(): void {
         $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH);$method=$_SERVER['REQUEST_METHOD']??'GET';
+        if(in_array($path,['/auth/wordpress/start','/auth/wordpress/callback'],true)) {
+            nocache_headers();header('Cache-Control: private, no-store');header('Referrer-Policy: no-referrer');header('X-Frame-Options: DENY');
+            try {
+                if($method!=='GET')throw new Failure('method_not_allowed','Use the WordPress.com sign-in button.',405);
+                $options=['expires'=>time()+600,'path'=>'/','secure'=>is_ssl(),'httponly'=>true,'samesite'=>'Lax'];
+                if($path==='/auth/wordpress/start') {
+                    $browser=bin2hex(random_bytes(32));
+                    $url=$this->app->identity->begin((string)wp_unslash($_GET['return']??'/account/'),$browser);
+                    setcookie('dashless_wpcom_login',$browser,$options);
+                    wp_redirect($url,303);exit;
+                }
+                $result=$this->app->identity->complete((string)wp_unslash($_GET['state']??''),(string)($_COOKIE['dashless_wpcom_login']??''),(string)wp_unslash($_GET['code']??''),(string)wp_unslash($_GET['error']??''));
+                $options['expires']=time()-3600;setcookie('dashless_wpcom_login','',$options);
+                wp_safe_redirect(Config::origin().$result['return'],303);exit;
+            } catch(Failure $e) {wp_die(esc_html($e->getMessage()).' <a href="'.esc_url(Config::origin().'/sign-in/').'">Return to sign in</a>','WordPress.com sign-in',['response'=>$e->status]);}
+        }
         if(!in_array($path,['/.well-known/oauth-protected-resource','/.well-known/oauth-protected-resource/mcp','/.well-known/oauth-authorization-server','/oauth/authorize','/oauth/token','/oauth/revoke','/mcp'],true))return;
         try {
             if(str_starts_with($path,'/.well-known/')) {
@@ -97,7 +100,7 @@ final class Routes {
             }
             if($path==='/oauth/authorize') {
                 $query=wp_unslash($_GET);$this->app->oauth->authorization($query);
-                if(!is_user_logged_in() || !get_user_meta(get_current_user_id(),'dashless_email_verified',true)) {
+                if(!is_user_logged_in() || !Identity::verified(get_current_user_id())) {
                     wp_safe_redirect(Config::origin().'/sign-in/?return='.rawurlencode('/oauth/authorize?'.http_build_query($query)),303);exit;
                 }
                 if($method==='POST') {

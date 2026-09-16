@@ -114,3 +114,7 @@ Final patched-source verification: `npm run check` passed 45/45; `npm run test:f
 WordPress.com Connect is a public identity-focused OAuth2 flow: `/oauth2/authenticate`, server-side `/oauth2/token` exchange, then `/rest/v1.1/me`. Register an application with client ID/secret and an exact callback. See [WordPress.com Connect](https://developer.wordpress.com/docs/api/wpcc/), checked September 16.
 
 It can replace Dashless magic-link login, while retaining Hub account/subscription/site ownership and the Hub's OAuth provider for ChatGPT. Link identities using the stable WordPress.com user ID; do not silently merge existing accounts based only on matching email. Verify provider email semantics before marking an address verified or implementing OIDC email claims. State/replay protection, secure Hub sessions, sign-out and existing-account migration still need implementation and tests. Requiring WordPress.com accounts is a product decision; offering both providers keeps the email delivery dependency. No login behavior was changed by this audit.
+
+## Subsequent account and demo deployment
+
+WordPress.com-only customer sign-in and the live Small Problems example are now deployed. The homepage includes real screenshots and a live-demo link. See [deployment record](../hosted/docs/wpcom-demo-deployment-2026-09-16.md) for validation and remaining launch scope.

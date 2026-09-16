@@ -6,7 +6,7 @@
 2. Set constants/environment following `config.example.php`. Generate a stable random 32-byte encryption key and RSA signing key (≥2048 bits). Store them outside public web roots and outside database backups; restrict PHP/native CLI file permissions. Back them up in the operator's existing secure recovery system. Do not write keys into `_data`, cloned blueprints, screenshots or logs.
 3. Configure API egress allowlisting for the Hub's actual WP Cloud outgoing addresses. Verify from both HTTP and native CLI. Local API success is not Hub egress evidence.
 4. Set actual DNS provider records for the apex and customer subdomains using WP Cloud's returned routing target. Do not invent a wildcard target. Verify new-host TLS and expected release header before declaring ready. DNS provider credentials and actual records are not supplied yet; DNS mutation is intentionally not implemented against an assumed provider.
-5. Configure WP Cloud mail and the verified sending domain, SPF/DKIM/DMARC. Send magic links to multiple mailbox providers and verify receipt; `wp_mail=true` alone is not delivery evidence. Never consume GET links.
+5. Configure the WordPress.com Connect application using the exact callback `/auth/wordpress/callback`, `auth` scope, and protected `DASHLESS_WPCOM_CLIENT_ID` / `DASHLESS_WPCOM_CLIENT_SECRET`. Customers sign in only through WordPress.com. Separately verify WP Cloud mail and sender authentication for billing/service notices; `wp_mail=true` alone is not delivery evidence.
 6. Keep cookies host-only. Shared `.dashless.blog` cookies are rejected. Force HTTPS in production. Exclude account/sign-in/OAuth/MCP and private APIs from every page/CDN cache. Avoid request-body/query logging on sign-in and OAuth endpoints. Disable public subscriber author enumeration where it would reveal membership.
 
 ## Stripe test mode
@@ -40,3 +40,11 @@ If the encryption key is lost, do not overwrite encrypted values with new cipher
 ## Launch evidence
 
 Use the gate table for dated evidence of task concurrency, runtime memory, provisioning, DNS/TLS, email delivery, OAuth, tenant isolation, backup restore, published ChatGPT integration, billing and policies. Also confirm task/retention pricing with the account agreement; $4.99 after the stated $5 site cost excludes Stripe, Hub, support and other costs. There is no automatically assumed profit margin. Public subscriptions stay disabled while any required evidence is missing.
+
+## WordPress.com identity migration
+
+Client application 148408 is registered for `https://dashless.blog/auth/wordpress/callback`. Its secret lives in protected Hub configuration and an owner-only backup, never Git. The callback validates ten-minute single-use state bound to a host-only HttpOnly SameSite=Lax browser cookie, exchanges the code server-side, and requires `email_verified: true`. Only the stable provider ID controls returning ownership. Provider tokens are not persisted.
+
+Customers cannot use the old email endpoint, local passwords or local password reset. Operators retain WordPress administration for recovery. Old unlinked Hub sessions/tokens do not authorize customer actions.
+
+For an existing account collision, first verify the owner independently. Have them attempt WordPress.com sign-in to create a one-hour verified pending identity. Then run `wp dashless-hub link-wordpress --user=EXACT_EXISTING_LOGIN --confirm-owner` on the Hub only. This requires exactly one pending match and refuses linked/conflicting identities. The owner then signs in again. Do not automatically link by email or grant new roles. The owner account was linked with native task 759157; no role was changed.

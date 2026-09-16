@@ -36,7 +36,7 @@
         if (target.protocol !== 'https:' || !allowed.includes(target.hostname)) throw new Error('Unexpected billing destination. Contact support.');
         location.assign(target.href);return;
       }
-      output.textContent = route === 'auth/request' ? 'Check your inbox. Your sign-in link is valid for 15 minutes.' : result.job_id ? (route==='export'?'Your export is being prepared. Job: ':'Publication queued. Check its progress in ChatGPT. Job: ')+result.job_id : route === 'disconnect' ? 'ChatGPT has been disconnected.' : 'Progress check requested.';
+      output.textContent = result.job_id ? (route==='export'?'Your export is being prepared. Job: ':'Publication queued. Check its progress in ChatGPT. Job: ')+result.job_id : route === 'disconnect' ? 'ChatGPT has been disconnected.' : 'Progress check requested.';
       if(result.job_id && route==='export')await watchExport(result.job_id,output);
     } catch(error) { output.textContent = error.message; }
     finally { button.disabled = false; }

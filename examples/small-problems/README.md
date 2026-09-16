@@ -6,6 +6,10 @@ A funny, fictional sample blog for showing customers what a Dashless publication
 
 Includes seven original stories (one illustrated chair investigation), an About page, a nested staff page, four topic collections, tags, paginated archives, working search, light/dark preference, RSS, social images, and a custom 404 page.
 
+## Live example
+
+[Read The Department of Small Problems](https://smallproblems.dashless.blog/). Hosted on its own WP Cloud site; linked from the Dashless homepage with actual desktop/mobile screenshots.
+
 ## Open locally
 
 From this directory:
@@ -16,7 +20,7 @@ npm run build
 npm run preview
 ```
 
-Open [the local demo](http://127.0.0.1:4327/). To edit and see updates, use `npm run dev` instead. The preview only runs on your computer; this is not an online deployment.
+Open [the local demo](http://127.0.0.1:4327/). To edit and see updates, use `npm run dev` instead. This preview command runs locally; the public example above is deployed separately.
 
 ## Where things live
 
@@ -35,7 +39,8 @@ This sample was explicitly commissioned as demonstration content. It has a visib
 
 The sample uses its own authored content file, converted at build time into an isolated snapshot for the shared Dashless frontend adapter. **Nothing is written to WordPress.** This is an owned example project, not fallback content in the customer template. Production blogs continue to obtain their real editorial content from WordPress.
 
-The configured `small-problems.example` origin is a reserved demonstration address for metadata and feed output, not a registered or deployed customer site. Choose a real public origin before any future publication, and move approved editorial content into a dedicated WordPress demo site if it is to demonstrate the full editing/publishing workflow. This local reader demo does not claim hosted publishing is operational.
+The public origin is `https://smallproblems.dashless.blog`. This reader demo publishes the authored fictional snapshot as static files; it does not claim that a customer completed ChatGPT editing, billing or automated provisioning. `deploy/demo-reader.php` serves the homepage and branded 404 through WordPress while the edge serves story and asset files.
+
 
 ## Verification
 

@@ -91,6 +91,6 @@ final class Store {
     public function prune(): void {
         global $wpdb;
         // Accounts, jobs, billing events, reservations and OAuth credentials need explicit lifecycle handling.
-        $wpdb->query($wpdb->prepare("DELETE FROM {$this->table()} WHERE kind IN ('magic','rate','audit','consent','lock','oauth_access','oauth_code','oauth_refresh','notice') AND expires>0 AND expires<%d",time()));
+        $wpdb->query($wpdb->prepare("DELETE FROM {$this->table()} WHERE kind IN ('magic','wpcom_state','wpcom_pending','rate','audit','consent','lock','oauth_access','oauth_code','oauth_refresh','notice') AND expires>0 AND expires<%d",time()));
     }
 }

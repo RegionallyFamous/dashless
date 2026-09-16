@@ -23,3 +23,7 @@ define('DASHLESS_SUPPORT_EMAIL', getenv('DASHLESS_SUPPORT_EMAIL'));
 define('DASHLESS_PLATFORM_WEBHOOK_SECRET', getenv('DASHLESS_PLATFORM_WEBHOOK_SECRET'));
 // Host-only cookies are required: omit COOKIE_DOMAIN or define it as false. Never use .dashless.blog.
 define('FORCE_SSL_ADMIN', true);
+
+// WordPress.com Connect app. Callback: https://dashless.blog/auth/wordpress/callback
+define('DASHLESS_WPCOM_CLIENT_ID', '');
+define('DASHLESS_WPCOM_CLIENT_SECRET', '');

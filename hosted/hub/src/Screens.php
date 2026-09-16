@@ -3,6 +3,7 @@ namespace Dashless\Hub;
 final class Screens {
     public function __construct(private App $app) {}
     public function register(): void {
+        add_filter('the_content',fn($content)=>is_page('privacy')?$content.'<p>WordPress.com handles account sign-in. Dashless receives your WordPress.com user ID, verified email address and display name to identify your account. WordPress.com access tokens are used during sign-in and are not stored by Dashless.</p>':$content);
         add_filter('show_admin_bar',fn($show)=>current_user_can('manage_options')?$show:false);
         add_action('admin_init',function(){
             if(is_user_logged_in() && !current_user_can('manage_options') && !wp_doing_ajax() && ($GLOBALS['pagenow']??'')!=='admin-post.php') {wp_safe_redirect(home_url('/account/'),303);exit;}
@@ -14,7 +15,7 @@ final class Screens {
         add_shortcode('dashless_launch_note',fn()=>Config::checkoutAllowed()?'':'<p class="dl-launch-note"><strong>Opening soon.</strong> Create your account now. No payment required today.</p>');
         add_shortcode('dashless_support',fn()=> $this->support());
         add_action('wp_enqueue_scripts',function(){
-            wp_enqueue_style('dashless-hub',plugins_url('assets/hub.css',dirname(__DIR__).'/dashless-hub.php'),[],'0.1.0');
+            wp_enqueue_style('dashless-hub',plugins_url('assets/hub.css',dirname(__DIR__).'/dashless-hub.php'),[],(string)filemtime(dirname(__DIR__).'/assets/hub.css'));
             wp_enqueue_script('dashless-hub',plugins_url('assets/hub.js',dirname(__DIR__).'/dashless-hub.php'),[],'0.1.0',true);
             wp_add_inline_script('dashless-hub','window.dashlessHub='.wp_json_encode(['api'=>rest_url('dashless-hub/v1/'),'nonce'=>wp_create_nonce('wp_rest')]).';','before');
         });
@@ -27,24 +28,14 @@ final class Screens {
             'chatgpt_url'=>$a['state']==='ready'?(string)Config::get('chatgpt_url'):null];
     }
     public function signin(): string {
-        if(is_user_logged_in() && get_user_meta(get_current_user_id(),'dashless_email_verified',true))return '<p>You’re signed in.</p><a class="dl-button" href="'.esc_url(home_url('/account/')).'">Open your account →</a>';
-        $token=(string)($_GET['token']??'');$return=(string)wp_unslash($_GET['return']??'/account/');
-        ob_start(); ?>
-        <section class="dl-panel dl-signin"><p class="dl-kicker">A little less admin</p><h2>Your words are waiting.</h2>
-        <?php if(preg_match('/^[a-f0-9]{64}$/',$token)): ?>
-            <p>Confirm below to use your sign-in link. It works once and expires after 15 minutes.</p>
-            <form action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
-                <input type="hidden" name="action" value="dashless_magic"><input type="hidden" name="token" value="<?php echo esc_attr($token); ?>"><input type="hidden" name="return" value="<?php echo esc_attr($return); ?>">
-                <?php wp_nonce_field('dashless_magic'); ?><button class="dl-button" type="submit">Sign in to Dashless →</button>
-            </form>
-        <?php else: ?>
-            <p>Enter your email. We’ll send you a secure link. No password to remember.</p>
-            <form data-dl-form="auth/request"><input type="hidden" name="return" value="<?php echo esc_attr(Identity::returnPath($return)); ?>"><label for="dl-email">Email address</label><input id="dl-email" name="email" type="email" autocomplete="email" placeholder="you@yourcorner.com" required maxlength="254"><button class="dl-button" type="submit">Email me a sign-in link →</button><p class="dl-form-status" role="status" aria-live="polite"></p></form>
-        <?php endif; ?><p class="dl-fine">By creating an account, you agree to our <a href="<?php echo esc_url(home_url('/terms/')); ?>">terms</a> and <a href="<?php echo esc_url(home_url('/privacy/')); ?>">privacy notice</a>.</p></section>
-        <?php return ob_get_clean();
+        if(is_user_logged_in() && Identity::verified(get_current_user_id()))return '<p>You’re signed in.</p><a class="dl-button" href="'.esc_url(home_url('/account/')).'">Open your account →</a>';
+        $return=Identity::returnPath((string)wp_unslash($_GET['return']??'/account/'));
+        $url=Config::origin().'/auth/wordpress/start?'.http_build_query(['return'=>$return]);
+        $control=Identity::configured()?'<a class="dl-wpcom-login" href="'.esc_url($url).'"><img src="'.esc_url(plugins_url('assets/wordpress-logo-white.svg',dirname(__DIR__).'/dashless-hub.php')).'" width="26" height="26" alt="" aria-hidden="true"><span>Continue with WordPress.com</span></a>':'<p role="status">WordPress.com sign-in is being connected. Please check back soon.</p>';
+        return '<section class="dl-panel dl-signin"><p class="dl-kicker">A little less admin</p><h2>Your words are waiting.</h2><p>Use your WordPress.com account to sign in or create your Dashless account. New to WordPress.com? You can create an account there.</p>'.$control.'<p class="dl-fine">By creating an account, you agree to our <a href="'.esc_url(home_url('/terms/')).'">terms</a> and <a href="'.esc_url(home_url('/privacy/')).'">privacy notice</a>.</p></section>';
     }
     public function account(): string {
-        if(!is_user_logged_in() || !get_user_meta(get_current_user_id(),'dashless_email_verified',true))return '<section class="dl-panel"><h2>Your corner of the web.</h2><p>Sign in to set up your blog, connect ChatGPT, or manage your subscription.</p><a class="dl-button" href="'.esc_url(home_url('/sign-in/')).'">Sign in →</a></section>';
+        if(!is_user_logged_in() || !Identity::verified(get_current_user_id()))return '<section class="dl-panel"><h2>Your corner of the web.</h2><p>Sign in to set up your blog, connect ChatGPT, or manage your subscription.</p><a class="dl-button" href="'.esc_url(home_url('/sign-in/')).'">Sign in →</a></section>';
         $a=$this->app->identity->account(get_current_user_id());$status=self::publicAccount($a);
         ob_start(); ?>
         <section class="dl-panel" data-dl-account data-state="<?php echo esc_attr($a['state']); ?>"><div class="dl-account-heading"><p class="dl-kicker">Your Dashless account</p><a href="<?php echo esc_url(wp_logout_url(home_url('/'))); ?>">Sign out</a></div>

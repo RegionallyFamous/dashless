@@ -14,16 +14,41 @@ $store=new Store();$store->install();global $wpdb;$wpdb->query('DELETE FROM '.$s
 $passed=0;
 function check($yes,$description){global $passed;if(!$yes)throw new RuntimeException('FAIL: '.$description);$passed++;echo "PASS $description\n";}
 function rejects(callable $fn,$description){try{$fn();}catch(Throwable $e){check(true,$description);return;}check(false,$description);}
+$_SERVER['REQUEST_METHOD']='GET';
 $identity=new Identity($store);$mail=[];
 add_filter('pre_wp_mail',function($return,$args)use(&$mail){$mail[]=$args;return true;},10,2);
-$identity->request('alice@example.test','127.0.0.1','/oauth/authorize?state=returntest');
-check(str_contains($mail[0]['message'],'return='),'magic email retains OAuth continuation');
-preg_match('/token=([a-f0-9]{64})/',$mail[0]['message'],$match);$token=$match[1];
-check($store->get('magic',hash('sha256',$token))['status']==='unused','email fetch does not consume link');
-$alice=$identity->consume($token);rejects(fn()=>$identity->consume($token),'magic link cannot be replayed');
-$identity->request('bob@example.test','127.0.0.2');preg_match('/token=([a-f0-9]{64})/',$mail[1]['message'],$match);$bob=$identity->consume($match[1]);
-$expired=bin2hex(random_bytes(32));$store->add('magic',hash('sha256',$expired),['email'=>'expired@example.test'],0,'unused',time()-1);rejects(fn()=>$identity->consume($expired),'expired link rejected');
-check($alice!==$bob,'separate accounts created');
+putenv('DASHLESS_WPCOM_CLIENT_ID=fixture-client');putenv('DASHLESS_WPCOM_CLIENT_SECRET=fixture-secret');
+$provider=['ID'=>880001,'email'=>'wpcom-alice@example.test','email_verified'=>true,'display_name'=>'Alice'];
+$providerHook=function($pre,$args,$url)use(&$provider){
+ if($url==='https://public-api.wordpress.com/oauth2/token')return ['response'=>['code'=>200],'body'=>json_encode(['access_token'=>'fixture-token']),'headers'=>[]];
+ if($url==='https://public-api.wordpress.com/rest/v1.1/me')return ['response'=>['code'=>200],'body'=>json_encode($provider),'headers'=>[]];
+ return $pre;
+};add_filter('pre_http_request',$providerHook,10,3);
+// Recover only these isolated fixture users when the Hub document table is reset.
+foreach([880001,880002] as $external){$fixture=get_user_by('login','dl_wpcom_'.$external);if($fixture){update_user_meta($fixture->ID,'dashless_wpcom_id',(string)$external);$store->add('wpcom_identity',(string)$external,['provider'=>'wordpress.com'],$fixture->ID,'linked');}}
+$browser=bin2hex(random_bytes(32));
+$start=function($return='/account/')use($identity,$browser){parse_str(parse_url($identity->begin($return,$browser),PHP_URL_QUERY),$q);return $q;};
+$q=$start('/oauth/authorize?state=returntest');check($q['scope']==='auth' && $q['redirect_uri']===Identity::callback(),'WordPress.com identity-only scope and fixed callback');
+rejects(fn()=>$identity->complete($q['state'],str_repeat('f',64),'fixture-code'),'wrong browser cannot redeem login');
+$result=$identity->complete($q['state'],$browser,'fixture-code');$alice=$result['user_id'];check($result['return']==='/oauth/authorize?state=returntest','login preserves ChatGPT continuation');
+rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'WordPress.com state cannot replay');
+$q=$start('https://attacker.test');check($identity->complete($q['state'],$browser,'fixture-code')['return']==='/account/','external return URL rejected');
+$provider=['ID'=>880002,'email'=>'wpcom-bob@example.test','email_verified'=>true];$q=$start();$bob=$identity->complete($q['state'],$browser,'fixture-code')['user_id'];
+$q=$start();$row=$store->get('wpcom_state',hash('sha256',$q['state']));$store->put('wpcom_state',hash('sha256',$q['state']),$row['data'],0,'unused',time()-1);rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'expired provider state rejected');
+$provider['email_verified']=false;$q=$start();rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'unverified WordPress.com email rejected');$provider['email_verified']=true;
+$provider['ID']=880003;$q=$start();rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'matching email cannot take over another provider identity');
+$provider=['ID'=>880004,'email'=>'wpcom-paused@example.test','email_verified'=>true];update_option('dashless_hub_signup_paused',true);$q=$start();rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'signup pause blocks new provider identity');
+$provider=['ID'=>880002,'email'=>'wpcom-bob@example.test','email_verified'=>true];$q=$start();check($identity->complete($q['state'],$browser,'fixture-code')['user_id']===$bob,'signup pause allows existing provider identity');delete_option('dashless_hub_signup_paused');
+$q=$start();rejects(fn()=>$identity->complete($q['state'],$browser,'','access_denied'),'provider denial cannot sign in');
+check(Identity::verified($alice) && Identity::verified($bob) && $alice!==$bob,'separate WordPress.com identities created');
+check(!method_exists($identity,'request') && !method_exists($identity,'consume') && !$mail,'email-link login removed');
+check(is_wp_error(wp_authenticate(get_userdata($alice)->user_login,'wrong-password')),'customer local password login denied');
+$linkUser=get_user_by('login','wpcom-link-fixture');$linkOwner=$linkUser?(int)$linkUser->ID:wp_insert_user(['user_login'=>'wpcom-link-fixture','user_email'=>'wpcom-link@example.test','user_pass'=>wp_generate_password(40),'role'=>'subscriber']);delete_user_meta($linkOwner,'dashless_wpcom_id');
+$store->add('wpcom_pending','880005',['email'=>'wpcom-link@example.test','wpcom_id'=>'880005'],$linkOwner,'pending',time()+600);
+rejects(fn()=>$identity->linkExisting($alice,'880005'),'operator link rejects wrong existing owner');
+$identity->linkExisting($linkOwner,'880005');check((string)get_user_meta($linkOwner,'dashless_wpcom_id',true)==='880005' && !user_can($linkOwner,'manage_options'),'explicit migration links verified identity without changing roles');
+rejects(fn()=>$identity->linkExisting($linkOwner,'880005'),'operator link cannot replay or reassign');
+remove_filter('pre_http_request',$providerHook,10);
 rejects(fn()=>Identity::slug('support'),'platform names reserved');
 check(Crypto::open(Crypto::seal('fixture-secret'))==='fixture-secret','encrypted credential roundtrip');
 $lock=$store->lock('race');check($lock && !$store->lock('race'),'database lease excludes concurrent operation');$store->unlock('race','wrong');check(!$store->lock('race'),'wrong lease cannot unlock');$store->unlock('race',$lock);
