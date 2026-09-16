@@ -1,0 +1,36 @@
+PASS real sandbox price is USD 9.99 monthly
+PASS real Portal permits payment updates/invoices and period-end cancellation only
+PASS real webhook enabled with SDK API version
+PASS real hosted Checkout session created
+PASS repeat checkout reuses the same real session
+PASS opening Checkout does not grant paid access
+PASS Checkout is a sandbox subscription
+PASS real test-card payment grants entitlement and queues provisioning
+PASS real Customer Portal session opens
+PASS period-end cancellation keeps paid access until period ends
+PASS real scheduled cancellation can be undone
+PASS paid invoice payment intent resolves through current Stripe API
+PASS failed-provisioning refund succeeds with real sandbox payment
+PASS failed-provisioning subscription is canceled
+PASS late reconciliation cannot reactivate canceled subscription
+{
+    "passed": 15,
+    "checks": [
+        "real sandbox price is USD 9.99 monthly",
+        "real Portal permits payment updates\/invoices and period-end cancellation only",
+        "real webhook enabled with SDK API version",
+        "real hosted Checkout session created",
+        "repeat checkout reuses the same real session",
+        "opening Checkout does not grant paid access",
+        "Checkout is a sandbox subscription",
+        "real test-card payment grants entitlement and queues provisioning",
+        "real Customer Portal session opens",
+        "period-end cancellation keeps paid access until period ends",
+        "real scheduled cancellation can be undone",
+        "paid invoice payment intent resolves through current Stripe API",
+        "failed-provisioning refund succeeds with real sandbox payment",
+        "failed-provisioning subscription is canceled",
+        "late reconciliation cannot reactivate canceled subscription"
+    ],
+    "mode": "real Stripe sandbox APIs, isolated local Hub; no deployed provisioner or browser Checkout completion"
+}

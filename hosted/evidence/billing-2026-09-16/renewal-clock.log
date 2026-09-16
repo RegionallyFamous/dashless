@@ -1,0 +1,18 @@
+PASS initial clock-backed payment grants access
+PASS real automatic renewal extends paid-through date
+PASS real failed renewal starts grace without extending paid access
+PASS paying failed invoice restores active entitlement
+PASS real period-end cancellation expires entitlement
+PASS Stripe reports subscription events acknowledged by registered webhook
+{
+    "passed": 6,
+    "checks": [
+        "initial clock-backed payment grants access",
+        "real automatic renewal extends paid-through date",
+        "real failed renewal starts grace without extending paid access",
+        "paying failed invoice restores active entitlement",
+        "real period-end cancellation expires entitlement",
+        "Stripe reports subscription events acknowledged by registered webhook"
+    ],
+    "limits": "Stripe clock is real; local Hub reconciliation is invoked directly. No deployed customer site or cleanup job exercised."
+}

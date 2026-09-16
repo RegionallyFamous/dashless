@@ -21,7 +21,7 @@ final class Config {
     public static function blockers(): array {
         $checks = get_option('dashless_hub_gates', []);
         $missing = array_values(array_filter(self::GATES, fn($g) => empty($checks[$g]['passed']) || empty($checks[$g]['evidence'])));
-        foreach (['wpcom_client_id','wpcom_client_secret','hub_site_id','site_plugin_version','stripe_secret_key','stripe_price_id','stripe_webhook_secret','wpcloud_api_key','wpcloud_client','encryption_key','site_package_url','site_package_sha256','oauth_private_key','oauth_public_key','oauth_client_id','oauth_redirect_uri','chatgpt_url','support_email'] as $key) {
+        foreach (['wpcom_client_id','wpcom_client_secret','hub_site_id','site_plugin_version','stripe_secret_key','stripe_price_id','stripe_webhook_secret','stripe_portal_configuration_id','wpcloud_api_key','wpcloud_client','encryption_key','site_package_url','site_package_sha256','oauth_private_key','oauth_public_key','oauth_client_id','oauth_redirect_uri','chatgpt_url','support_email'] as $key) {
             if (!self::get($key)) $missing[] = $key;
         }
         if (self::get('builder_url') && !self::get('builder_master_key')) $missing[]='builder_master_key';

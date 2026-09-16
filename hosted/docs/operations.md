@@ -48,3 +48,7 @@ Client application 148408 is registered for `https://dashless.blog/auth/wordpres
 Customers cannot use the old email endpoint, local passwords or local password reset. Operators retain WordPress administration for recovery. Old unlinked Hub sessions/tokens do not authorize customer actions.
 
 For an existing account collision, first verify the owner independently. Have them attempt WordPress.com sign-in to create a one-hour verified pending identity. Then run `wp dashless-hub link-wordpress --user=EXACT_EXISTING_LOGIN --confirm-owner` on the Hub only. This requires exactly one pending match and refuses linked/conflicting identities. The owner then signs in again. Do not automatically link by email or grant new roles. The owner account was linked with native task 759157; no role was changed.
+
+## Live billing configuration (September 16)
+
+The Hub now uses the separate Dashless live Stripe account and an explicit `DASHLESS_STRIPE_PORTAL_CONFIGURATION_ID`. Checkout and Portal return to `/#account`. The previous sandbox webhook is disabled; future sandbox testing must use an isolated endpoint. See [billing deployment and exact test boundaries](billing-deployment-2026-09-16.md). Live keys alone do not enable customer checkout; all launch gates still apply.

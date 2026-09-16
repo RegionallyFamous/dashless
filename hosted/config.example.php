@@ -8,6 +8,7 @@ define('DASHLESS_HUB_SITE_ID', 0); // Dedicated Hub atomic site ID; never a cust
 define('DASHLESS_STRIPE_SECRET_KEY', getenv('DASHLESS_STRIPE_SECRET_KEY'));
 define('DASHLESS_STRIPE_WEBHOOK_SECRET', getenv('DASHLESS_STRIPE_WEBHOOK_SECRET'));
 define('DASHLESS_STRIPE_PRICE_ID', getenv('DASHLESS_STRIPE_PRICE_ID'));
+define('DASHLESS_STRIPE_PORTAL_CONFIGURATION_ID', ''); // Explicit cancellation/payment settings.
 define('DASHLESS_WPCLOUD_API_KEY', getenv('DASHLESS_WPCLOUD_API_KEY'));
 define('DASHLESS_WPCLOUD_CLIENT', getenv('DASHLESS_WPCLOUD_CLIENT'));
 define('DASHLESS_ENCRYPTION_KEY', getenv('DASHLESS_ENCRYPTION_KEY')); // base64 of 32 random bytes, stable across restarts/restores.

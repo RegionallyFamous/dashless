@@ -134,6 +134,10 @@ $pc->tasks['task_0']=['complete'=>true,'meta'=>['success_count'=>1,'failure_coun
 $pc->tasks['task_1']=['complete'=>true,'meta'=>['success_count'=>1,'failure_count'=>0]];$provisioner->tick($bob);
 check($identity->account($bob)['state']==='ready','provisioning requires capabilities, build and public verification');
 check(!isset($identity->account($bob)['admin_secret']),'bootstrap administrator secret discarded after ready');
+// Other products in a shared Stripe account must not poison the retry queue.
+$stripe->subs['sub_unrelated']=['id'=>'sub_unrelated','metadata'=>[]];
+$store->add('stripe_event','evt_unrelated',['subscription'=>'sub_unrelated'],0,'pending');
+$billing->process('evt_unrelated');check($store->get('stripe_event','evt_unrelated')['status']==='ignored','unmapped Stripe subscriptions are ignored without endless retries');
 // A historical invoice event cannot restore a currently canceled subscription.
 $sub['status']='canceled';$stripe->subs[$sub['id']]=$sub;$event['id']='evt_late_paid';$billing->receive(json_encode($event),'test');$billing->process('evt_late_paid');check($identity->account($alice)['entitlement']==='expired','late paid event obeys current canceled subscription');
 $a=$identity->account($alice);$a['state']='suspended';$identity->save($a);putenv('DASHLESS_TEST_CHECKOUT=1');$billing->recover($alice);$a=$identity->account($alice);check(!empty($a['recovery_checkout']) && $a['site_id']===123,'recovery checkout preserves existing site');

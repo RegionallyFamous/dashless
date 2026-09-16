@@ -80,6 +80,12 @@ final class Billing {
             $r=$this->store->get('stripe_event',$id);
             if (!$r || $r['status']!=='pending') return;
             $sub=$this->stripe->subscription($r['data']['subscription']);
+            $owner=(int)($sub['metadata']['dashless_user']??0);
+            // A shared Stripe account can send subscriptions belonging to other products.
+            if (!$owner || !$this->store->get('account',(string)$owner)) {
+                $this->store->put('stripe_event',$id,$r['data'],0,'ignored');
+                return;
+            }
             $this->reconcile($sub);
             $this->store->put('stripe_event',$id,$r['data'],0,'done');
         });

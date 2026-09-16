@@ -14,8 +14,8 @@ class StripeGateway {
             'client_reference_id'=>(string)$account['user_id'],
             'line_items'=>[['price'=>Config::required('stripe_price_id'),'quantity'=>1]],
             'payment_method_types'=>['card'],
-            'success_url'=>Config::origin().'/account/?checkout=complete',
-            'cancel_url'=>Config::origin().'/account/?checkout=canceled',
+            'success_url'=>Config::origin().'/?checkout=complete#account',
+            'cancel_url'=>Config::origin().'/?checkout=canceled#account',
             'expires_at'=>$account['checkout_expires'],
             'subscription_data'=>['metadata'=>['dashless_user'=>(string)$account['user_id'],'dashless_slug'=>$account['slug'],'dashless_attempt'=>$attempt]],
             'metadata'=>['dashless_user'=>(string)$account['user_id'],'dashless_attempt'=>$attempt],
@@ -23,7 +23,7 @@ class StripeGateway {
     }
     public function session(string $id): array { return $this->client()->checkout->sessions->retrieve($id,[])->toArray(); }
     public function subscription(string $id): array { return $this->client()->subscriptions->retrieve($id,['expand'=>['latest_invoice']])->toArray(); }
-    public function portal(string $customer): string { return $this->client()->billingPortal->sessions->create(['customer'=>$customer,'return_url'=>Config::origin().'/account/'])->url; }
+    public function portal(string $customer): string { return $this->client()->billingPortal->sessions->create(['customer'=>$customer,'configuration'=>Config::required('stripe_portal_configuration_id'),'return_url'=>Config::origin().'/#account'])->url; }
     public function event(string $raw,string $signature): array { return \Stripe\Webhook::constructEvent($raw,$signature,Config::required('stripe_webhook_secret'),300)->toArray(); }
     public function cancel(string $subscription,string $key): void { $this->client()->subscriptions->cancel($subscription,[],['idempotency_key'=>$key]); }
     public function refund(string $paymentIntent,string $key): string { return $this->client()->refunds->create(['payment_intent'=>$paymentIntent,'reason'=>'requested_by_customer'],['idempotency_key'=>$key])->id; }
