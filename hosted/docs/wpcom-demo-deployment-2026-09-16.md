@@ -11,3 +11,9 @@ This supersedes the earlier launch audit's pending account-provider decision and
 ## Homepage consolidation
 
 The homepage now renders WordPress.com provider controls in the hero and pricing sections, an inline account/sign-in section, support, and expandable privacy/terms. Existing sign-in, account, and support routes redirect to the corresponding homepage section. Login defaults to `/#account`; ChatGPT OAuth continuation remains preserved. Homepage responses use `private, no-store` because account controls are personalized. Live checks passed at 1440, 390 and 320 pixels, including policy expansion, legacy redirects and OAuth continuation; the 58 baseline integration checks also passed.
+
+## Editorial homepage redesign
+
+Implemented the Imagegen concept as responsive WordPress markup, with a generated publishing-desk illustration and the actual Small Problems screenshot. Consolidated repeated marketing panels into a hero, three-step strip, example and pricing/FAQ grid. Signed-out visitors see one provider button: “Sign in with WordPress.com,” followed by “WordPress.com for sign-in. Dashless for your blog.” Account controls remain inline for signed-in users; support and policies expand in place.
+
+Microinteractions include the lime headline underline, step-number tilt, image zoom and stamp rotation, button press states, directional links, and accordion reveal. Keyboard focus remains visible and the return-to-sign-in link focuses the provider control. Reduced-motion settings disable animation, transitions and smooth scrolling. Local browser acceptance: 20 checks; syntax validation: 88 checks. Live screenshots cover desktop and narrow mobile layouts in `hosted/evidence/editorial-2026-09-16/`. The generated asset prompt and concept are saved in `docs/design/`.

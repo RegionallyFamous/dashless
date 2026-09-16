@@ -13,7 +13,7 @@ final class Screens {
         add_shortcode('dashless_account',fn()=> $this->account());
         add_action('init',function(){
             register_block_type('dashless/login-button',['api_version'=>3,'render_callback'=>fn()=> $this->loginButton()]);
-            register_block_type('dashless/home-account',['api_version'=>3,'render_callback'=>fn()=> '<div id="account" class="dl-home-account">'.(Identity::verified(get_current_user_id())?$this->account():$this->signin()).'</div>']);
+            register_block_type('dashless/home-account',['api_version'=>3,'render_callback'=>fn()=> '<div id="account" class="dl-home-account">'.(Identity::verified(get_current_user_id())?$this->account():'<div class="dl-account-nudge"><h2>Your account</h2><p><a href="#start">Sign in above ↑</a> to set up your blog and manage billing here.</p></div>').'</div>']);
             register_block_type('dashless/home-help',['api_version'=>3,'render_callback'=>fn()=> $this->homeHelp()]);
         });
         add_shortcode('dashless_signin',fn()=> $this->signin());
@@ -43,10 +43,10 @@ final class Screens {
         if(Identity::verified(get_current_user_id()))return '<a class="dl-button" href="'.esc_url(home_url('/#account')).'">Your account →</a>';
         $return=Identity::returnPath((string)wp_unslash($_GET['return']??'/#account'));
         $url=Config::origin().'/auth/wordpress/start?'.http_build_query(['return'=>$return]);
-        return Identity::configured()?'<a class="dl-wpcom-login" href="'.esc_url($url).'"><img src="'.esc_url(plugins_url('assets/wordpress-logo-white.svg',dirname(__DIR__).'/dashless-hub.php')).'" width="26" height="26" alt="" aria-hidden="true"><span>Continue with WordPress.com</span></a>':'<p role="status">WordPress.com sign-in is being connected. Please check back soon.</p>';
+        return Identity::configured()?'<a class="dl-wpcom-login" href="'.esc_url($url).'"><img src="'.esc_url(plugins_url('assets/wordpress-logo-white.svg',dirname(__DIR__).'/dashless-hub.php')).'" width="26" height="26" alt="" aria-hidden="true"><span>Sign in with WordPress.com</span></a><p class="dl-login-explainer">WordPress.com for sign-in. Dashless for your blog.</p>':'<p role="status">WordPress.com sign-in is being connected. Please check back soon.</p>';
     }
     public function homeHelp(): string {
-        $html='<div id="support">'.$this->support().'</div><section class="dl-home-policies" aria-label="Policies">';
+        $html='<section class="dl-home-policies" aria-label="Support and policies"><details id="support"><summary>Support</summary>'.$this->support().'</details>';
         foreach(['privacy'=>'Privacy','terms'=>'Terms'] as $slug=>$label){
             $page=get_page_by_path($slug);
             if($page)$html.='<details id="'.$slug.'"><summary>'.esc_html($label).'</summary>'.apply_filters('the_content',$page->post_content).($slug==='privacy'?'<p>WordPress.com handles sign-in. Dashless receives your user ID, verified email and display name. Provider access tokens are not stored.</p>':'').'</details>';

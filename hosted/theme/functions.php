@@ -1,7 +1,7 @@
 <?php
 add_action('after_setup_theme',function(){add_theme_support('editor-styles');add_editor_style('assets/site.css');});
 add_action('wp_enqueue_scripts',function(){wp_enqueue_style('dashless-site',get_theme_file_uri('assets/site.css'),[],filemtime(get_theme_file_path('assets/site.css')));});
-add_action('wp_enqueue_scripts',function(){if(is_front_page())wp_enqueue_script('dashless-walkthrough',get_theme_file_uri('assets/walkthrough.js'),[],filemtime(get_theme_file_path('assets/walkthrough.js')),['strategy'=>'defer','in_footer'=>true]);});
+add_action('wp_enqueue_scripts',function(){if(is_front_page())wp_enqueue_script('dashless-editorial',get_theme_file_uri('assets/editorial.js'),[],filemtime(get_theme_file_path('assets/editorial.js')),['strategy'=>'defer','in_footer'=>true]);});
 add_action('init',function(){register_block_pattern_category('dashless',['label'=>'Dashless']);});
 
 add_filter('render_block_core/site-title',function($html,$block){
