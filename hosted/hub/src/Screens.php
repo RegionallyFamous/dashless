@@ -43,7 +43,7 @@ final class Screens {
         if(Identity::verified(get_current_user_id()))return '<a class="dl-button" href="'.esc_url(home_url('/#account')).'">Your account →</a>';
         $return=Identity::returnPath((string)wp_unslash($_GET['return']??'/#account'));
         $url=Config::origin().'/auth/wordpress/start?'.http_build_query(['return'=>$return]);
-        return Identity::configured()?'<a class="dl-wpcom-login" href="'.esc_url($url).'"><img src="'.esc_url(plugins_url('assets/wordpress-logo-white.svg',dirname(__DIR__).'/dashless-hub.php')).'" width="26" height="26" alt="" aria-hidden="true"><span>Sign in with WordPress.com</span></a><p class="dl-login-explainer"><strong>One less password. More time for your words.</strong><span>Sign in securely with WordPress.com. No existing blog needed.</span></p>':'<p role="status">WordPress.com sign-in is being connected. Please check back soon.</p>';
+        return Identity::configured()?'<a class="dl-wpcom-login" href="'.esc_url($url).'"><img src="'.esc_url(plugins_url('assets/wordpress-logo-white.svg',dirname(__DIR__).'/dashless-hub.php')).'" width="26" height="26" alt="" aria-hidden="true"><span>Sign in with WordPress.com</span></a><p class="dl-login-explainer">One less password. No existing blog needed.</p>':'<p role="status">WordPress.com sign-in is being connected. Please check back soon.</p>';
     }
     public function homeHelp(): string {
         $html='<section class="dl-home-policies" aria-label="Support and policies"><details id="support"><summary>Support</summary>'.$this->support().'</details>';
@@ -97,8 +97,8 @@ final class Screens {
     }
     public static function installPages(): void {
         $pages=['preview'=>['Private preview','[dashless_preview]'],'account'=>['Your account','[dashless_account]'],'sign-in'=>['Sign in','[dashless_signin]'],'support'=>['Support','[dashless_support]'],
-            'privacy'=>['Privacy','<!-- wp:paragraph --><p>Dashless stores your account, subscription references, WordPress content, and operational records on WP Cloud. Railway temporarily processes copies of content and media to build your site. Build workspaces are removed after 24 hours; final previews and releases are stored on WP Cloud. Stripe processes payments. ChatGPT receives the content needed for the actions you request. Draft previews require authorization.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>This notice is a release draft. Publisher contact details, retention practices, and the final privacy notice must be approved before paid signup opens.</p><!-- /wp:paragraph -->'],
-            'terms'=>['Terms','<!-- wp:paragraph --><p>Dashless provides one hosted blog for US$9.99 per month. ChatGPT access is separate. Cancel through your account’s billing portal; service continues through the paid period, followed by 30 days of recovery/export access.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>These terms are a release draft. Publisher identity, acceptable use, refund terms, and applicable tax details must be finalized before paid signup opens.</p><!-- /wp:paragraph -->']];
+            'privacy'=>['Privacy',Policies::content('privacy')],
+            'terms'=>['Terms',Policies::content('terms')]];
         foreach($pages as $slug=>[$title,$content])if(!get_page_by_path($slug))wp_insert_post(['post_type'=>'page','post_name'=>$slug,'post_title'=>$title,'post_content'=>$content,'post_status'=>'publish']);
         if(defined('WP_CLI')&&WP_CLI)\WP_CLI::success('Hub pages installed. Existing pages preserved.');
     }

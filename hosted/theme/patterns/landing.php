@@ -14,9 +14,9 @@
 <!-- wp:html -->
 <p class="dl-price-note">$9.99 / month · Your own .dashless.blog address</p>
 <!-- /wp:html -->
-<!-- wp:dashless/launch-note /-->
+
 <!-- wp:html -->
-<p class="dl-consent-note">By creating an account, you agree to our <a href="#terms">terms</a> and <a href="#privacy">privacy notice</a>.</p></div>
+</div>
 <figure class="dl-desk"><img src="<?php echo esc_url(get_theme_file_uri('assets/publishing-desk.jpg')); ?>" width="1536" height="1024" fetchpriority="high" alt="An ink-drawn notebook of ideas becoming a little independent magazine, with a pen and coffee close by."><figcaption>Good ideas deserve somewhere to live.</figcaption></figure>
 </section>
 <ol class="dl-steps" id="how-it-works" aria-label="How Dashless works">
