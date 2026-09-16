@@ -32,7 +32,7 @@ $q=$start('/oauth/authorize?state=returntest');check($q['scope']==='auth' && $q[
 rejects(fn()=>$identity->complete($q['state'],str_repeat('f',64),'fixture-code'),'wrong browser cannot redeem login');
 $result=$identity->complete($q['state'],$browser,'fixture-code');$alice=$result['user_id'];check($result['return']==='/oauth/authorize?state=returntest','login preserves ChatGPT continuation');
 rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'WordPress.com state cannot replay');
-$q=$start('https://attacker.test');check($identity->complete($q['state'],$browser,'fixture-code')['return']==='/account/','external return URL rejected');
+$q=$start('https://attacker.test');check($identity->complete($q['state'],$browser,'fixture-code')['return']==='/#account','external return URL rejected');
 $provider=['ID'=>880002,'email'=>'wpcom-bob@example.test','email_verified'=>true];$q=$start();$bob=$identity->complete($q['state'],$browser,'fixture-code')['user_id'];
 $q=$start();$row=$store->get('wpcom_state',hash('sha256',$q['state']));$store->put('wpcom_state',hash('sha256',$q['state']),$row['data'],0,'unused',time()-1);rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'expired provider state rejected');
 $provider['email_verified']=false;$q=$start();rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'unverified WordPress.com email rejected');$provider['email_verified']=true;

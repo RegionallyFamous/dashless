@@ -75,7 +75,7 @@ final class Identity {
             return (int)$id;
         });
     }
-    public static function returnPath(string $path): string { return str_starts_with($path,'/oauth/authorize?') && !preg_match('/[\r\n]/',$path) ? $path : '/account/'; }
+    public static function returnPath(string $path): string { return str_starts_with($path,'/oauth/authorize?') && !preg_match('/[\r\n]/',$path) ? $path : '/#account'; }
     public function linkExisting(int $owner,string $external): void {
         $this->store->locked('identity:wpcom:'.$external,function()use($owner,$external){
             $pending=$this->store->get('wpcom_pending',$external);$user=get_user_by('id',$owner);

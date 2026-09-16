@@ -7,3 +7,7 @@ Customer sign-in uses WordPress.com only. Application 148408 uses https://dashle
 Validation: 58 Hub integration checks, 103 ChatGPT integration checks and 84 PHP/JS syntax checks passed. Provider tests use fixtures; the separate operator browser check exercised the live consent and callback. Live marketing checks verified screenshots, the demo link, four responsive widths, the removed email-login endpoint (404), and rejection of an invalid OAuth callback (403). The final provider button was visually checked at 1280, 390 and 320 pixels. Evidence is in `hosted/evidence/live-demo-2026-09-16/`.
 
 This supersedes the earlier launch audit's pending account-provider decision and missing public demo. Paid checkout remains gated; the broader launch audit still applies to payment, fulfillment and submission readiness.
+
+## Homepage consolidation
+
+The homepage now renders WordPress.com provider controls in the hero and pricing sections, an inline account/sign-in section, support, and expandable privacy/terms. Existing sign-in, account, and support routes redirect to the corresponding homepage section. Login defaults to `/#account`; ChatGPT OAuth continuation remains preserved. Homepage responses use `private, no-store` because account controls are personalized. Live checks passed at 1440, 390 and 320 pixels, including policy expansion, legacy redirects and OAuth continuation; the 58 baseline integration checks also passed.

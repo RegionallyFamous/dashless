@@ -6,20 +6,32 @@ final class Screens {
         add_filter('the_content',fn($content)=>is_page('privacy')?$content.'<p>WordPress.com handles account sign-in. Dashless receives your WordPress.com user ID, verified email address and display name to identify your account. WordPress.com access tokens are used during sign-in and are not stored by Dashless.</p>':$content);
         add_filter('show_admin_bar',fn($show)=>current_user_can('manage_options')?$show:false);
         add_action('admin_init',function(){
-            if(is_user_logged_in() && !current_user_can('manage_options') && !wp_doing_ajax() && ($GLOBALS['pagenow']??'')!=='admin-post.php') {wp_safe_redirect(home_url('/account/'),303);exit;}
+            if(is_user_logged_in() && !current_user_can('manage_options') && !wp_doing_ajax() && ($GLOBALS['pagenow']??'')!=='admin-post.php') {wp_safe_redirect(home_url('/#account'),303);exit;}
         });
         add_action('init',fn()=>register_block_type('dashless/launch-note',['api_version'=>3,'render_callback'=>fn()=>do_shortcode('[dashless_launch_note]')]));
         add_shortcode('dashless_preview',fn()=>(new Previews($this->app))->screen());
         add_shortcode('dashless_account',fn()=> $this->account());
+        add_action('init',function(){
+            register_block_type('dashless/login-button',['api_version'=>3,'render_callback'=>fn()=> $this->loginButton()]);
+            register_block_type('dashless/home-account',['api_version'=>3,'render_callback'=>fn()=> '<div id="account" class="dl-home-account">'.(Identity::verified(get_current_user_id())?$this->account():$this->signin()).'</div>']);
+            register_block_type('dashless/home-help',['api_version'=>3,'render_callback'=>fn()=> $this->homeHelp()]);
+        });
         add_shortcode('dashless_signin',fn()=> $this->signin());
         add_shortcode('dashless_launch_note',fn()=>Config::checkoutAllowed()?'':'<p class="dl-launch-note"><strong>Opening soon.</strong> Create your account now. No payment required today.</p>');
         add_shortcode('dashless_support',fn()=> $this->support());
         add_action('wp_enqueue_scripts',function(){
             wp_enqueue_style('dashless-hub',plugins_url('assets/hub.css',dirname(__DIR__).'/dashless-hub.php'),[],(string)filemtime(dirname(__DIR__).'/assets/hub.css'));
-            wp_enqueue_script('dashless-hub',plugins_url('assets/hub.js',dirname(__DIR__).'/dashless-hub.php'),[],'0.1.0',true);
+            wp_enqueue_script('dashless-hub',plugins_url('assets/hub.js',dirname(__DIR__).'/dashless-hub.php'),[],(string)filemtime(dirname(__DIR__).'/assets/hub.js'),true);
             wp_add_inline_script('dashless-hub','window.dashlessHub='.wp_json_encode(['api'=>rest_url('dashless-hub/v1/'),'nonce'=>wp_create_nonce('wp_rest')]).';','before');
         });
-        add_action('template_redirect',function(){if(is_page(['account','sign-in','preview'])){nocache_headers();header('Cache-Control: private, no-store');header('Referrer-Policy: no-referrer');}},-100);
+        add_action('template_redirect',function(){
+            if(is_page(['account','sign-in','support'])) {
+                $target=home_url('/');
+                if(is_page('sign-in') && isset($_GET['return']))$target=add_query_arg('return',Identity::returnPath((string)wp_unslash($_GET['return'])),$target);
+                wp_safe_redirect($target.(is_page('support')?'#support':'#account'),302);exit;
+            }
+        });
+        add_action('template_redirect',function(){if(is_front_page() || is_page(['account','sign-in','preview'])){nocache_headers();header('Cache-Control: private, no-store');header('Referrer-Policy: no-referrer');}},-100);
     }
     public static function publicAccount(array $a): array {
         return ['state'=>$a['state'],'step'=>$a['step']??null,'slug'=>$a['slug']??null,'site_url'=>isset($a['domain'])?'https://'.$a['domain']:null,
@@ -27,12 +39,24 @@ final class Screens {
             'cancel_at_period_end'=>$a['cancel_at_period_end']??false,'message'=>$a['last_error']['message']??null,
             'chatgpt_url'=>$a['state']==='ready'?(string)Config::get('chatgpt_url'):null];
     }
-    public function signin(): string {
-        if(is_user_logged_in() && Identity::verified(get_current_user_id()))return '<p>You’re signed in.</p><a class="dl-button" href="'.esc_url(home_url('/account/')).'">Open your account →</a>';
-        $return=Identity::returnPath((string)wp_unslash($_GET['return']??'/account/'));
+    public function loginButton(): string {
+        if(Identity::verified(get_current_user_id()))return '<a class="dl-button" href="'.esc_url(home_url('/#account')).'">Your account →</a>';
+        $return=Identity::returnPath((string)wp_unslash($_GET['return']??'/#account'));
         $url=Config::origin().'/auth/wordpress/start?'.http_build_query(['return'=>$return]);
-        $control=Identity::configured()?'<a class="dl-wpcom-login" href="'.esc_url($url).'"><img src="'.esc_url(plugins_url('assets/wordpress-logo-white.svg',dirname(__DIR__).'/dashless-hub.php')).'" width="26" height="26" alt="" aria-hidden="true"><span>Continue with WordPress.com</span></a>':'<p role="status">WordPress.com sign-in is being connected. Please check back soon.</p>';
-        return '<section class="dl-panel dl-signin"><p class="dl-kicker">A little less admin</p><h2>Your words are waiting.</h2><p>Use your WordPress.com account to sign in or create your Dashless account. New to WordPress.com? You can create an account there.</p>'.$control.'<p class="dl-fine">By creating an account, you agree to our <a href="'.esc_url(home_url('/terms/')).'">terms</a> and <a href="'.esc_url(home_url('/privacy/')).'">privacy notice</a>.</p></section>';
+        return Identity::configured()?'<a class="dl-wpcom-login" href="'.esc_url($url).'"><img src="'.esc_url(plugins_url('assets/wordpress-logo-white.svg',dirname(__DIR__).'/dashless-hub.php')).'" width="26" height="26" alt="" aria-hidden="true"><span>Continue with WordPress.com</span></a>':'<p role="status">WordPress.com sign-in is being connected. Please check back soon.</p>';
+    }
+    public function homeHelp(): string {
+        $html='<div id="support">'.$this->support().'</div><section class="dl-home-policies" aria-label="Policies">';
+        foreach(['privacy'=>'Privacy','terms'=>'Terms'] as $slug=>$label){
+            $page=get_page_by_path($slug);
+            if($page)$html.='<details id="'.$slug.'"><summary>'.esc_html($label).'</summary>'.apply_filters('the_content',$page->post_content).($slug==='privacy'?'<p>WordPress.com handles sign-in. Dashless receives your user ID, verified email and display name. Provider access tokens are not stored.</p>':'').'</details>';
+        }
+        return $html.'</section>';
+    }
+    public function signin(): string {
+        if(is_user_logged_in() && Identity::verified(get_current_user_id()))return '<p>You’re signed in.</p><a class="dl-button" href="'.esc_url(home_url('/#account')).'">Open your account →</a>';
+        $control=$this->loginButton();
+        return '<section class="dl-panel dl-signin"><p class="dl-kicker">A little less admin</p><h2>Your words are waiting.</h2><p>Use your WordPress.com account to sign in or create your Dashless account. New to WordPress.com? You can create an account there.</p>'.$control.'<p class="dl-fine">By creating an account, you agree to our <a href="'.esc_url(home_url('/#terms')).'">terms</a> and <a href="'.esc_url(home_url('/#privacy')).'">privacy notice</a>.</p></section>';
     }
     public function account(): string {
         if(!is_user_logged_in() || !Identity::verified(get_current_user_id()))return '<section class="dl-panel"><h2>Your corner of the web.</h2><p>Sign in to set up your blog, connect ChatGPT, or manage your subscription.</p><a class="dl-button" href="'.esc_url(home_url('/sign-in/')).'">Sign in →</a></section>';
@@ -50,7 +74,7 @@ final class Screens {
             <?php if($a['state']==='ready'): ?>
                 <div class="dl-actions"><a class="dl-button" href="<?php echo esc_url('https://'.$a['domain']); ?>" target="_blank" rel="noopener">Visit your blog ↗</a>
                 <?php if(Config::get('chatgpt_url')): ?><a class="dl-button dl-secondary" href="<?php echo esc_url(Config::get('chatgpt_url')); ?>" target="_blank" rel="noopener">Connect ChatGPT ↗</a><?php else: ?><span class="dl-fine">The ChatGPT connection is awaiting release.</span><?php endif; ?></div>
-                <p>Writing, design, and publishing happen in ChatGPT. This page is just for your account.</p>
+                <p>Writing, design, and publishing happen in ChatGPT. Manage your account right here.</p>
             <?php elseif($a['state']==='suspended'): ?><p>Your blog is offline. You can recover or export it until <?php echo esc_html(gmdate('F j, Y',$a['delete_after'])); ?>.</p><button class="dl-button" data-dl-action="recover">Recover my blog →</button>
             <?php else: ?><p>We’ll keep your setup progress here. You can safely close this page and return.</p><button class="dl-button dl-secondary" data-dl-action="progress">Check setup progress</button><?php endif; ?>
         <?php endif; ?>

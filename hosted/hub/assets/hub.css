@@ -9,3 +9,5 @@
 .dl-wpcom-login:active{background:#183ad0}
 .dl-wpcom-login:focus-visible{outline:3px solid #3858e9;outline-offset:4px}
 @media(max-width:480px){.dl-wpcom-login{width:100%;padding:13px 12px;gap:10px;font-size:14px}}
+
+.dl-home-account,.dl-home-policies,#support{scroll-margin-top:24px}.dl-home-account>.dl-panel{max-width:760px}.dl-home-policies{max-width:880px;margin:40px auto 64px}.dl-home-policies details{border-top:1px solid #d4cfc5;padding:20px 0}.dl-home-policies summary{cursor:pointer;font-weight:700}.dl-home-policies p{font-size:15px;line-height:1.7}

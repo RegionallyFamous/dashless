@@ -59,3 +59,6 @@
     }, 10000);
   }
 })();
+
+// Open an inline policy when a footer or consent link targets it.
+(()=>{const reveal=()=>{const id=location.hash.slice(1);if(!['privacy','terms'].includes(id))return;const panel=document.getElementById(id);if(panel?.tagName==='DETAILS'){panel.open=true;panel.scrollIntoView();}};window.addEventListener('hashchange',reveal);reveal();})();
