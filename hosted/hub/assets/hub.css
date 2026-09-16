@@ -11,3 +11,19 @@
 @media(max-width:480px){.dl-wpcom-login{width:100%;padding:13px 12px;gap:10px;font-size:14px}}
 
 .dl-home-account,.dl-home-policies,#support{scroll-margin-top:24px}.dl-home-account>.dl-panel{max-width:760px}.dl-home-policies{max-width:880px;margin:40px auto 64px}.dl-home-policies details{border-top:1px solid #d4cfc5;padding:20px 0}.dl-home-policies summary{cursor:pointer;font-weight:700}.dl-home-policies p{font-size:15px;line-height:1.7}
+
+/* Native dialogs keep help close without adding another page. */
+html.dl-modal-open{overflow:hidden}
+.dl-help-dialog{box-sizing:border-box;width:min(640px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:0;color:#24212b;background:#f7f2e8;border:1px solid #24212b;border-radius:6px;box-shadow:8px 8px 0 #24212b;margin:auto;overscroll-behavior:contain}
+.dl-help-dialog::backdrop{background:rgb(24 22 28 / .55);backdrop-filter:blur(3px)}
+.dl-help-dialog[open]{animation:dl-dialog-in .18s ease-out}
+.dl-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 24px;border-bottom:1px solid #c9c3ba;position:sticky;top:0;background:#f7f2e8;z-index:1}
+.dl-dialog-header h2{font:700 30px/1.1 Georgia,serif;letter-spacing:-.04em;margin:0}
+.dl-dialog-close{display:grid;place-items:center;width:40px;height:40px;padding:0;border:1px solid #24212b;border-radius:50%;background:#dfff00;color:#24212b;font:28px/1 Arial,sans-serif;cursor:pointer;flex-shrink:0;transition:transform .15s,background .15s}
+.dl-dialog-close:hover{transform:rotate(8deg);background:#eaff77}
+.dl-dialog-close:focus-visible{outline:3px solid #3858e9;outline-offset:4px}
+.dl-dialog-body{padding:8px 24px 24px;font:16px/1.65 Arial,sans-serif}
+.dl-dialog-body .dl-panel{border:0;box-shadow:none;background:none;padding:0;margin:16px 0 0;max-width:none}
+.dl-dialog-body .dl-panel h2{font-size:27px}
+@keyframes dl-dialog-in{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.dl-help-dialog[open]{animation:none}.dl-dialog-close{transition:none}}

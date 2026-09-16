@@ -43,7 +43,7 @@ final class Screens {
         if(Identity::verified(get_current_user_id()))return '<a class="dl-button" href="'.esc_url(home_url('/#account')).'">Your account →</a>';
         $return=Identity::returnPath((string)wp_unslash($_GET['return']??'/#account'));
         $url=Config::origin().'/auth/wordpress/start?'.http_build_query(['return'=>$return]);
-        return Identity::configured()?'<a class="dl-wpcom-login" href="'.esc_url($url).'"><img src="'.esc_url(plugins_url('assets/wordpress-logo-white.svg',dirname(__DIR__).'/dashless-hub.php')).'" width="26" height="26" alt="" aria-hidden="true"><span>Sign in with WordPress.com</span></a><p class="dl-login-explainer">WordPress.com for sign-in. Dashless for your blog.</p>':'<p role="status">WordPress.com sign-in is being connected. Please check back soon.</p>';
+        return Identity::configured()?'<a class="dl-wpcom-login" href="'.esc_url($url).'"><img src="'.esc_url(plugins_url('assets/wordpress-logo-white.svg',dirname(__DIR__).'/dashless-hub.php')).'" width="26" height="26" alt="" aria-hidden="true"><span>Sign in with WordPress.com</span></a><p class="dl-login-explainer"><strong>One less password. More time for your words.</strong><span>Sign in securely with WordPress.com. No existing blog needed.</span></p>':'<p role="status">WordPress.com sign-in is being connected. Please check back soon.</p>';
     }
     public function homeHelp(): string {
         $html='<section class="dl-home-policies" aria-label="Support and policies"><details id="support"><summary>Support</summary>'.$this->support().'</details>';

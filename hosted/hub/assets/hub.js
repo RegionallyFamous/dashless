@@ -60,5 +60,64 @@
   }
 })();
 
-// Open an inline policy when a footer or consent link targets it.
-(()=>{const reveal=()=>{const id=location.hash.slice(1);if(!['privacy','terms','support'].includes(id))return;const panel=document.getElementById(id);if(panel?.tagName==='DETAILS'){panel.open=true;panel.scrollIntoView();}};window.addEventListener('hashchange',reveal);reveal();})();
+// Enhance the inline fallback into native, keyboard-accessible help dialogs.
+(() => {
+  if (typeof HTMLDialogElement === 'undefined') return;
+  const dialogs = new Map();
+  let opener = null;
+  const isHelp = hash => ['#support', '#privacy', '#terms'].includes(hash);
+  document.querySelectorAll('.dl-home-policies details').forEach(panel => {
+    const id = panel.id;
+    const dialog = document.createElement('dialog');
+    dialog.className = 'dl-help-dialog';
+    dialog.id = 'dl-dialog-' + id;
+    dialog.setAttribute('aria-labelledby', 'dl-dialog-title-' + id);
+    const header = document.createElement('div');
+    header.className = 'dl-dialog-header';
+    const title = document.createElement('h2');
+    title.id = 'dl-dialog-title-' + id;
+    title.textContent = panel.querySelector('summary').textContent;
+    const close = document.createElement('button');
+    close.type = 'button'; close.className = 'dl-dialog-close';
+    close.setAttribute('aria-label', 'Close ' + title.textContent);
+    close.textContent = '×';
+    close.addEventListener('click', () => dialog.close());
+    header.append(title, close);
+    const body = document.createElement('div'); body.className = 'dl-dialog-body';
+    [...panel.childNodes].filter(node => node.nodeName !== 'SUMMARY').forEach(node => body.append(node));
+    dialog.append(header, body); document.body.append(dialog); panel.remove();
+    dialog.addEventListener('click', event => {
+      if (event.target !== dialog) return;
+      const rect = dialog.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+    });
+    dialog.addEventListener('close', () => {
+      document.documentElement.classList.remove('dl-modal-open');
+      if (isHelp(location.hash)) history.replaceState(null, '', location.pathname + location.search);
+      if (opener?.isConnected) opener.focus({preventScroll:true});
+      opener = null;
+    });
+    dialogs.set('#' + id, dialog);
+  });
+  if (!dialogs.size) return;
+  document.querySelector('.dl-home-policies')?.remove();
+  function open(hash, trigger) {
+    const dialog = dialogs.get(hash);
+    if (!dialog || dialog.open) return;
+    dialogs.forEach(other => { if (other.open) other.close(); });
+    opener = trigger || document.querySelector('.dl-footer a[href="/' + hash + '"]');
+    dialog.showModal();
+    document.documentElement.classList.add('dl-modal-open');
+    dialog.querySelector('button').focus({preventScroll:true});
+  }
+  document.addEventListener('click', event => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest('a[href]');
+    if (!link) return;
+    const url = new URL(link.href, location.href);
+    if (url.origin !== location.origin || url.pathname !== location.pathname || !dialogs.has(url.hash)) return;
+    event.preventDefault(); open(url.hash, link);
+  });
+  window.addEventListener('hashchange', () => open(location.hash));
+  open(location.hash);
+})();
