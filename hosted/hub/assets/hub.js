@@ -64,9 +64,9 @@
 (() => {
   if (typeof HTMLDialogElement === 'undefined') return;
   const dialogs = new Map();
-  let opener = null;
-  const isHelp = hash => ['#support', '#privacy', '#terms'].includes(hash);
-  document.querySelectorAll('.dl-home-policies details').forEach(panel => {
+  const openers = new WeakMap();
+  const isHelp = hash => ['#support', '#privacy', '#terms', '#account'].includes(hash);
+  document.querySelectorAll('.dl-home-policies details, .dl-home-account').forEach(panel => {
     const id = panel.id;
     const dialog = document.createElement('dialog');
     dialog.className = 'dl-help-dialog';
@@ -76,7 +76,7 @@
     header.className = 'dl-dialog-header';
     const title = document.createElement('h2');
     title.id = 'dl-dialog-title-' + id;
-    title.textContent = panel.querySelector('summary').textContent;
+    title.textContent = id === 'account' ? 'Your account' : panel.querySelector('summary').textContent;
     const close = document.createElement('button');
     close.type = 'button'; close.className = 'dl-dialog-close';
     close.setAttribute('aria-label', 'Close ' + title.textContent);
@@ -92,10 +92,14 @@
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
     });
     dialog.addEventListener('close', () => {
-      document.documentElement.classList.remove('dl-modal-open');
-      if (isHelp(location.hash)) history.replaceState(null, '', location.pathname + location.search);
-      if (opener?.isConnected) opener.focus({preventScroll:true});
-      opener = null;
+      if (dialog.open) return;
+      if (![...dialogs.values()].some(other => other.open)) {
+        document.documentElement.classList.remove('dl-modal-open');
+        if (isHelp(location.hash)) history.replaceState(null, '', location.pathname + location.search);
+        const opener = openers.get(dialog);
+        if (opener?.isConnected) opener.focus({preventScroll:true});
+      }
+      openers.delete(dialog);
     });
     dialogs.set('#' + id, dialog);
   });
@@ -105,7 +109,8 @@
     const dialog = dialogs.get(hash);
     if (!dialog || dialog.open) return;
     dialogs.forEach(other => { if (other.open) other.close(); });
-    opener = trigger || document.querySelector('.dl-footer a[href="/' + hash + '"]');
+    openers.set(dialog, trigger || document.querySelector('a[href="/' + hash + '"]'));
+    if (hash === '#account') history.replaceState(null, '', location.pathname + location.search + hash);
     dialog.showModal();
     document.documentElement.classList.add('dl-modal-open');
     dialog.querySelector('button').focus({preventScroll:true});

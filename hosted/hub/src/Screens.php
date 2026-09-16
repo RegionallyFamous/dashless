@@ -13,7 +13,7 @@ final class Screens {
         add_shortcode('dashless_account',fn()=> $this->account());
         add_action('init',function(){
             register_block_type('dashless/login-button',['api_version'=>3,'render_callback'=>fn()=> $this->loginButton()]);
-            register_block_type('dashless/home-account',['api_version'=>3,'render_callback'=>fn()=> '<div id="account" class="dl-home-account">'.(Identity::verified(get_current_user_id())?$this->account():'<div class="dl-account-nudge"><h2>Your account</h2><p><a href="#start">Sign in above ↑</a> to set up your blog and manage billing here.</p></div>').'</div>']);
+            register_block_type('dashless/home-account',['api_version'=>3,'render_callback'=>fn()=> '<div id="account" class="dl-home-account">'.(Identity::verified(get_current_user_id())?$this->account():$this->signin()).'</div>']);
             register_block_type('dashless/home-help',['api_version'=>3,'render_callback'=>fn()=> $this->homeHelp()]);
         });
         add_shortcode('dashless_signin',fn()=> $this->signin());
