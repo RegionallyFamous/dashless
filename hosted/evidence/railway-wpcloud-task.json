@@ -1,0 +1,31 @@
+{
+  "data": {
+    "client_id": "103",
+    "complete": "2026-09-16 14:20:34",
+    "created": "2026-09-16 14:20:27",
+    "meta": {
+      "_job_retries": "1",
+      "_ready": "ready",
+      "active_jobs": "",
+      "args": [
+        "dashless",
+        "railway-smoke"
+      ],
+      "cli_mode": "full",
+      "concurrency": "20",
+      "failure_count": "0",
+      "priority": "-15",
+      "send_webhook_for": "none",
+      "site_count_limit": "0",
+      "site_list": "152161516",
+      "site_run_list": "",
+      "success_count": "1",
+      "took": "6164",
+      "took_failure": "0",
+      "took_success": "6164"
+    },
+    "task_id": "759107",
+    "type": "run-wp-cli-command"
+  },
+  "message": "OK"
+}

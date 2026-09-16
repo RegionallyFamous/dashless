@@ -1,0 +1,5 @@
+
+> dashless-codex-plugin@1.0.0 check:hosted
+> node hosted/scripts/check.mjs
+
+56 PHP/JS syntax checks passed; 23 scoped hosted tools validated.

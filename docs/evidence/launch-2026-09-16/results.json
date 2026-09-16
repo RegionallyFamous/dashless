@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-16",
+  "scope": "local checks and unauthenticated live availability; not production acceptance",
+  "core_tests": 45,
+  "hub_baseline": 46,
+  "chatgpt_integration": 101,
+  "site_integration": 57,
+  "chatgpt_state_tests": 4,
+  "chatgpt_browser_checks": 10,
+  "railway_runtime_tests": 6,
+  "hosted_syntax_checks": 84,
+  "shared_tool_schemas": 23,
+  "frontend_browser": {
+    "passed": true,
+    "presets": 27,
+    "widths": [
+      390,
+      768,
+      1280,
+      320
+    ]
+  },
+  "production_audits": {
+    "runtime": 0,
+    "template": 0,
+    "chatgpt": 0,
+    "composer": 0
+  },
+  "live_http": {
+    "homepage": 200,
+    "oauth_discovery": 200,
+    "builder_health": 200
+  },
+  "deployed_patch": false,
+  "paid_launch_ready": false
+}

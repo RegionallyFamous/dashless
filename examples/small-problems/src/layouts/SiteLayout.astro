@@ -1,0 +1,53 @@
+---
+import "../styles/global.css";
+import { config } from "../lib/dashless.mjs";
+const {title=config.siteName,description=config.siteDescription,digest,image,imageAlt='',article=false,noindex=false,publishedTime,modifiedTime}=Astro.props;
+const canonical=new URL(Astro.url.pathname,config.publicUrl).href;
+const navigation=[['Home','/'],['Stories','/stories/'],['Topics','/topics/'],['About','/about/']];
+const structuredData={"@context":"https://schema.org","@type":article?'Article':'WebSite',name:config.siteName,headline:title,description,url:canonical,...(image?{image:new URL(image,config.publicUrl).href}:{}),...(publishedTime?{datePublished:publishedTime}:{}),...(modifiedTime?{dateModified:modifiedTime}:{})};
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light dark"/>
+<title>{title===config.siteName?title:`${title} · Small Problems`}</title>
+<meta name="description" content={description}/><link rel="canonical" href={canonical}/>
+{noindex && <meta name="robots" content="noindex,follow"/>}
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="sitemap" href="/sitemap.xml"/><link rel="alternate" type="application/rss+xml" title={config.siteName} href="/rss.xml"/>
+{digest && <meta name="dashless-content-digest" content={digest}/>}
+<meta property="og:title" content={title}/><meta property="og:description" content={description}/><meta property="og:type" content={article?'article':'website'}/><meta property="og:url" content={canonical}/><meta property="og:site_name" content={config.siteName}/>
+{image && <><meta property="og:image" content={new URL(image,config.publicUrl).href}/><meta property="og:image:alt" content={imageAlt||title}/></>}
+<meta name="twitter:card" content={image?'summary_large_image':'summary'}/><meta name="twitter:title" content={title}/><meta name="twitter:description" content={description}/>
+{image && <><meta name="twitter:image" content={new URL(image,config.publicUrl).href}/><meta name="twitter:image:alt" content={imageAlt||title}/></>}
+<script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData).replaceAll('<','\\u003c')}/>
+<script is:inline>try{const t=localStorage.getItem('small-problems-theme');document.documentElement.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch{}</script>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="demo-banner"><span>A fictional blog. A very real possibility.</span><a href="/about/#a-dashless-demo">Made with Dashless <span aria-hidden="true">↗</span></a></div>
+<div class="site-frame">
+<header class="site-header">
+<a class="identity" href="/" aria-label="The Department of Small Problems — home"><span class="seal" aria-hidden="true"><svg viewBox="0 0 60 60"><path d="M19 18h22v29H19zM25 13h10v9H25zM24 28h12M24 34h12M24 40h7"/></svg></span><span><span class="identity-small">THE DEPARTMENT OF</span><span class="identity-name">Small Problems<span class="identity-period">.</span></span></span></a>
+<p class="masthead-note">No concern too minor.<br/>No investigation on schedule.</p>
+</header>
+<div class="nav-row"><nav aria-label="Main navigation">{navigation.map(([label,url])=><a href={url} aria-current={(url==='/'?Astro.url.pathname==='/':Astro.url.pathname.startsWith(url))?'page':undefined}>{label}</a>)}</nav><div class="nav-tools"><a class="search-link" href="/search/" aria-label="Search this site"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><span>Search</span></a><button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode" aria-pressed="false" type="button"><span aria-hidden="true">◐</span><span id="theme-label">Lights out</span></button></div></div>
+<main id="main-content"><slot/></main>
+<footer class="site-footer"><div class="footer-top"><p class="footer-title">Still a small problem?<br/><em>We're on it. Sort of.</em></p><a class="text-link" href="/rss.xml">Follow the updates with RSS <span aria-hidden="true">↗</span></a></div><div class="footer-bottom"><p>© 2026 Department of Small Problems.<br/>A fictional sample blog made with Dashless.</p><nav aria-label="Footer"><a href="/about/">About this demo</a><a href="/about/staff/">Meet the department</a><a href="/tags/">The index</a><a href="#main-content">Back to top ↑</a></nav><span class="footer-stamp" aria-hidden="true">FILED<br/>EVENTUALLY</span></div></footer>
+</div>
+<script>
+const button=document.querySelector<HTMLButtonElement>('#theme-toggle');
+const label=document.querySelector('#theme-label');
+const preference=matchMedia('(prefers-color-scheme: dark)');
+function syncTheme(){const dark=document.documentElement.dataset.theme==='dark';button?.setAttribute('aria-pressed',String(dark));button?.setAttribute('aria-label',dark?'Switch to light mode':'Switch to dark mode');if(label)label.textContent=dark?'Lights on':'Lights out';}
+syncTheme();
+button?.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('small-problems-theme',next);}catch{}syncTheme();});
+preference.addEventListener('change',event=>{try{if(localStorage.getItem('small-problems-theme'))return;}catch{}document.documentElement.dataset.theme=event.matches?'dark':'light';syncTheme();});
+for(const image of document.querySelectorAll<HTMLImageElement>('main img')){
+ const unavailable=()=>{if(!image.isConnected)return;const fallback=document.createElement('span');fallback.className='image-unavailable';if(image.alt){fallback.setAttribute('role','img');fallback.setAttribute('aria-label',`${image.alt} (image unavailable)`);fallback.textContent='Photograph temporarily misfiled.';}else fallback.setAttribute('aria-hidden','true');image.replaceWith(fallback);};
+ image.addEventListener('error',unavailable,{once:true});if(image.complete&&image.naturalWidth===0)unavailable();
+}
+</script>
+</body>
+</html>

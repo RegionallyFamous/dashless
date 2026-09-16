@@ -1,0 +1,26 @@
+{
+  "pages": 23,
+  "widths": [
+    390,
+    768,
+    1280,
+    320
+  ],
+  "checks": [
+    "23 pages at 4 widths; headings, reflow, loaded images",
+    "Keyboard skip link and persistent light/dark toggle",
+    "Search results, no results, query URL, and safe text",
+    "Archive pagination and nested staff page",
+    "Accessible unavailable-image state",
+    "Reduced-motion and forced-color modes",
+    "Reading without JavaScript",
+    "No unexpected browser errors or warnings"
+  ],
+  "screenshots": [
+    "home-desktop.png",
+    "home-mobile.png",
+    "article-mobile.png",
+    "about-desktop.png"
+  ],
+  "passed": true
+}

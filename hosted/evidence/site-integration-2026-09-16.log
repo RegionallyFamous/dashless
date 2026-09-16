@@ -1,0 +1,61 @@
+
+Warning: Constant ABSPATH already defined, this will be an error in PHP 9 in /private/tmp/dashless-site-test-20260916/wp-config.php on line 2
+PASS anonymous service access denied
+PASS atomic ID returned instead of local blog ID
+PASS second account cannot access first site (wrong_account)
+PASS schema rejects direct publishing (invalid_arguments)
+PASS draft retry creates exactly one item
+PASS changed input cannot reuse key (idempotency_conflict)
+PASS draft remains private
+PASS metadata invalidates snapshots
+PASS cross-account upload denied
+PASS executable upload rejected
+PASS raw binary upload creates private attachment
+PASS upload completion retry is idempotent
+PASS private media cannot be requested anonymously
+PASS preview HTTP persists a job without running a build
+PASS people see plain-language progress, not queue terminology
+PASS second worker cannot claim active site lease
+PASS a separate PHP process excludes concurrent job execution
+PASS independent worker releases its lease
+PASS real Astro preview build succeeds: {"job_id":"04962aa7-7079-49d1-9827-8af54dbc47b9","kind":"preview","status":"succeeded","attempts":1,"created_at":"2026-09-16T12:55:16+00:00","saved":true,"preview_ready":true,"published_in_wordpress":false,"deployed":false,"publicly_verified":false,"previous_release_preserved":true,"continuation_required":false,"started_at":"2026-09-16T12:55:16+00:00","runtime_sha256":"a295fe99b9edc8bc74034d0877a0544e537b34e1a5d390b82c5c79afe7037063","snapshot_generation":10,"snapshot_counts":{"posts":1,"pages":0,"media":1},"peak_memory_bytes":0,"memory_method":"unavailable","full_snapshot":true,"html_pages":8,"preview_id":"8028b7ec-78ca-415c-99bc-110b620922e3","finished_at":"2026-09-16T12:55:17+00:00","message":"Your preview is ready."}
+PASS build reports full WordPress snapshot
+PASS terminal job replay does not build twice
+PASS direct preview HTML denied
+PASS direct private preview asset denied
+PASS one-use browser ticket opens session
+PASS browser ticket cannot replay
+PASS preview session is secure and host scoped
+PASS preview page references only session-protected asset paths
+PASS authorized browser can load its private image
+PASS asset traversal rejected
+PASS model cannot mint approval (human_approval_required)
+PASS tampered private media rejects publication before WordPress save (artifact_invalid)
+PASS validly stored changed asset invalidates approval even without a generation change (stale_approval)
+PASS changed content generation invalidates exact preview (stale_approval)
+PASS changed design rejects approval (stale_approval)
+PASS new design builds a new candidate
+PASS approval consumption queues publication without editing WordPress in HTTP
+PASS same publication key returns same queued job
+PASS consumed approval cannot mint another job (approval_unavailable)
+PASS failed activation distinguishes saved WordPress from public success: {"job_id":"c786057a-2b79-46b0-99ac-3f688b2adff0","kind":"publish","status":"failed","attempts":1,"created_at":"2026-09-16T12:55:18+00:00","saved":true,"preview_ready":true,"published_in_wordpress":true,"deployed":false,"publicly_verified":false,"previous_release_preserved":true,"continuation_required":false,"started_at":"2026-09-16T12:55:18+00:00","runtime_sha256":"a295fe99b9edc8bc74034d0877a0544e537b34e1a5d390b82c5c79afe7037063","error":{"code":"public_verification_failed","message":"Your changes were saved, but we could not confirm they are live. Your previous blog has been kept online."},"finished_at":"2026-09-16T12:55:18+00:00","message":"Your changes were saved, but we could not confirm they are live. Your previous blog has been kept online."}
+PASS failed first activation restores prior empty pointer
+PASS publication retry deploys without repeating WordPress save
+PASS staged update leaves the published parent untouched
+PASS published changeset renders as private candidate
+PASS second approved release verifies
+PASS approved rollback verifies exact previous candidate
+PASS rollback approval cannot replay (approval_unavailable)
+PASS pausing an active account defaults to a full 30-day recovery period
+PASS suspension disables editing and design reads (site_inactive)
+PASS bounded export checkpoints and releases its lease
+PASS suspended owner resumes the same export without restarting
+PASS portable tar includes content/design/media/source and excludes service credentials
+PASS resumed archive preserves exact original media bytes
+PASS private export ticket works once during retention
+PASS expired retention blocks private export
+PASS previous credential has bounded verification overlap
+PASS old credential expires
+PASS rotated credential remains valid
+
+57 real WordPress site integration checks passed. Public verification used a failure fixture; builds used real Astro.

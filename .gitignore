@@ -3,3 +3,19 @@ dist/
 node_modules/
 .wp-env.override.json
 .wp-env/
+
+# Hosted service dependencies and local configuration.
+hosted/hub/vendor/
+hosted/.env*
+hosted/.local/
+hosted/dist/*.zip
+
+# Local caches and credentials must never enter the private source backup.
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+auth.json

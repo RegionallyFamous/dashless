@@ -1,0 +1,16 @@
+{
+  "site": {
+    "sha256": "1c77e8d5cb1ed87504e7cc6cf1e4c6c1c5124bb7fa9ffd457e36d4f4dfb41980",
+    "archive_bytes": 53440,
+    "verified_files": 14,
+    "uncompressed_bytes": 189002,
+    "source_matches": true
+  },
+  "runtime": {
+    "sha256": "32df9586c630815a5bb947ade4cbf8eff0d3a9307d074e256724dadee522382e",
+    "archive_bytes": 137031058,
+    "verified_files": 13199,
+    "uncompressed_bytes": 402099697,
+    "source_matches": true
+  }
+}

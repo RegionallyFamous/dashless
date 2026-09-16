@@ -1,0 +1,48 @@
+PASS magic email retains OAuth continuation
+PASS email fetch does not consume link
+PASS magic link cannot be replayed
+PASS expired link rejected
+PASS separate accounts created
+PASS platform names reserved
+PASS encrypted credential roundtrip
+PASS database lease excludes concurrent operation
+PASS wrong lease cannot unlock
+PASS OAuth wrong resource rejected
+PASS OAuth plain PKCE rejected
+PASS OAuth issuer and state returned
+PASS signed access token resolves account
+PASS authorization code replay rejected
+PASS refresh rotates token
+PASS refresh token replay rejected
+PASS revocation invalidates access chain
+PASS OAuth denial includes issuer
+PASS Stripe SDK validates real signed webhook payload
+PASS tampered signed webhook rejected
+PASS expired webhook signature rejected
+PASS repeated checkout reuses session
+PASS address uniqueness across customers
+PASS checkout alone does not provision
+PASS webhook replay provisions once from fresh Stripe state
+PASS scheduled cancellation retains paid access
+PASS failed renewal gets seven-day grace
+PASS expired grace suspends entitlement
+PASS paid reactivation clears retention
+PASS second build stays queued while first task runs
+PASS cross-account job access rejected
+PASS completion releases next queued build
+PASS failed task reconciles terminal site state
+PASS suspended account can execute recovery export
+PASS MCP refuses customer-supplied routing
+PASS live checkout disabled without acceptance gates
+PASS uncertain creation persists recovery state
+PASS creation recovered without duplicate site
+PASS provisioning requires capabilities, build and public verification
+PASS bootstrap administrator secret discarded after ready
+PASS late paid event obeys current canceled subscription
+PASS recovery checkout preserves existing site
+PASS old subscription event cannot overwrite recovery
+PASS new paid recovery reactivates entitlement
+PASS initial failed provisioning cancels and refunds idempotently
+PASS refunded provisioning retains bounded cleanup deadline
+
+46 integration checks passed. External services used fixtures; no payments or sites created.

@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+const base=process.env.DASHLESS_TEST_URL || 'http://localhost:8874';
+if(!/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(base))throw Error('Disposable localhost WordPress required.');
+const headers={'Content-Type':'application/json',Accept:'application/json, text/event-stream'};
+let count=0;const check=(v,message)=>{assert.ok(v,message);count++;console.log('PASS '+message);};
+async function call(body,extra={},method='POST'){return fetch(base+'/mcp',{method,headers:{...headers,...extra},...(method==='POST'?{body:typeof body==='string'?body:JSON.stringify(body)}:{})});}
+let r=await fetch(base+'/.well-known/oauth-protected-resource/mcp');let data=await r.json();check(data.resource===base+'/mcp','resource metadata matches canonical endpoint');
+r=await fetch(base+'/.well-known/oauth-authorization-server');data=await r.json();check(data.code_challenge_methods_supported.includes('S256'),'OAuth discovery advertises PKCE S256');
+r=await call({jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-11-25',clientInfo:{name:'fixture',version:'1'},capabilities:{}}});data=await r.json();check(r.status===200 && data.result.protocolVersion==='2025-11-25','public stateless initialization negotiates supported protocol');check(!r.headers.has('Mcp-Session-Id'),'no tenant session ID or global session');
+r=await call({jsonrpc:'2.0',id:2,method:'tools/list'});data=await r.json();check(data.result.tools.length===26,'public tool scan works before account linking');
+r=await call({jsonrpc:'2.0',id:3,method:'tools/call',params:{name:'get_status',arguments:{}}});data=await r.json();check(r.status===401 && r.headers.has('www-authenticate') && data.result._meta['mcp/www_authenticate'],'missing token returns HTTP and tool-level OAuth challenge');
+r=await call({jsonrpc:'2.0',method:'notifications/initialized'});check(r.status===202 && await r.text()==='','notification returns 202 with no body');
+r=await call({jsonrpc:'2.0',id:4,method:'ping'},{'MCP-Protocol-Version':'1900-01-01'});check(r.status===400,'unsupported protocol header rejected');
+r=await call({jsonrpc:'2.0',id:4,method:'ping'},{Origin:'https://evil.test'});check(r.status===403,'invalid origin rejected');
+r=await call('{}',{},'GET');check(r.status===405 && r.headers.get('allow')==='POST','GET stream is explicitly unsupported');
+r=await call('{');data=await r.json();check(r.status===400 && data.error.code===-32700,'malformed JSON parse error');
+r=await call('[]');data=await r.json();check(data.error.code===-32600,'JSON-RPC batch rejected');
+r=await call('{}',{'Content-Type':'text/plain'});check(r.status===415,'non-JSON request rejected');
+r=await call('{}',{Accept:'text/html'});check(r.status===406,'unsupported response negotiation rejected');
+r=await call({jsonrpc:'2.0',id:5,method:'resources/read',params:{uri:'ui://dashless/workflow-v1.html'}});data=await r.json();check(data.result.contents[0].mimeType==='text/html;profile=mcp-app','component resource delivered over actual PHP HTTP');check(r.headers.get('cache-control').includes('no-store'),'MCP resource response is not cached');
+r=await fetch(base+'/wp-json/dashless-hub/v1/preview/approve',{method:'POST',headers,body:JSON.stringify({preview_id:'11111111-1111-4111-8111-111111111111',approved:true})});check([401,403].includes(r.status),'model-style HTTP cannot mint a browser approval');
+console.log(`${count} local WordPress HTTP checks passed.`);

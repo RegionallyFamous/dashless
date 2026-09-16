@@ -685,7 +685,7 @@ body[data-oddity="true"] .site-frame { animation: frame-shudder 360ms steps(2, e
 body[data-oddity="true"] .wordmark-logo { animation: teddy-bop 620ms ease-in-out infinite alternate; }
 body[data-oddity="true"] .signal-strip { background: var(--pink); }
 body[data-oddity="true"] .signal-strip > span:nth-child(2) { font-size: 0; }
-body[data-oddity="true"] .signal-strip > span:nth-child(2)::after { content: "✦ TEDDY FOUND THE SECRET TUNNEL ✦ TEDDY FOUND THE SECRET TUNNEL ✦"; font-size: 10px; }
+body[data-oddity="true"] .signal-strip > span:nth-child(2)::after { content: "✦ YOU FOUND THE SECRET TUNNEL ✦ YOU FOUND THE SECRET TUNNEL ✦"; font-size: 10px; }
 body[data-oddity="true"] .hero-sticker, body[data-oddity="true"] .web-badge { animation: oddity-wobble 720ms steps(2, end) infinite; }
 
 @keyframes pulse { 50% { opacity: .3; } }
@@ -793,3 +793,15 @@ body[data-oddity="true"] .hero-sticker, body[data-oddity="true"] .web-badge { an
   .article-header, .article-body, .article-hero { border: 0; box-shadow: none; }
   .article-body { max-width: none; padding: 0; }
 }
+
+/* WordPress core block layouts stay readable without a WordPress theme stylesheet. */
+.article-body .wp-block-gallery { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; margin-inline:0; }
+.article-body .wp-block-gallery figure { min-width:0; margin:0; }
+.article-body .wp-block-gallery img { width:100%; height:auto; }
+.article-body .wp-block-columns { display:flex; gap:1.5rem; }
+.article-body .wp-block-column { flex:1; min-width:0; }
+.article-body .wp-block-button__link { display:inline-block; padding:.65em 1em; border:2px solid currentColor; text-decoration:none; }
+.article-body audio { max-width:100%; }
+@media(max-width:640px) { .article-body .wp-block-columns { display:block; } }
+
+body[data-teddy="true"][data-oddity="true"] .signal-strip > span:nth-child(2)::after { content: "✦ TEDDY FOUND THE SECRET TUNNEL ✦ TEDDY FOUND THE SECRET TUNNEL ✦"; }

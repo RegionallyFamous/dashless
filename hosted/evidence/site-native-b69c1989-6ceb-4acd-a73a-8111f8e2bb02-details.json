@@ -1,0 +1,73 @@
+{
+  "jobs": [
+    {
+      "job_id": "6d964888-45ca-45f6-9555-5ac38bd62dde",
+      "kind": "preview",
+      "status": "running",
+      "attempts": 1,
+      "created_at": "2026-09-16T12:50:51+00:00",
+      "saved": false,
+      "preview_ready": false,
+      "published_in_wordpress": false,
+      "deployed": false,
+      "publicly_verified": false,
+      "previous_release_preserved": true,
+      "continuation_required": false,
+      "started_at": "2026-09-16T12:50:56+00:00",
+      "runtime_sha256": "de239a90151fb99e3e8d58390ab3aec698e12f7474dcbc4243ac08caf2195ef9",
+      "snapshot_generation": 1,
+      "snapshot_counts": {
+        "posts": 115,
+        "pages": 1,
+        "media": 150
+      },
+      "next_action": "get_job",
+      "message": "Preparing your preview.",
+      "lease_expires": 1789563316,
+      "runner_pid": 17,
+      "runner_started": 1789563060
+    },
+    {
+      "job_id": "6cdd21e3-1b44-4d86-a757-976aa1d2af3f",
+      "kind": "preview",
+      "status": "queued",
+      "attempts": 0,
+      "created_at": "2026-09-16T12:50:52+00:00",
+      "saved": false,
+      "preview_ready": false,
+      "published_in_wordpress": false,
+      "deployed": false,
+      "publicly_verified": false,
+      "previous_release_preserved": true,
+      "next_action": "get_job",
+      "message": "Your preview is waiting."
+    }
+  ],
+  "workspaces": [
+    {
+      "path": "/tmp/dashless-site-152056190-eac2e0daf0f5b3dd9d819fde",
+      "files": [
+        "fonts.conf",
+        "media",
+        "process-metrics.json",
+        "process.log",
+        "snapshot.json",
+        "source"
+      ],
+      "log": "Dashless: snapshot prepared; loading pinned Astro\nDashless: building full shared frontend\n",
+      "metrics": {
+        "peak_memory_bytes": 0,
+        "process_count": 2,
+        "reason": null
+      },
+      "process": null
+    }
+  ],
+  "legacy_release": "20260912T190537187Z-7caf64",
+  "legacy_generation": {
+    "generation": 1012,
+    "changed_at_gmt": "2026-09-12T19:05:31+00:00",
+    "object_id": 542
+  },
+  "runtime_root": "/srv/htdocs/wp-content/uploads/dashless-hosted-runtime/de239a90151fb99e3e8d58390ab3aec698e12f7474dcbc4243ac08caf2195ef9"
+}

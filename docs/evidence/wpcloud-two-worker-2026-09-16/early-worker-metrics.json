@@ -1,0 +1,123 @@
+{
+  "data": {
+    "_meta": {
+      "dimension": "http_host",
+      "end": 1789556850,
+      "metric": "php_workers_max",
+      "resolution": 10,
+      "start": 1789556610,
+      "took": 189.5289421081543
+    },
+    "periods": [
+      {
+        "dimension": {
+          "teddy.blog": "2"
+        },
+        "timestamp": 1789556610
+      },
+      {
+        "dimension": {
+          "teddy.blog": "1"
+        },
+        "timestamp": 1789556620
+      },
+      {
+        "dimension": {
+          "teddy.blog": "1"
+        },
+        "timestamp": 1789556630
+      },
+      {
+        "dimension": {
+          "teddy.blog": "2"
+        },
+        "timestamp": 1789556640
+      },
+      {
+        "dimension": {
+          "teddy.blog": "2"
+        },
+        "timestamp": 1789556650
+      },
+      {
+        "dimension": {
+          "teddy.blog": "1"
+        },
+        "timestamp": 1789556660
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556670
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556680
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556690
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556700
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556710
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556720
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556730
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556740
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556750
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556760
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556770
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556780
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556790
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556800
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556810
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556820
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556830
+      },
+      {
+        "dimension": {},
+        "timestamp": 1789556840
+      }
+    ]
+  },
+  "message": "OK"
+}

@@ -1,0 +1,71 @@
+{
+  "jobs": [
+    {
+      "job_id": "7a60d25d-9bc1-4fe2-a478-5eb04ff8fa02",
+      "kind": "preview",
+      "status": "running",
+      "attempts": 1,
+      "created_at": "2026-09-16T12:42:31+00:00",
+      "saved": false,
+      "preview_ready": false,
+      "published_in_wordpress": false,
+      "deployed": false,
+      "publicly_verified": false,
+      "previous_release_preserved": true,
+      "continuation_required": false,
+      "started_at": "2026-09-16T12:42:35+00:00",
+      "runtime_sha256": "6fbdebe414977176f061ab9629f6be14d62e68172a24c5a978b26cecab4aefb6",
+      "snapshot_generation": 1,
+      "snapshot_counts": {
+        "posts": 115,
+        "pages": 1,
+        "media": 150
+      },
+      "next_action": "get_job",
+      "lease_expires": 1789562815,
+      "runner_pid": 16,
+      "runner_started": 1789562559
+    },
+    {
+      "job_id": "fe2bef27-b72e-439b-8f12-b45c204fbef0",
+      "kind": "preview",
+      "status": "queued",
+      "attempts": 0,
+      "created_at": "2026-09-16T12:42:32+00:00",
+      "saved": false,
+      "preview_ready": false,
+      "published_in_wordpress": false,
+      "deployed": false,
+      "publicly_verified": false,
+      "previous_release_preserved": true,
+      "next_action": "get_job"
+    }
+  ],
+  "workspaces": [
+    {
+      "path": "/tmp/dashless-site-152056190-c3765fb9459de96ee099a4ff",
+      "files": [
+        "media",
+        "process-metrics.json",
+        "process.log",
+        "render.json",
+        "snapshot.json",
+        "source"
+      ],
+      "log": "Dashless: snapshot prepared; loading pinned Astro\nDashless: building full curated frontend\n",
+      "metrics": {
+        "peak_memory_bytes": 0,
+        "process_count": 2,
+        "reason": null
+      },
+      "process": null
+    }
+  ],
+  "legacy_release": "20260912T190537187Z-7caf64",
+  "legacy_generation": {
+    "generation": 1012,
+    "changed_at_gmt": "2026-09-12T19:05:31+00:00",
+    "object_id": 542
+  },
+  "runtime_root": "/srv/htdocs/wp-content/uploads/dashless-hosted-runtime/6fbdebe414977176f061ab9629f6be14d62e68172a24c5a978b26cecab4aefb6"
+}

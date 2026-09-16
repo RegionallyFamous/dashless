@@ -1,0 +1,21 @@
+PASS / responds
+PASS / renders dynamic blocks
+PASS /sign-in/ responds
+PASS /sign-in/ renders dynamic blocks
+PASS /account/ responds
+PASS /account/ renders dynamic blocks
+PASS /support/ responds
+PASS /support/ renders dynamic blocks
+PASS /terms/ responds
+PASS /terms/ renders dynamic blocks
+PASS /privacy/ responds
+PASS /privacy/ renders dynamic blocks
+PASS /preview/ responds
+PASS /preview/ renders dynamic blocks
+PASS mobile has no horizontal overflow
+PASS scanner GET leaves confirmation form available
+PASS magic POST creates signed-in account
+PASS checkout remains disabled in customer UI
+PASS cookie mutation without REST nonce rejected
+PASS unsigned Stripe webhook rejected
+20 browser checks passed.

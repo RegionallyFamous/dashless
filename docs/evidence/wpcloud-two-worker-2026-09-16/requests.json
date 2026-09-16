@@ -1,0 +1,248 @@
+{
+  "requests": [
+    {
+      "time": 1789556615.649329,
+      "phase": "setup-smoke",
+      "kind": "submit",
+      "status": 202,
+      "seconds": 1.344,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556616.993657,
+      "phase": "setup-smoke",
+      "kind": "status",
+      "status": 200,
+      "seconds": 7.734,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556624.72785,
+      "phase": "baseline-1",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.265,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556629.997917,
+      "phase": "baseline-1",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.268,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556635.266531,
+      "phase": "baseline-1",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.237,
+      "cache_control": "private, no-store",
+      "cache": null
+    },
+    {
+      "time": 1789556640.508849,
+      "phase": "baseline-1",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.215,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556644.740767,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.284,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556644.7458189,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.299,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556645.727854,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.246,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556650.027839,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.241,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556650.046331,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.317,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556650.975064,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.337,
+      "cache_control": "private, no-store",
+      "cache": null
+    },
+    {
+      "time": 1789556655.2731872,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.233,
+      "cache_control": "private, no-store",
+      "cache": null
+    },
+    {
+      "time": 1789556655.368334,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.303,
+      "cache_control": "private, no-store",
+      "cache": null
+    },
+    {
+      "time": 1789556656.315781,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.239,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556660.510904,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.282,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556660.676787,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.33,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556661.559576,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.238,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556665.7984471,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.232,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556666.01136,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.258,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556666.802826,
+      "phase": "baseline-3",
+      "kind": "traffic",
+      "status": 200,
+      "seconds": 0.237,
+      "cache_control": "private, no-store",
+      "cache": null
+    },
+    {
+      "time": 1789556669.733284,
+      "phase": "build-1",
+      "kind": "submit",
+      "status": 202,
+      "seconds": 1.323,
+      "cache_control": "no-cache, must-revalidate, max-age=0, no-store, private",
+      "cache": null
+    },
+    {
+      "time": 1789556672.041264,
+      "phase": "build-1",
+      "kind": "traffic",
+      "status": 0,
+      "seconds": 15.087,
+      "cache_control": null,
+      "cache": null
+    },
+    {
+      "time": 1789556681.0582862,
+      "phase": "build-1",
+      "kind": "submit",
+      "status": 0,
+      "seconds": 15.069,
+      "cache_control": null,
+      "cache": null
+    },
+    {
+      "time": 1789556692.132359,
+      "phase": "build-1",
+      "kind": "traffic",
+      "status": 0,
+      "seconds": 15.142,
+      "cache_control": null,
+      "cache": null
+    }
+  ],
+  "jobs": [
+    {
+      "id": "36e2bf91-8d82-46d1-8225-be63d61224e5",
+      "owner": 1,
+      "mode": "smoke",
+      "status": "succeeded",
+      "created": 1789556615.927634,
+      "attempts": 1,
+      "started": 1789556616.078772,
+      "exit_code": 0,
+      "finished": 1789556624.016295,
+      "result": {
+        "duration_ms": 7633,
+        "files": 2,
+        "html_pages": 1,
+        "index_sha256": "24443f9463734fe0f74521c89283e2a07f45b8cec63b12120911a69766155a87"
+      }
+    }
+  ]
+}

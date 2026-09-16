@@ -1,0 +1,129 @@
+{
+  "data": {
+    "_meta": {
+      "dimensions": [
+        "http_host"
+      ],
+      "end": 1789556790,
+      "metrics": [
+        "php_workers_max",
+        "php_workers_average",
+        "php_request_limited_percentage"
+      ],
+      "resolution": 10,
+      "start": 1789556610,
+      "took": 215.30389785766602
+    },
+    "periods": [
+      {
+        "http_host": {
+          "php_workers_average": {
+            "teddy.blog": "1.5"
+          },
+          "php_workers_max": {
+            "teddy.blog": "2"
+          }
+        },
+        "timestamp": 1789556610
+      },
+      {
+        "http_host": {
+          "php_workers_average": {
+            "teddy.blog": "1"
+          },
+          "php_workers_max": {
+            "teddy.blog": "1"
+          }
+        },
+        "timestamp": 1789556620
+      },
+      {
+        "http_host": {
+          "php_workers_average": {
+            "teddy.blog": "1"
+          },
+          "php_workers_max": {
+            "teddy.blog": "1"
+          }
+        },
+        "timestamp": 1789556630
+      },
+      {
+        "http_host": {
+          "php_request_limited_percentage": {
+            "teddy.blog": "100"
+          },
+          "php_workers_average": {
+            "teddy.blog": "1.25"
+          },
+          "php_workers_max": {
+            "teddy.blog": "2"
+          }
+        },
+        "timestamp": 1789556640
+      },
+      {
+        "http_host": {
+          "php_request_limited_percentage": {
+            "teddy.blog": "100"
+          },
+          "php_workers_average": {
+            "teddy.blog": "1.1666666666666667"
+          },
+          "php_workers_max": {
+            "teddy.blog": "2"
+          }
+        },
+        "timestamp": 1789556650
+      },
+      {
+        "http_host": {
+          "php_workers_average": {
+            "teddy.blog": "1"
+          },
+          "php_workers_max": {
+            "teddy.blog": "1"
+          }
+        },
+        "timestamp": 1789556660
+      },
+      {
+        "timestamp": 1789556670
+      },
+      {
+        "timestamp": 1789556680
+      },
+      {
+        "timestamp": 1789556690
+      },
+      {
+        "timestamp": 1789556700
+      },
+      {
+        "timestamp": 1789556710
+      },
+      {
+        "timestamp": 1789556720
+      },
+      {
+        "timestamp": 1789556730
+      },
+      {
+        "timestamp": 1789556740
+      },
+      {
+        "timestamp": 1789556750
+      },
+      {
+        "timestamp": 1789556760
+      },
+      {
+        "timestamp": 1789556770
+      },
+      {
+        "timestamp": 1789556780
+      }
+    ]
+  },
+  "message": "OK"
+}

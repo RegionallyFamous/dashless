@@ -1,0 +1,49 @@
+{
+  "full_job": {
+    "http": 200,
+    "job": {
+      "id": "56415ce2-0598-44e8-aca9-9c028a1b0465",
+      "owner": 1,
+      "mode": "full",
+      "status": "succeeded",
+      "created": 1789525821.181184,
+      "attempts": 1,
+      "started": 1789525821.337074,
+      "snapshot": {
+        "generation": {
+          "generation": 1012,
+          "changed_at_gmt": "2026-09-12T19:05:31+00:00",
+          "object_id": 542
+        },
+        "counts": {
+          "posts": 115,
+          "pages": 1,
+          "media": 150,
+          "categories": 14,
+          "tags": 87
+        }
+      },
+      "exit_code": 0,
+      "finished": 1789525909.298952,
+      "result": {
+        "duration_ms": 86526,
+        "files": 1111,
+        "html_pages": 240,
+        "index_sha256": "028d792445af5d84a7b8feae52caec22930029bd4f2c87cb055b812fdac6ee21"
+      }
+    }
+  },
+  "full_preview": {
+    "http": 200,
+    "cache": "private, no-store",
+    "sha256": "028d792445af5d84a7b8feae52caec22930029bd4f2c87cb055b812fdac6ee21"
+  },
+  "direct_ciphertext": {
+    "http": 403,
+    "challenge_cookie": true
+  },
+  "live_site": {
+    "http": 403,
+    "challenge_cookie": true
+  }
+}

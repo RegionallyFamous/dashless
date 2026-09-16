@@ -1,0 +1,66 @@
+[
+  {
+    "route": "/jobs/7d621703-cf4c-4be9-896e-37328ca7c24c",
+    "status": 200,
+    "seconds": 0.289,
+    "data": {
+      "id": "7d621703-cf4c-4be9-896e-37328ca7c24c",
+      "owner": 1,
+      "mode": "full",
+      "status": "succeeded",
+      "created": 1789556669.979562,
+      "attempts": 1,
+      "started": 1789556670.106421,
+      "snapshot": {
+        "generation": {
+          "generation": 1012,
+          "changed_at_gmt": "2026-09-12T19:05:31+00:00",
+          "object_id": 542
+        },
+        "counts": {
+          "posts": 115,
+          "pages": 1,
+          "media": 150,
+          "categories": 14,
+          "tags": 87
+        }
+      },
+      "exit_code": 0,
+      "finished": 1789556765.278797,
+      "result": {
+        "duration_ms": 93293,
+        "files": 1111,
+        "html_pages": 240,
+        "index_sha256": "028d792445af5d84a7b8feae52caec22930029bd4f2c87cb055b812fdac6ee21"
+      }
+    }
+  },
+  {
+    "route": "/preview/7d621703-cf4c-4be9-896e-37328ca7c24c/index.html",
+    "status": 200,
+    "seconds": 0.353,
+    "data": "HTML omitted"
+  },
+  {
+    "route": "/environment",
+    "status": 200,
+    "seconds": 0.277,
+    "data": {
+      "php": "8.5.10",
+      "functions": {
+        "proc_open": true,
+        "exec": true,
+        "shell_exec": true,
+        "fastcgi_finish_request": true,
+        "ssh2_connect": false
+      },
+      "root_readable": true,
+      "root_writable": true,
+      "node_executable": true,
+      "home_readable": false,
+      "tmp": "/tmp",
+      "memory_limit": "512M",
+      "max_execution_time": "850"
+    }
+  }
+]

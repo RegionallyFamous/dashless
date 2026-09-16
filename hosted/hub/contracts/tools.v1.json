@@ -1,0 +1,930 @@
+[
+  {
+    "name": "inspect_site",
+    "title": "Inspect the WordPress site",
+    "description": "Read the WordPress content model, settings, content counts, Page hierarchy, generated route map, and Dashless companion status before creating a frontend.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:read"
+  },
+  {
+    "name": "list_posts",
+    "title": "List WordPress content",
+    "description": "List editable core posts or pages, including drafts and published items, ordered by most recently modified.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_type": {
+          "type": "string",
+          "enum": [
+            "post",
+            "page"
+          ],
+          "description": "WordPress core post type."
+        },
+        "status": {
+          "type": "string",
+          "description": "Optional comma-separated WordPress statuses."
+        },
+        "search": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "per_page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "required": [
+        "post_type"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:read"
+  },
+  {
+    "name": "get_post",
+    "title": "Get a WordPress item",
+    "description": "Read the raw editable fields, status, terms, media ID, revision count, digest, and modified timestamp for a post or page.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_type": {
+          "type": "string",
+          "enum": [
+            "post",
+            "page"
+          ],
+          "description": "WordPress core post type."
+        },
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "post_type",
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:read"
+  },
+  {
+    "name": "create_draft",
+    "title": "Create a WordPress draft",
+    "description": "Create a core post or page with status draft only after an explicit editorial request. Never use this tool to populate a design, preview, deployment, or launch. client_key makes retries idempotent and must remain stable for the same intended item.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_type": {
+          "type": "string",
+          "enum": [
+            "post",
+            "page"
+          ],
+          "description": "WordPress core post type."
+        },
+        "client_key": {
+          "type": "string",
+          "minLength": 8,
+          "description": "Stable UUID-like key for this intended draft."
+        },
+        "title": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string",
+          "description": "Portable semantic HTML."
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "featured_media": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "parent": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Parent Page ID. Used only for pages."
+        },
+        "menu_order": {
+          "type": "integer",
+          "description": "Page navigation order. Used only for pages."
+        }
+      },
+      "required": [
+        "post_type",
+        "client_key",
+        "title",
+        "content"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:write"
+  },
+  {
+    "name": "update_draft",
+    "title": "Update a WordPress draft",
+    "description": "Update a draft, pending, or future item only. Refuses published parents and stale modified_gmt values.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_type": {
+          "type": "string",
+          "enum": [
+            "post",
+            "page"
+          ],
+          "description": "WordPress core post type."
+        },
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expected_modified_gmt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string",
+          "description": "Portable semantic HTML."
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "featured_media": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "parent": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Parent Page ID. Used only for pages."
+        },
+        "menu_order": {
+          "type": "integer",
+          "description": "Page navigation order. Used only for pages."
+        }
+      },
+      "required": [
+        "post_type",
+        "id",
+        "expected_modified_gmt"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:write"
+  },
+  {
+    "name": "stage_update",
+    "title": "Stage a published revision",
+    "description": "Prepare a non-public changeset for an existing item without changing its WordPress parent. Use this for published content.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_type": {
+          "type": "string",
+          "enum": [
+            "post",
+            "page"
+          ],
+          "description": "WordPress core post type."
+        },
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expected_modified_gmt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "changes": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string",
+              "description": "Portable semantic HTML."
+            },
+            "excerpt": {
+              "type": "string"
+            },
+            "slug": {
+              "type": "string"
+            },
+            "featured_media": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "parent": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Parent Page ID. Used only for pages."
+            },
+            "menu_order": {
+              "type": "integer",
+              "description": "Page navigation order. Used only for pages."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "post_type",
+        "id",
+        "expected_modified_gmt",
+        "changes"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:write"
+  },
+  {
+    "name": "list_revisions",
+    "title": "List WordPress revisions",
+    "description": "List recent WordPress revisions for a core post or page.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_type": {
+          "type": "string",
+          "enum": [
+            "post",
+            "page"
+          ],
+          "description": "WordPress core post type."
+        },
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "per_page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "required": [
+        "post_type",
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:read"
+  },
+  {
+    "name": "stage_revision_restore",
+    "title": "Stage a revision restoration",
+    "description": "Copy an old WordPress revision into a non-public changeset. It must still be previewed and explicitly published.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_type": {
+          "type": "string",
+          "enum": [
+            "post",
+            "page"
+          ],
+          "description": "WordPress core post type."
+        },
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "revision_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expected_modified_gmt": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "post_type",
+        "id",
+        "revision_id",
+        "expected_modified_gmt"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:write"
+  },
+  {
+    "name": "list_terms",
+    "title": "List WordPress terms",
+    "description": "Find existing categories or tags and return stable term IDs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taxonomy": {
+          "type": "string",
+          "enum": [
+            "category",
+            "tag"
+          ]
+        },
+        "search": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "per_page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "taxonomy"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:read"
+  },
+  {
+    "name": "ensure_terms",
+    "title": "Create missing WordPress terms",
+    "description": "Reuse exact existing categories or tags and create only the requested missing names.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taxonomy": {
+          "type": "string",
+          "enum": [
+            "category",
+            "tag"
+          ]
+        },
+        "names": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "taxonomy",
+        "names"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:write"
+  },
+  {
+    "name": "list_media",
+    "title": "List WordPress media",
+    "description": "Search and browse the WordPress media library, including accessible text and image dimensions.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "search": {
+          "type": "string"
+        },
+        "media_type": {
+          "type": "string",
+          "enum": [
+            "image",
+            "video",
+            "audio",
+            "application"
+          ]
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "per_page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:read"
+  },
+  {
+    "name": "update_media",
+    "title": "Update WordPress media details",
+    "description": "Update alt text, caption, title, or description for an existing media item without replacing the file.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "alt_text": {
+          "type": "string"
+        },
+        "caption": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "scope": "blog:write"
+  },
+  {
+    "name": "get_status",
+    "description": "Read the connected blog and included account access.",
+    "scope": "blog:read",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_job",
+    "description": "Read a previously returned job identifier.",
+    "scope": "blog:read",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "job_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_design",
+    "description": "Read the current curated design and its version.",
+    "scope": "blog:read",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_design",
+    "description": "Stage requested curated design changes; does not publish.",
+    "scope": "blog:write",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "expected_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "client_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        },
+        "changes": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "palette": {
+              "type": "string",
+              "enum": [
+                "paper",
+                "night",
+                "lilac"
+              ]
+            },
+            "typography": {
+              "type": "string",
+              "enum": [
+                "editorial",
+                "modern",
+                "classic"
+              ]
+            },
+            "layout": {
+              "type": "string",
+              "enum": [
+                "journal",
+                "magazine",
+                "minimal"
+              ]
+            },
+            "site_title": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "logo_media_id": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "navigation": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "page_id": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "label",
+                  "page_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "expected_version",
+        "client_key",
+        "changes"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_preview",
+    "description": "Queue an exact private preview of the requested content/design. Never publish.",
+    "scope": "blog:write",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "client_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        },
+        "post_type": {
+          "type": "string",
+          "enum": [
+            "post",
+            "page"
+          ]
+        },
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "change_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "design_version": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "client_key"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "request_publication_approval",
+    "description": "Show a private preview with an authenticated user Publish control. This tool does not grant approval.",
+    "scope": "blog:write",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "preview_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "preview_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "publish_previewed",
+    "description": "Queue publication only after the server has recorded user approval for this exact preview.",
+    "scope": "blog:publish",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "preview_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approval_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "client_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "preview_id",
+        "approval_id",
+        "client_key"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_release",
+    "description": "Read active and previous verified releases.",
+    "scope": "blog:read",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "rollback_release",
+    "description": "Roll back to an earlier verified release after authenticated user approval.",
+    "scope": "blog:publish",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "release_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approval_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "client_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "release_id",
+        "approval_id",
+        "client_key"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "export_site",
+    "description": "Prepare a private content and source export for the account owner.",
+    "scope": "blog:read",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "client_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "client_key"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_media_upload",
+    "description": "Create an authenticated upload page for media when a ChatGPT file transfer is unavailable.",
+    "scope": "blog:write",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "alt_text": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "client_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "filename",
+        "alt_text",
+        "client_key"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  }
+]

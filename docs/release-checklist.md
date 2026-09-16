@@ -1,11 +1,16 @@
 # Dashless 1.0 release checklist
 
+Current cross-component launch decision and Railway acceptance gates: [September 16 launch audit](launch-audit-2026-09-16.md). Earlier native-build findings below are historical; no paid-launch gate has been waived.
+
 ## Automated gate
 
 - All JavaScript and PHP syntax checks pass.
 - The complete Node/PHP/Astro test suite passes.
 - The generated Astro project installs from its lockfile and builds representative content.
 - The production site audit has no errors and no undocumented warnings.
+- `npm run test:frontend` passes and its browser evidence is retained.
+- Hosted candidates pass `node --test hosted/runtime/test.mjs` and the shared publication gate; native hosting acceptance is recorded separately.
+- New reader features appear in the [frontend feature matrix](frontend-framework.md) with acceptance evidence.
 - The WordPress companion activates on the minimum and current compatibility matrix.
 - The Codex and WordPress ZIPs are deterministic in repeated builds, pass archive integrity checks, boot from a clean extraction, and match `dist/SHA256SUMS`.
 - The native Dashless skills pass validation.

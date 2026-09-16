@@ -1,0 +1,44 @@
+[
+  {
+    "theme": "light",
+    "ratios": [
+      {
+        "key": "--ink",
+        "contrast": 13.904763757350336
+      },
+      {
+        "key": "--muted",
+        "contrast": 5.710025991893848
+      },
+      {
+        "key": "--blue",
+        "contrast": 7.971343141234413
+      },
+      {
+        "key": "--red",
+        "contrast": 5.767621462123071
+      }
+    ]
+  },
+  {
+    "theme": "dark",
+    "ratios": [
+      {
+        "key": "--ink",
+        "contrast": 13.889823953069351
+      },
+      {
+        "key": "--muted",
+        "contrast": 7.964667590159526
+      },
+      {
+        "key": "--blue",
+        "contrast": 9.229697585119343
+      },
+      {
+        "key": "--red",
+        "contrast": 7.815058934860934
+      }
+    ]
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "name": "dashless-small-problems-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prebuild": "node demo/prepare.mjs",
+    "build": "astro check && astro build && node scripts/check-publication.mjs",
+    "dev": "node demo/run.mjs dev",
+    "preview": "astro preview --host 127.0.0.1 --port 4327"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/rss": "^4.0.19",
+    "astro": "^7.1.6",
+    "sharp": "^0.35.3",
+    "typescript": "^5.9.2"
+  }
+}

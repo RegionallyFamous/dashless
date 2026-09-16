@@ -1,0 +1,12 @@
+{
+  "version": "0.1.0",
+  "node": {"version":"22.23.2","url":"https://nodejs.org/dist/v22.23.2/node-v22.23.2-linux-x64.tar.xz","sha256":"d60acfe00a2932254bb0ad20e01b0d74397a0875595de719654b214f4b03f307"},
+  "fonts": {"version":"2.37-6","url":"https://deb.debian.org/debian/pool/main/f/fonts-dejavu/fonts-dejavu-core_2.37-6_all.deb","sha256":"8892669e51aab4dc56682c8e39d8ddb7d70fad83c369344e1e240bf3ca22bb76"},
+  "affinity": {"version":"2.38.1-5+deb12u3","url":"https://deb.debian.org/debian/pool/main/u/util-linux/util-linux_2.38.1-5+deb12u3_amd64.deb","sha256":"8eb241ff24b2e1ee9c0373f4fc9bc728b85bf5966c1496154df7da01c0e42f34"},
+  "libraries": [
+    {"name":"gcc-12-base","version":"12.2.0-14+deb12u1","url":"https://deb.debian.org/debian/pool/main/g/gcc-12/gcc-12-base_12.2.0-14+deb12u1_amd64.deb","sha256":"1896a2aacf4ad681ff5eacc24a5b0ca4d5d9c9b9c9e4b6de5197bc1e116ea619"},
+    {"name":"libc6","version":"2.36-9+deb12u14","url":"https://deb.debian.org/debian/pool/main/g/glibc/libc6_2.36-9+deb12u14_amd64.deb","sha256":"ba4f88f73dbc3ae9055f3c20f4523bfdbaf1ad13ff95e258924f77d20b4fbedf"},
+    {"name":"libgcc-s1","version":"12.2.0-14+deb12u1","url":"https://deb.debian.org/debian/pool/main/g/gcc-12/libgcc-s1_12.2.0-14+deb12u1_amd64.deb","sha256":"3016e62cb4b7cd8038822870601f5ed131befe942774d0f745622cc77d8a88f7"},
+    {"name":"libstdc++6","version":"12.2.0-14+deb12u1","url":"https://deb.debian.org/debian/pool/main/g/gcc-12/libstdc++6_12.2.0-14+deb12u1_amd64.deb","sha256":"5cd3171216d4ab0fc911cfe9c35509bf2dd8f47761c43b7f6a4296701551a24d"}
+  ]
+}

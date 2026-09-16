@@ -1,0 +1,12 @@
+{
+  "homepage_status": 403,
+  "release": null,
+  "probe_status": 404,
+  "challenge_cookie_present": true,
+  "access_type": "sftp",
+  "base_php_workers": 2,
+  "remaining_probe_options": 0,
+  "active_release": "20260912T190537187Z-7caf64",
+  "content_generation": 1012,
+  "web_retrieval_homepage": "retrieved successfully; may be cached"
+}

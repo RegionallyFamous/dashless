@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import "../styles/presets.css";
 import { config, getNavigation } from "../lib/dashless.mjs";
 
 const {
@@ -39,7 +40,7 @@ const structuredData = article ? {
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={config.language || "en"} data-palette={config.design?.palette} data-type={config.design?.typography} data-layout={config.design?.layout}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -80,12 +81,12 @@ const structuredData = article ? {
     <script is:inline>
       try {
         const saved = localStorage.getItem("dashless-theme");
-        const dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        const dark = saved ? saved === "dark" : document.documentElement.dataset.palette === "night" || matchMedia("(prefers-color-scheme: dark)").matches;
         if (dark) document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
   </head>
-  <body>
+  <body data-teddy={usesTeddyMark ? "true" : undefined}>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="page-grid" aria-hidden="true"></div>
     <div class="site-frame">
@@ -97,7 +98,7 @@ const structuredData = article ? {
         </div>
         <div class="masthead">
           <a class:list={["wordmark", { "has-teddy-mark": usesTeddyMark }]} href="/" aria-label={`${config.siteName} — home`}>
-            {usesTeddyMark ? (
+            {config.logo ? <span class="wordmark-logo"><img src={config.logo} alt="" width="60" height="60" /></span> : usesTeddyMark ? (
               <span class="wordmark-logo" aria-hidden="true"><img src="/teddy-logo.png" alt="" width="512" height="512" /></span>
             ) : (
               <span class="wordmark-mark" aria-hidden="true">✦</span>
@@ -117,21 +118,21 @@ const structuredData = article ? {
       <main id="main-content"><slot /></main>
       <footer class="site-footer">
         <div>{usesTeddyMark ? <img class="footer-teddy" src="/teddy-logo.png" alt="" width="512" height="512" /> : <span class="footer-star" aria-hidden="true">✦</span>}<p><strong>{config.siteName}</strong><br />A small corner of the big internet.</p></div>
-        <p>Made with WordPress, Astro, and unreasonable enthusiasm.<br /><a href="/rss.xml">Subscribe via RSS</a> · <a href="#main-content">Back to top ↑</a></p>
+        <p>Made with curiosity and unreasonable enthusiasm.<br /><a href="/rss.xml">Subscribe via RSS</a> · <a href="#main-content">Back to top ↑</a></p>
         <div class="footer-curiosities">
           <div class="web-badge" aria-label="Independent website"><span>WORLD</span><strong>WIDE WEB</strong><small>BEST VIEWED WITH CURIOSITY</small></div>
           <button class="oddity-switch" id="oddity-switch" type="button" aria-pressed="false" title="There may be another way in">DO NOT PRESS</button>
         </div>
       </footer>
     </div>
-    <!-- You found the source-code tunnel. Try typing T-E-D-D-Y. -->
+    {usesTeddyMark && <Fragment set:html="<!-- You found the source-code tunnel. Try typing T-E-D-D-Y. -->" />}
     <div class="oddity-layer" id="oddity-layer" aria-hidden="true" hidden>
       <span>404?</span><span>✦</span><span>HELLO</span><span>⌁</span><span>★</span><span>???</span>
     </div>
-    <div class="teddy-sighting" id="teddy-sighting" role="status" aria-live="polite" aria-atomic="true" hidden>
+    {usesTeddyMark && <div class="teddy-sighting" id="teddy-sighting" role="status" aria-live="polite" aria-atomic="true" hidden>
       <img src="/teddy-logo.png" alt="" width="512" height="512" />
       <p><strong>TEDDY HAS ENTERED THE BROWSER</strong><small>Please remain mostly calm.</small></p>
-    </div>
+    </div>}
     <script>
       (() => {
         const button = document.querySelector<HTMLButtonElement>("#theme-toggle");
@@ -187,7 +188,7 @@ const structuredData = article ? {
         oddityButton?.addEventListener("click", () => setOddity(document.body.dataset.oddity !== "true"));
 
         let secretBuffer = "";
-        document.addEventListener("keydown", (event) => {
+        if (oddityToast) document.addEventListener("keydown", (event) => {
           const target = event.target as HTMLElement | null;
           if (event.metaKey || event.ctrlKey || event.altKey || target?.matches("input, textarea, select, [contenteditable='true']")) return;
           if (event.key.length !== 1) return;
@@ -200,7 +201,8 @@ const structuredData = article ? {
           image.dataset.fallbackReady = "true";
           const fallback = document.createElement("span");
           fallback.className = "inline-image-fallback";
-          fallback.setAttribute("role", "img");
+          if (!image.alt) { fallback.setAttribute("aria-hidden", "true"); }
+          else fallback.setAttribute("role", "img");
           fallback.setAttribute("aria-label", image.alt ? `${image.alt} (image unavailable)` : "Image unavailable");
           const mark = document.createElement("b");
           mark.setAttribute("aria-hidden", "true");
@@ -221,8 +223,7 @@ const structuredData = article ? {
           if (articleHero) {
             articleHero.classList.add("is-missing");
             const fallback = articleHero.querySelector<HTMLElement>(".article-hero-fallback");
-            fallback?.removeAttribute("aria-hidden");
-            fallback?.setAttribute("role", "img");
+            if (image.alt) { fallback?.removeAttribute("aria-hidden"); fallback?.setAttribute("role", "img"); }
             fallback?.setAttribute("aria-label", image.alt ? `${image.alt} (image unavailable)` : "Image unavailable");
             image.remove();
             return;

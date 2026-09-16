@@ -1,0 +1,472 @@
+[
+  {
+    "package": "",
+    "teddy": "1.0.0",
+    "hosted": "0.1.0"
+  },
+  {
+    "package": "node_modules/@astrojs/language-server",
+    "teddy": "2.16.13",
+    "hosted": "2.16.16"
+  },
+  {
+    "package": "node_modules/@clack/core",
+    "teddy": "1.4.3",
+    "hosted": "1.5.1"
+  },
+  {
+    "package": "node_modules/@clack/prompts",
+    "teddy": "1.7.0",
+    "hosted": "1.8.1"
+  },
+  {
+    "package": "node_modules/@img/sharp-darwin-arm64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-darwin-x64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-freebsd-wasm32",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-darwin-arm64",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-darwin-x64",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-linux-arm",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-linux-arm64",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-linux-ppc64",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-linux-riscv64",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-linux-s390x",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-linux-x64",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-linuxmusl-arm64",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-libvips-linuxmusl-x64",
+    "teddy": "1.3.2",
+    "hosted": "1.3.3"
+  },
+  {
+    "package": "node_modules/@img/sharp-linux-arm",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-linux-arm64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-linux-ppc64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-linux-riscv64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-linux-s390x",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-linux-x64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-linuxmusl-arm64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-linuxmusl-x64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-wasm32",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-webcontainers-wasm32",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-win32-arm64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-win32-ia32",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@img/sharp-win32-x64",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/@jridgewell/sourcemap-codec",
+    "teddy": "1.5.5",
+    "hosted": "1.6.0"
+  },
+  {
+    "package": "node_modules/@napi-rs/wasm-runtime",
+    "teddy": "1.2.2",
+    "hosted": "1.2.4"
+  },
+  {
+    "package": "node_modules/@oxc-project/types",
+    "teddy": "0.143.0",
+    "hosted": "0.149.0"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-android-arm64",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-darwin-arm64",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-darwin-x64",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-freebsd-x64",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-linux-arm-gnueabihf",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-linux-arm64-gnu",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-linux-arm64-musl",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-linux-ppc64-gnu",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-linux-s390x-gnu",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-linux-x64-gnu",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-linux-x64-musl",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-openharmony-arm64",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-win32-arm64-msvc",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@rolldown/binding-win32-x64-msvc",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/@shikijs/core",
+    "teddy": "4.4.2",
+    "hosted": "4.4.3"
+  },
+  {
+    "package": "node_modules/@shikijs/engine-javascript",
+    "teddy": "4.4.2",
+    "hosted": "4.4.3"
+  },
+  {
+    "package": "node_modules/@shikijs/engine-oniguruma",
+    "teddy": "4.4.2",
+    "hosted": "4.4.3"
+  },
+  {
+    "package": "node_modules/@shikijs/langs",
+    "teddy": "4.4.2",
+    "hosted": "4.4.3"
+  },
+  {
+    "package": "node_modules/@shikijs/primitive",
+    "teddy": "4.4.2",
+    "hosted": "4.4.3"
+  },
+  {
+    "package": "node_modules/@shikijs/themes",
+    "teddy": "4.4.2",
+    "hosted": "4.4.3"
+  },
+  {
+    "package": "node_modules/@shikijs/types",
+    "teddy": "4.4.2",
+    "hosted": "4.4.3"
+  },
+  {
+    "package": "node_modules/@tybys/wasm-util",
+    "teddy": "0.10.3",
+    "hosted": "0.10.4"
+  },
+  {
+    "package": "node_modules/@ungap/structured-clone",
+    "teddy": "1.3.3",
+    "hosted": "1.4.0"
+  },
+  {
+    "package": "node_modules/ansi-regex",
+    "teddy": "6.2.2",
+    "hosted": "6.3.0"
+  },
+  {
+    "package": "node_modules/chokidar",
+    "teddy": "4.0.3",
+    "hosted": "5.0.0"
+  },
+  {
+    "package": "node_modules/css-select",
+    "teddy": "5.2.2",
+    "hosted": "6.0.0"
+  },
+  {
+    "package": "node_modules/css-what",
+    "teddy": "6.2.2",
+    "hosted": "7.0.0"
+  },
+  {
+    "package": "node_modules/devalue",
+    "teddy": "5.9.0",
+    "hosted": "5.9.2"
+  },
+  {
+    "package": "node_modules/es-module-lexer",
+    "teddy": "2.3.1",
+    "hosted": "2.3.2"
+  },
+  {
+    "package": "node_modules/fast-uri",
+    "teddy": "3.1.5",
+    "hosted": "3.1.8"
+  },
+  {
+    "package": "node_modules/fast-xml-builder",
+    "teddy": "1.3.0",
+    "hosted": "1.3.1"
+  },
+  {
+    "package": "node_modules/fast-xml-parser",
+    "teddy": "5.10.1",
+    "hosted": "5.11.1"
+  },
+  {
+    "package": "node_modules/is-unsafe",
+    "teddy": "2.0.0",
+    "hosted": "2.0.2"
+  },
+  {
+    "package": "node_modules/js-yaml",
+    "teddy": "4.3.1",
+    "hosted": "4.3.2"
+  },
+  {
+    "package": "node_modules/magic-string",
+    "teddy": "1.1.0",
+    "hosted": "1.4.1"
+  },
+  {
+    "package": "node_modules/magicast",
+    "teddy": "0.5.4",
+    "hosted": "0.5.5"
+  },
+  {
+    "package": "node_modules/nanoid",
+    "teddy": "3.3.18",
+    "hosted": "3.3.19"
+  },
+  {
+    "package": "node_modules/obug",
+    "teddy": "2.1.4",
+    "hosted": "2.2.1"
+  },
+  {
+    "package": "node_modules/ohash",
+    "teddy": "2.0.11",
+    "hosted": "2.0.12"
+  },
+  {
+    "package": "node_modules/p-limit",
+    "teddy": "7.3.1",
+    "hosted": "7.3.2"
+  },
+  {
+    "package": "node_modules/p-timeout",
+    "teddy": "7.0.1",
+    "hosted": "7.0.2"
+  },
+  {
+    "package": "node_modules/picomatch",
+    "teddy": "4.0.5",
+    "hosted": "4.0.7"
+  },
+  {
+    "package": "node_modules/postcss",
+    "teddy": "8.5.26",
+    "hosted": "8.5.28"
+  },
+  {
+    "package": "node_modules/prettier",
+    "teddy": "3.9.6",
+    "hosted": "3.9.7"
+  },
+  {
+    "package": "node_modules/readdirp",
+    "teddy": "4.1.2",
+    "hosted": "5.1.1"
+  },
+  {
+    "package": "node_modules/rolldown",
+    "teddy": "1.2.3",
+    "hosted": "1.2.8"
+  },
+  {
+    "package": "node_modules/sharp",
+    "teddy": "0.35.3",
+    "hosted": "0.35.4"
+  },
+  {
+    "package": "node_modules/shiki",
+    "teddy": "4.4.2",
+    "hosted": "4.4.3"
+  },
+  {
+    "package": "node_modules/smol-toml",
+    "teddy": "1.7.1",
+    "hosted": "1.8.0"
+  },
+  {
+    "package": "node_modules/strnum",
+    "teddy": "2.4.1",
+    "hosted": "2.4.2"
+  },
+  {
+    "package": "node_modules/svgo",
+    "teddy": "4.0.2",
+    "hosted": "4.1.0"
+  },
+  {
+    "package": "node_modules/tinyexec",
+    "teddy": "1.3.0",
+    "hosted": "1.3.1"
+  },
+  {
+    "package": "node_modules/unifont",
+    "teddy": "0.7.4",
+    "hosted": "0.7.5"
+  },
+  {
+    "package": "node_modules/vite",
+    "teddy": "8.2.1",
+    "hosted": "8.3.0"
+  },
+  {
+    "package": "node_modules/vscode-jsonrpc",
+    "teddy": "9.0.1",
+    "hosted": "9.0.2"
+  },
+  {
+    "package": "node_modules/vscode-languageserver-protocol",
+    "teddy": "3.18.2",
+    "hosted": "3.18.3"
+  },
+  {
+    "package": "node_modules/vscode-languageserver-textdocument",
+    "teddy": "1.0.12",
+    "hosted": "1.0.14"
+  },
+  {
+    "package": "node_modules/vscode-languageserver-types",
+    "teddy": "3.18.0",
+    "hosted": "3.18.3"
+  },
+  {
+    "package": "node_modules/vscode-uri",
+    "teddy": "3.1.0",
+    "hosted": "3.2.0"
+  },
+  {
+    "package": "node_modules/yaml",
+    "teddy": "2.9.0",
+    "hosted": "2.9.1"
+  },
+  {
+    "package": "node_modules/zod",
+    "teddy": "4.4.3",
+    "hosted": "4.6.5"
+  }
+]

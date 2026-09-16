@@ -1,0 +1,21 @@
+/* Dashless identity direction 01 — candidate tokens, not applied to the product. */
+:root {
+  --dashless-ink: #24212b;
+  --dashless-paper: #f7f2e8;
+  --dashless-acid: #dfff00;
+  --dashless-vermilion: #c6402b;
+  --dashless-lilac: #c7b9f2;
+  --dashless-apricot: #e8ac71;
+  --dashless-muted: #625d68;
+  --dashless-display: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  --dashless-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --dashless-label: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --dashless-rule: 2px solid var(--dashless-ink);
+  --dashless-radius: 4px;
+  --dashless-space-1: 8px;
+  --dashless-space-2: 16px;
+  --dashless-space-3: 24px;
+  --dashless-space-4: 40px;
+  --dashless-space-5: 64px;
+  --dashless-space-6: 96px;
+}

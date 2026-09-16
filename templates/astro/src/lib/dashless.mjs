@@ -1,11 +1,18 @@
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { mediaCache, copyCachedFile } from "./media-cache.mjs";
 import userConfig from "../../dashless.config.mjs";
+import { loadSnapshot } from "./snapshot.mjs";
 import { generateSocialCard } from "./social-card.mjs";
 
+const snapshot = await loadSnapshot(process.env.DASHLESS_SNAPSHOT);
+
 export const config = {
+  language: "en",
+  logo: /** @type {string | null} */ (null),
+  design: /** @type {{palette?: string, typography?: string, layout?: string} | null} */ (null),
+  navigation: /** @type {{page_id:number, label:string}[] | null} */ (null),
   topicsPath: "topics",
   tagsPath: "tags",
   postsPerPage: 12,
@@ -63,6 +70,7 @@ function contentDigest(post, postType) {
 }
 
 async function wpRequest(route, query = {}) {
+  if (snapshot) return snapshot.request(route, query);
   const url = new URL(`${wordpressUrl}/wp-json/${route.replace(/^\//, "")}`);
   for (const [key, value] of Object.entries(query)) {
     if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, String(value));
@@ -134,6 +142,7 @@ function safeMediaName(url, prefix = "asset") {
 }
 
 function mirroredMediaRelative(url, prefix) {
+  if (snapshot?.asset(url)) return `/${snapshot.asset(url).relative}`;
   if (!config.mirrorMedia || !url || !url.startsWith("http")) return null;
   let parsed;
   try { parsed = new URL(url); } catch { return null; }
@@ -153,7 +162,7 @@ async function mirrorFile(url, prefix) {
   if (!relative) return url;
   const destination = path.join(process.cwd(), "public", relative);
   const buildDestination = path.join(process.cwd(), "dist", relative);
-  const cached = await mediaCache.get(url);
+  const cached = snapshot ? { file: await snapshot.localAsset(url) } : await mediaCache.get(url);
   await mkdir(path.dirname(destination), { recursive: true });
   await copyCachedFile(cached.file, destination);
   await mkdir(path.dirname(buildDestination), { recursive: true });
@@ -163,6 +172,14 @@ async function mirrorFile(url, prefix) {
 
 async function mirrorHtml(html, prefix) {
   if (!config.mirrorMedia || !html) return html;
+  if (snapshot) {
+    let output = html;
+    for (const match of html.matchAll(/(?:https?:\/\/[^\s"'<>]+|\/wp-content\/uploads\/[^\s"'<>]+)/g)) {
+      const url = new URL(match[0].replaceAll("&amp;", "&"), config.wordpressUrl).href;
+      if (snapshot.asset(url)) output = output.replaceAll(match[0], await mirrorUrl(url, prefix));
+    }
+    return output;
+  }
   const matches = [...html.matchAll(/https?:\/\/[^\s"'<>]+\/wp-content\/uploads\/[^\s"'<>]+/g)];
   let output = html;
   for (const [index, match] of matches.entries()) {
@@ -207,10 +224,12 @@ async function normalize(post, postType, termMaps = {}) {
     category: categoryTerms[0]?.name || "",
     date: post.date,
     featuredImagePath,
-    featuredImageUrl,
+    featuredImageUrl: snapshot ? null : featuredImageUrl,
   }) : null;
   return {
     ...canonical,
+    title: plainText(renderedField(post.title)),
+    excerpt: renderedField(post.excerpt),
     status: post.status,
     date: post.date,
     modified: post.modified,
@@ -228,11 +247,14 @@ async function normalize(post, postType, termMaps = {}) {
 
 function applyPagePaths(pages) {
   const pageById = new Map(pages.map((page) => [page.id, page]));
+  for (const id of [config.homePageId, config.postsPageId]) if (id && !pageById.has(Number(id))) throw new Error("Configured front/posts page is unavailable");
   for (const page of pages) {
     const slugs = [page.slug];
     const seen = new Set([page.id]);
     let parent = pageById.get(page.parent);
-    while (parent && !seen.has(parent.id)) {
+    if (page.parent && !parent) throw new Error(`Page ${page.id} has an unavailable parent`);
+    while (parent) {
+      if (seen.has(parent.id)) throw new Error("Page hierarchy cycle");
       seen.add(parent.id);
       slugs.unshift(parent.slug);
       parent = pageById.get(parent.parent);
@@ -242,9 +264,10 @@ function applyPagePaths(pages) {
     page.isPostsIndex = page.id === Number(config.postsPageId || 0);
     page.url = page.isHome ? "/" : page.isPostsIndex ? `/${config.postsPath}/` : `/${page.path}/`;
   }
-  const reserved = new Set([config.postsPath, config.topicsPath, config.tagsPath, "search"]);
+  const reserved = new Set([config.postsPath, config.topicsPath, config.tagsPath, "search", "404", "rss.xml", "sitemap.xml", "robots.txt", "_astro", "_dashless", "media", "dashless-publication.json"]);
   const conflict = pages.find((page) => !page.isHome && !page.isPostsIndex && reserved.has(page.path.split("/")[0]));
   if (conflict) throw new Error(`WordPress Page ${conflict.id} (${conflict.title}) conflicts with the reserved /${conflict.path.split("/")[0]}/ route. Change that Page slug or the Dashless archive path.`);
+  if (new Set(pages.map(page => page.url)).size !== pages.length) throw new Error("Duplicate page route");
   return pages.sort((a, b) => a.menu_order - b.menu_order || a.title.localeCompare(b.title));
 }
 
@@ -263,7 +286,9 @@ async function getContent(postType) {
     const [categories, tags] = await Promise.all([getCategories(), getTags()]);
     termMaps = { categories: new Map(categories.map((term) => [term.id, term])), tags: new Map(tags.map((term) => [term.id, term])) };
   }
-  const normalized = await Promise.all(items.map((item) => normalize(item, postType, termMaps)));
+  const normalized = [];
+  for (const item of items) normalized.push(await normalize(item, postType, termMaps));
+  if (new Set(normalized.map(item => item.slug)).size !== normalized.length && postType === "post") throw new Error("Duplicate post route");
   return postType === "page" ? applyPagePaths(normalized) : normalized;
 }
 
@@ -310,7 +335,11 @@ export async function getNavigation() {
     { label: "Latest", url: "/" },
     { label: "Stories", url: `/${config.postsPath}/` },
     { label: "Topics", url: `/${config.topicsPath}/` },
-    ...pages.filter((page) => page.parent === 0 && !page.isHome && !page.isPostsIndex).slice(0, 5).map((page) => ({ label: page.title, url: page.url })),
+    ...(config.navigation ? config.navigation.map(item => {
+      const page = pages.find(page => page.id === item.page_id);
+      if (!page) throw new Error("Navigation references a missing page");
+      return { label: item.label, url: page.url };
+    }) : pages.filter((page) => page.parent === 0 && !page.isHome && !page.isPostsIndex).slice(0, 5).map((page) => ({ label: page.title, url: page.url }))),
     { label: "Search", url: "/search/" },
   ];
 }

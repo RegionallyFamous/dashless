@@ -1,0 +1,12 @@
+{
+  "remote_probe_files_removed": true,
+  "deleted_probe_options": 10,
+  "remaining_probe_options": 0,
+  "removed_endpoint_status": 404,
+  "access_type": "sftp",
+  "cron_entries": [],
+  "base_php_workers": 2,
+  "public_http": 200,
+  "active_release": "20260912T190537187Z-7caf64",
+  "content_generation": 1012
+}

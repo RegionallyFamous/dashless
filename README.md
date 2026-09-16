@@ -1,3 +1,20 @@
+# Dashless platform
+
+Private product monorepo: https://github.com/RegionallyFamous/dashless-platform.
+
+| Piece | Source | Release boundary |
+| --- | --- | --- |
+| ChatGPT plugin | `hosted/chatgpt/` | Component and MCP adapter bundled with the Hub |
+| Customer WordPress plugin | `wordpress/dashless-hosted.php`, `wordpress/hosted/` | Pinned site ZIP automatically provisioned by the Hub |
+| Dashless Hub | `hosted/hub/`, `hosted/theme/` | Account, OAuth, billing, provisioning and public site |
+| Shared build infrastructure | `hosted/railway/`, `hosted/runtime/`, `templates/astro/` | Railway image and shared frontend source |
+
+The original local Codex plugin remains in `server/`, `.codex-plugin/` and `skills/`. It is separate from the customer-facing ChatGPT plugin.
+
+Start with the [launch audit and outstanding gates](docs/launch-audit-2026-09-16.md). Paid launch is not approved. Shared contracts and atomic cross-component changes are why these pieces live in one private repository. Installable/deployable artifacts remain separate. Dependencies, secrets and generated ZIPs are excluded; lockfiles and reproducible package scripts are included.
+
+## Original local plugin documentation
+
 # Dashless
 
 [![Dashless 1.0 release gate](https://github.com/RegionallyFamous/dashless/actions/workflows/ci.yml/badge.svg)](https://github.com/RegionallyFamous/dashless/actions/workflows/ci.yml)

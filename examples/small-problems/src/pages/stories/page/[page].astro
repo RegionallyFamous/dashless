@@ -1,0 +1,14 @@
+---
+import Archive from "../../../components/Archive.astro";
+import SiteLayout from "../../../layouts/SiteLayout.astro";
+import { archivePages, config, getPosts } from "../../../lib/dashless.mjs";
+export async function getStaticPaths() {
+  const pages = archivePages(await getPosts());
+  return pages.slice(1).map((posts: any[], index: number) => ({ params: { page: String(index + 2) }, props: { posts, current: index + 2, total: pages.length } }));
+}
+const { posts, current, total } = Astro.props as { posts: any[]; current: number; total: number };
+---
+
+<SiteLayout title={`Stories · Page ${current}`} description={`Page ${current} of the ${config.siteName} story archive.`}>
+  <Archive title="All stories" posts={posts} current={current} total={total} base={`/${config.postsPath}`} />
+</SiteLayout>

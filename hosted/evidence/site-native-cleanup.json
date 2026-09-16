@@ -1,0 +1,30 @@
+{
+  "site_id": 152056190,
+  "cleanup_task": "759077",
+  "removed": {
+    "/htdocs/wp-content/mu-plugins/zz-dashless-hosted.php": true,
+    "/htdocs/wp-content/mu-plugins/dashless-site": true,
+    "/htdocs/wp-content/uploads/dashless-site-acceptance": true,
+    "/htdocs/wp-content/uploads/dashless-hosted-vault": true,
+    "/htdocs/wp-content/uploads/dashless-hosted-runtime": true
+  },
+  "http": {
+    "/": {
+      "status": 200,
+      "release": "20260912T190537187Z-7caf64",
+      "generation": "1012"
+    },
+    "/wp-json/dashless-hosted/v1/capabilities": {
+      "status": 404
+    },
+    "/wp-json/dashless-native-fixture/v1/report": {
+      "status": 404
+    }
+  },
+  "restored_meta": {
+    "default_php_conns": "2",
+    "php_memory_limit": null,
+    "burst_php_conns": null
+  },
+  "passed": true
+}

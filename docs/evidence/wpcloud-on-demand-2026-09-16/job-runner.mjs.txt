@@ -1,0 +1,32 @@
+import fs from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+const root='/tmp/dashless-probe-v2-64fbc2';
+const [id, mode] = process.argv.slice(2);
+if(!/^[a-f0-9-]{36}$/.test(id) || !['smoke','full','fail'].includes(mode)) throw new Error('Invalid fixed probe job');
+const job=`${root}/jobs/${id}`;
+await fs.mkdir(job,{recursive:true,mode:0o700});
+const started=Date.now();
+if(mode==='fail') { console.error('Intentional probe failure'); process.exit(7); }
+let cwd=`${root}/site`;
+const args=['--library-path',`${root}/lib`,`${root}/node-v22.14.0-linux-x64/bin/node`,`${root}/site/node_modules/.bin/astro`,'build'];
+if(mode==='smoke') {
+    cwd=`${job}/source`;
+    await fs.mkdir(`${cwd}/src/pages`,{recursive:true});
+    await fs.mkdir(`${cwd}/public`,{recursive:true});
+    await fs.writeFile(`${cwd}/src/pages/index.astro`,'---\nawait new Promise(resolve=>setTimeout(resolve,5000));\n---\n<html><head><title>Private build preview</title></head><body><h1>Request-triggered Astro build</h1><p>Private marker: '+id+'</p><img src="probe.svg" alt="Private probe image"/></body></html>');
+    await fs.writeFile(`${cwd}/public/probe.svg`,'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="red"/></svg>');
+    await fs.symlink(`${root}/site/node_modules`,`${cwd}/node_modules`,'dir');
+    await fs.writeFile(`${cwd}/package.json`,'{"type":"module"}');
+    args.push('--root',cwd);
+}
+const child=spawn(`${root}/lib/ld-linux-x86-64.so.2`,args,{cwd,stdio:'inherit',env:process.env});
+const exit=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('exit',(code,signal)=>resolve({code,signal}));});
+if(exit.code!==0) { console.error('Astro failed',exit); process.exit(exit.code || 1); }
+await fs.cp(`${cwd}/dist`,`${job}/artifact`,{recursive:true});
+const html=await fs.readFile(`${job}/artifact/index.html`);
+const walk=async p=>(await Promise.all((await fs.readdir(p,{withFileTypes:true})).map(async e=>e.isDirectory()?walk(`${p}/${e.name}`):[`${p}/${e.name}`]))).flat();
+const files=await walk(`${job}/artifact`);
+const result={duration_ms:Date.now()-started,files:files.length,html_pages:files.filter(p=>p.endsWith('.html')).length,index_sha256:createHash('sha256').update(html).digest('hex')};
+await fs.writeFile(`${job}/result.json`,JSON.stringify(result));
+console.log('PROBE_RESULT',JSON.stringify(result));

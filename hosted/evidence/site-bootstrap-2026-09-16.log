@@ -1,0 +1,7 @@
+PASS exact installable packages bootstrap explicit atomic identity
+PASS fresh blog contains no sample stories or pages
+PASS bootstrap retry is idempotent
+PASS bootstrap cannot change an existing site identity
+PASS fresh empty blog passes real Astro and publication checks (network fixture)
+PASS empty publication is honest and contains no invented stories
+6 bootstrap and empty-blog checks passed. Linux files verified; build used local Node; public network response was a fixture.

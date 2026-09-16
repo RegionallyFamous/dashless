@@ -1,0 +1,13 @@
+import {build} from 'esbuild';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const bundled=await build({entryPoints:[path.join(root,'src/workflow.mjs')],bundle:true,write:false,format:'esm',target:'es2022',minify:true,legalComments:'inline'});
+const data=async(name,mime)=>`data:${mime};base64,${(await readFile(path.join(root,'assets',name))).toString('base64')}`;
+const css=(await readFile(path.join(root,'src/workflow.css'),'utf8')).replace('/*HOTTYPE*/',await data('hot-type-display.png','image/png'));
+const html=(await readFile(path.join(root,'src/workflow.html'),'utf8')).replace('/*STYLES*/',css).replace('/*RIP*/',await data('rip.svg','image/svg+xml')).replace('/*SCRIPT*/',()=>bundled.outputFiles[0].text.replaceAll('</script','<\\/script'));
+await mkdir(path.join(root,'dist'),{recursive:true});await writeFile(path.join(root,'dist/workflow.html'),html);
+await writeFile(path.join(root,'dist/manifest.json'),JSON.stringify({version:'0.1.0',resource:'ui://dashless/workflow-v1.html',file:'workflow.html',sha256:createHash('sha256').update(html).digest('hex'),bytes:Buffer.byteLength(html)},null,2)+'\n');
+console.log(`Built self-contained MCP Apps component (${Buffer.byteLength(html)} bytes).`);

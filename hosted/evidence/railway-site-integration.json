@@ -1,0 +1,14 @@
+{
+    "passed": true,
+    "transport": "real_https_to_railway",
+    "preview_states": [
+        "queued",
+        "succeeded"
+    ],
+    "preview_ready": true,
+    "draft_preserved_until_approval": true,
+    "model_approval_rejected": true,
+    "approved_publication": true,
+    "public_http_verification": "local_fixture_mock",
+    "job_id": "8c294b87-aceb-4918-88b9-a49f114707a4"
+}

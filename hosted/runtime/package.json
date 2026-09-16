@@ -1,0 +1,13 @@
+{
+  "name": "dashless-hosted-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/rss": "^4.0.19",
+    "astro": "7.2.8",
+    "sharp": "^0.35.3",
+    "typescript": "^5.9.2"
+  }
+}

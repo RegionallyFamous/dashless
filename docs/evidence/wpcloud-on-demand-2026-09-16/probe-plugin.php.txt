@@ -1,0 +1,150 @@
+<?php
+/** Temporary, authenticated WP Cloud feasibility probe. Removed after testing. */
+if (!defined('ABSPATH') || time() > 1789532789) { return; }
+const DL_PROBE_TOKEN = 'REDACTED_TEST_TOKEN';
+const DL_PROBE_ROOT = '/tmp/dashless-probe-v2-64fbc2';
+function dl_probe_permission() { return current_user_can('manage_options'); }
+add_action('rest_api_init', function () {
+    register_rest_route('dashless-probe-64fbc2/v1', '/environment', array(
+        'methods' => 'GET', 'permission_callback' => 'dl_probe_permission',
+        'callback' => function () {
+            nocache_headers();
+            $functions = array();
+            foreach (array('proc_open','exec','shell_exec','fastcgi_finish_request','ssh2_connect') as $fn) {
+                $functions[$fn] = function_exists($fn);
+            }
+            return array('php'=>PHP_VERSION, 'functions'=>$functions,
+                'root_readable'=>is_readable(DL_PROBE_ROOT),
+                'root_writable'=>is_writable(DL_PROBE_ROOT),
+                'node_executable'=>is_executable(DL_PROBE_ROOT.'/node-v22.14.0-linux-x64/bin/node'),
+                'home_readable'=>is_readable('/home/152056190'),
+                'tmp'=>sys_get_temp_dir(),
+                'memory_limit'=>ini_get('memory_limit'),
+                'max_execution_time'=>ini_get('max_execution_time'));
+        }
+    ));
+    register_rest_route('dashless-probe-64fbc2/v1', '/node', array(
+        'methods'=>'POST','permission_callback'=>'dl_probe_permission',
+        'callback'=>function () {
+            nocache_headers();
+            if (!function_exists('proc_open')) return new WP_Error('unavailable','proc_open unavailable',array('status'=>501));
+
+            $p=proc_open(array(DL_PROBE_ROOT.'/lib/ld-linux-x86-64.so.2','--library-path',DL_PROBE_ROOT.'/lib',DL_PROBE_ROOT.'/node-v22.14.0-linux-x64/bin/node','--version'),array(1=>array('pipe','w'),2=>array('pipe','w')),$pipes,DL_PROBE_ROOT);
+            if (!is_resource($p)) return new WP_Error('launch_failed','Could not start Node',array('status'=>500));
+            $out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);
+            fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($p);
+            return array('exit'=>$exit,'stdout'=>$out,'stderr'=>$err);
+        }
+    ));
+});
+
+
+function dl_probe_job_key($id) { return 'dlprobe64_job_'.$id; }
+function dl_probe_job_owned($id) {
+    $job=get_option(dl_probe_job_key($id));
+    return $job && (int)$job['owner']===get_current_user_id() ? $job : false;
+}
+add_action('rest_api_init', function () {
+    register_rest_route('dashless-probe-64fbc2/v1','/jobs',array(
+        'methods'=>'POST','permission_callback'=>'dl_probe_permission',
+        'callback'=>function($r) {
+            nocache_headers();
+            $key=(string)$r->get_param('key');$mode=(string)$r->get_param('mode');
+            if(!preg_match('/^[a-zA-Z0-9_-]{1,64}$/',$key) || !in_array($mode,array('smoke','full','fail'),true)) return new WP_Error('invalid','Invalid test job',array('status'=>400));
+            $idem='dlprobe64_idem_'.hash('sha256',get_current_user_id().':'.$key);
+            $id=get_option($idem);
+            if($id) { $job=dl_probe_job_owned($id); if(!$job || $job['mode']!==$mode) return new WP_Error('conflict','Idempotency conflict',array('status'=>409)); return new WP_REST_Response($job,200); }
+            $id=wp_generate_uuid4();
+            $job=array('id'=>$id,'owner'=>get_current_user_id(),'mode'=>$mode,'status'=>'queued','created'=>microtime(true),'attempts'=>0);
+            if(!add_option($idem,$id,'',false)) return new WP_Error('retry','Retry same key',array('status'=>409));
+            add_option(dl_probe_job_key($id),$job,'',false);
+            $wake=wp_remote_post(rest_url('dashless-probe-64fbc2/v1/worker'),array('timeout'=>1,'blocking'=>false,'headers'=>array('Content-Type'=>'application/json','X-Dashless-Probe-Token'=>DL_PROBE_TOKEN),'body'=>wp_json_encode(array('id'=>$id))));
+            if(is_wp_error($wake)) { $job['wake_error']=$wake->get_error_code();update_option(dl_probe_job_key($id),$job,false); }
+            return new WP_REST_Response($job,202);
+        }
+    ));
+    register_rest_route('dashless-probe-64fbc2/v1','/jobs/(?P<id>[a-f0-9-]{36})',array(
+        'methods'=>'GET','permission_callback'=>'dl_probe_permission',
+        'callback'=>function($r) { nocache_headers();$job=dl_probe_job_owned($r['id']);return $job ?: new WP_Error('missing','Unknown job',array('status'=>404)); }
+    ));
+    register_rest_route('dashless-probe-64fbc2/v1','/worker',array(
+        'methods'=>'POST','permission_callback'=>function($r) { return hash_equals(DL_PROBE_TOKEN,(string)$r->get_header('X-Dashless-Probe-Token')); },
+        'callback'=>function($r) {
+            nocache_headers();
+            $id=(string)$r->get_param('id');
+            if(!preg_match('/^[a-f0-9-]{36}$/',$id))return new WP_Error('invalid','Invalid job',array('status'=>400));
+            $key=dl_probe_job_key($id);$job=get_option($key);
+            if(!$job || $job['status']!=='queued')return array('started'=>false);
+            if(!add_option('dlprobe64_lock_'.$id,time(),'',false))return array('started'=>false);
+            $job['status']='running';$job['started']=microtime(true);$job['attempts']++;update_option($key,$job,false);
+            $dir=DL_PROBE_ROOT.'/jobs/'.$id;if(!is_dir($dir))mkdir($dir,0700,true);
+            $env=array('PATH'=>DL_PROBE_ROOT.'/node-v22.14.0-linux-x64/bin:/usr/bin:/bin','HOME'=>DL_PROBE_ROOT,'ASTRO_TELEMETRY_DISABLED'=>'1','NODE_OPTIONS'=>'--max-old-space-size=384 --v8-pool-size=1 --import='.DL_PROBE_ROOT.'/site/probe-limit.mjs','UV_THREADPOOL_SIZE'=>'1','GOMAXPROCS'=>'1','RAYON_NUM_THREADS'=>'1','VIPS_CONCURRENCY'=>'1','FONTCONFIG_FILE'=>DL_PROBE_ROOT.'/fonts.conf');
+            if($job['mode']==='full') {
+                try { $job['snapshot']=dl_probe_snapshot($dir,$job['owner']);update_option($key,$job,false); }
+                catch(Throwable $e) { $job['status']='failed';$job['error']=$e->getMessage();update_option($key,$job,false);delete_option('dlprobe64_lock_'.$id);return array('finished'=>true); }
+                $env['PROBE_SNAPSHOT']=$dir.'/snapshot.json';
+                $env['NODE_OPTIONS'].=' --import='.DL_PROBE_ROOT.'/snapshot-preload.mjs';
+            }
+            $loader=DL_PROBE_ROOT.'/lib/ld-linux-x86-64.so.2';
+            $command=array($loader,'--library-path',DL_PROBE_ROOT.'/lib',DL_PROBE_ROOT.'/bin/taskset','-c','0',$loader,'--library-path',DL_PROBE_ROOT.'/lib',DL_PROBE_ROOT.'/node-v22.14.0-linux-x64/bin/node',DL_PROBE_ROOT.'/job-runner.mjs',$id,$job['mode']);
+            ignore_user_abort(true);set_time_limit(600);
+            $p=proc_open($command,array(0=>array('file','/dev/null','r'),1=>array('file',$dir.'/build.log','a'),2=>array('file',$dir.'/build.log','a')),$pipes,DL_PROBE_ROOT,$env);
+            $exit=is_resource($p)?proc_close($p):-1;
+            $job['status']=$exit===0?'succeeded':'failed';$job['exit_code']=$exit;$job['finished']=microtime(true);
+            if(is_file($dir.'/result.json'))$job['result']=json_decode(file_get_contents($dir.'/result.json'),true);
+            if($exit!==0)$job['error_tail']=substr((string)@file_get_contents($dir.'/build.log'),-3000);
+            update_option($key,$job,false);delete_option('dlprobe64_lock_'.$id);
+            return array('finished'=>true);
+        }
+    ));
+    register_rest_route('dashless-probe-64fbc2/v1','/preview/(?P<id>[a-f0-9-]{36})/(?P<path>.+)',array(
+        'methods'=>'GET','permission_callback'=>'dl_probe_permission',
+        'callback'=>function($r) {
+            $job=dl_probe_job_owned($r['id']);
+            if(!$job || $job['status']!=='succeeded')return new WP_Error('missing','No preview',array('status'=>404));
+            $root=realpath(DL_PROBE_ROOT.'/jobs/'.$job['id'].'/artifact');
+            $file=$root?realpath($root.'/'.$r['path']):false;
+            if(!$file || !str_starts_with($file,$root.'/') || !is_file($file))return new WP_Error('missing','No preview file',array('status'=>404));
+            nocache_headers();header('Cache-Control: private, no-store');header('X-Robots-Tag: noindex, nofollow');header('X-Content-Type-Options: nosniff');
+            $ext=strtolower(pathinfo($file,PATHINFO_EXTENSION));$types=array('html'=>'text/html; charset=UTF-8','svg'=>'image/svg+xml','png'=>'image/png','webp'=>'image/webp','jpg'=>'image/jpeg','css'=>'text/css','js'=>'text/javascript');
+            header('Content-Type: '.($types[$ext]??'application/octet-stream'));
+            readfile($file);exit;
+        }
+    ));
+});
+
+
+function dl_probe_snapshot($dir,$owner) {
+    wp_set_current_user($owner);
+    $before=get_option('dashless_content_version');
+    $collections=array();
+    foreach(array('posts','pages','media','categories','tags') as $type) {
+        $all=array();$page=1;
+        do {
+            $request=new WP_REST_Request('GET','/wp/v2/'.$type);
+            $query=array('per_page'=>100,'page'=>$page,'context'=>'view');
+            if(in_array($type,array('posts','pages'),true))$query['status']='publish';
+            if($type==='posts'){$query['orderby']='date';$query['order']='desc';}
+            if($type==='pages'){$query['orderby']='menu_order';$query['order']='asc';}
+            if(in_array($type,array('categories','tags'),true)){$query['hide_empty']=false;$query['orderby']='name';$query['order']='asc';}
+            $request->set_query_params($query);$response=rest_do_request($request);
+            if($response->is_error())throw new Exception('Snapshot read failed: '.$type);
+            $all=array_merge($all,$response->get_data());$headers=$response->get_headers();
+            $pages=(int)($headers['X-WP-TotalPages']??1);$page++;
+        } while($page<=$pages);
+        $collections[$type]=$all;
+    }
+    $after=get_option('dashless_content_version');
+    if($before!==$after)throw new Exception('Content changed during snapshot');
+    $site=rest_do_request(new WP_REST_Request('GET','/dashless/v1/site'))->get_data();
+    $snapshot=array('generation'=>$after,'collections'=>$collections,'site'=>$site);
+    file_put_contents($dir.'/snapshot.json',wp_json_encode($snapshot));chmod($dir.'/snapshot.json',0600);
+    return array('generation'=>$after,'counts'=>array_map('count',$collections));
+}
+
+add_action('rest_api_init',function(){register_rest_route('dashless-probe-64fbc2/v1','/encrypted',array('methods'=>'GET','permission_callback'=>'dl_probe_permission','callback'=>function(){
+$key=file_get_contents(DL_PROBE_ROOT.'/preview-key');$blob=file_get_contents('/srv/htdocs/wp-content/uploads/dashless-probe-64fbc2/canary.bin');
+$plain=openssl_decrypt(substr($blob,28),'aes-256-gcm',$key,OPENSSL_RAW_DATA,substr($blob,0,12),substr($blob,12,16),'dashless-probe-64fbc2');
+if($plain===false)return new WP_Error('invalid','Integrity error',array('status'=>500));
+nocache_headers();return array('plaintext'=>$plain,'source'=>'encrypted artifact in persistent uploads');
+}));});

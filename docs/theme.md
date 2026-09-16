@@ -55,3 +55,7 @@ The `[data-theme="dark"]` block is the complete night palette. The theme toggle 
 ## Customizing generated sites
 
 Generated Astro sites are owned source code. Change the palette, surface behavior, and transition timing in `src/styles/global.css`; shared chrome in `src/layouts/SiteLayout.astro`; homepage modules in `src/pages/index.astro`; entry cards in `src/components/StoryCard.astro`; and share-card composition in `src/lib/social-card.mjs`. WordPress content querying, preview locks, routes, and deployment do not depend on the theme's visual choices.
+
+## Shared publication framework
+
+The local and hosted products now share the Astro publication source. See [the feature matrix, configuration contract, and verification commands](frontend-framework.md). Existing generated sites remain owned copies.

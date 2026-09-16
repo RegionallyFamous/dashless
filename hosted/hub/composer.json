@@ -1,0 +1,9 @@
+{
+  "name": "dashless/hub",
+  "description": "WP Cloud hosted Dashless account and provisioning service",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {"php": ">=8.2", "stripe/stripe-php": "^19.0", "league/oauth2-server": "^9.2", "nyholm/psr7": "^1.8"},
+  "autoload": {"psr-4": {"Dashless\\Hub\\": "src/"}},
+  "config": {"sort-packages": true, "platform": {"php": "8.2.0"}}
+}

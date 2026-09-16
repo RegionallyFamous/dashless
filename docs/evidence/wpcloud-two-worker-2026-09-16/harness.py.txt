@@ -1,0 +1,67 @@
+import probe,threading,time,json,urllib.request,urllib.error,base64,subprocess,statistics
+from pathlib import Path
+secret=subprocess.run(['security','find-generic-password','-a','dashless:'+probe.site['id'],'-s','Dashless WordPress','-w'],capture_output=True,text=True,check=True).stdout.strip()
+headers={'Authorization':'Basic '+base64.b64encode((probe.site['username']+':'+secret).encode()).decode(),'Cache-Control':'no-cache'}
+rows=[]; jobs=[]; stop=threading.Event(); state={'phase':'baseline','users':1,'preview':None}; lock=threading.Lock()
+def req(path,body=None,kind='action'):
+ t=time.time(); code=0; data={}; h={}
+ try:
+  hh=dict(headers)
+  if body is not None:hh['Content-Type']='application/json'
+  r=urllib.request.urlopen(urllib.request.Request(probe.SITE+path,headers=hh,data=None if body is None else json.dumps(body).encode()),timeout=15)
+  code=r.status;h=dict(r.headers);raw=r.read()
+  if 'json' in h.get('Content-Type',''):data=json.loads(raw)
+ except urllib.error.HTTPError as e:code=e.code
+ except Exception as e:data={'error':type(e).__name__}
+ row={'time':t,'phase':state['phase'],'kind':kind,'status':code,'seconds':round(time.time()-t,3),'cache_control':h.get('Cache-Control'),'cache':h.get('X-Cache')}
+ with lock:
+  rows.append(row)
+  recent=[x for x in rows if x['kind']=='traffic'][-3:]
+  if len(recent)==3 and all(x['status']!=200 or x['seconds']>5 for x in recent):stop.set()
+ return code,data
+
+def user(i):
+ n=0
+ while not stop.is_set():
+  if i<state['users']:
+   if n%3==2 and state['preview']:path=probe.NS+'/preview/'+state['preview']+'/index.html'
+   else:path='/wp-json/wp/v2/posts?context=edit&per_page=10&_fields=id,title,status&probe='+str(time.time_ns())
+   req(path,kind='traffic');n+=1
+  stop.wait(5)
+
+def waitjob(id,limit=180):
+ until=time.time()+limit
+ while time.time()<until:
+  code,d=req(probe.NS+'/jobs/'+id,kind='status')
+  if d.get('status') in ['succeeded','failed']:jobs.append(d);return d
+  time.sleep(5)
+ raise RuntimeError('job timeout')
+try:
+ state['phase']='setup-smoke'
+ c,d=req(probe.NS+'/jobs',{'mode':'smoke','key':'load-seed-'+str(int(time.time()))},'submit');assert c==202,(c,d)
+ seed=waitjob(d['id']);assert seed['status']=='succeeded',seed
+ state['preview']=seed['id'];state['phase']='baseline-1'
+ threads=[threading.Thread(target=user,args=(i,),daemon=True) for i in range(3)]
+ for t in threads:t.start()
+ time.sleep(20);state['phase']='baseline-3';state['users']=3;time.sleep(25)
+ if stop.is_set():raise RuntimeError('baseline safety stop')
+ state['phase']='build-1';state['users']=1
+ c,first=req(probe.NS+'/jobs',{'mode':'full','key':'load-full-'+str(int(time.time()))},'submit');assert c==202,(c,first)
+ print('FULL STARTED',first['id'],flush=True)
+ time.sleep(10)
+ c,second=req(probe.NS+'/jobs',{'mode':'smoke','key':'load-queued-'+str(int(time.time()))},'submit');assert c==202,(c,second)
+ c,queued=req(probe.NS+'/jobs/'+second['id'],kind='queued-check');print('SECOND JOB',queued.get('status'),flush=True)
+ Path('/tmp/dashless-loadtest/queued-check.json').write_text(json.dumps(queued,indent=2))
+ time.sleep(20);state['phase']='build-3';state['users']=3
+ full=waitjob(first['id']);print('FULL FINISHED',full.get('status'),full.get('result'),flush=True)
+ state['phase']='queue-drain';state['users']=1
+ second=waitjob(second['id']);print('SECOND FINISHED',second.get('status'),flush=True)
+ state['phase']='recovery-3';state['users']=3;state['preview']=full['id'] if full['status']=='succeeded' else seed['id'];time.sleep(20)
+except Exception as e:print('TEST ERROR',str(e),flush=True)
+finally:
+ stop.set()
+ for t in locals().get('threads',[]):t.join(17)
+ Path('/tmp/dashless-loadtest/results.json').write_text(json.dumps({'requests':rows,'jobs':jobs},indent=2))
+ for phase in sorted(set(r['phase'] for r in rows)):
+  rs=[r for r in rows if r['phase']==phase and r['kind']=='traffic'];xs=sorted(r['seconds'] for r in rs)
+  if xs:print(phase,{'n':len(xs),'errors':sum(r['status']!=200 for r in rs),'median':statistics.median(xs),'p95':xs[min(len(xs)-1,int(len(xs)*.95))],'max':max(xs)},flush=True)

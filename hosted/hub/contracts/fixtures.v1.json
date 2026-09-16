@@ -1,0 +1,10 @@
+{
+  "contract_version": 1,
+  "site_id": 152056190,
+  "capabilities": {"contract_version":1,"site_id":152056190,"plugin_version":"0.1.0","capabilities":{"jobs":true,"private_previews":true,"approvals":true,"exports":true,"design":true,"runtime":true}},
+  "queued_job": {"contract_version":1,"site_id":152056190,"job_id":"8ade6ad0-7b9e-4ba5-98cf-9919ed81e401","status":"queued","next_action":"get_job"},
+  "failed_job": {"contract_version":1,"site_id":152056190,"job_id":"8ade6ad0-7b9e-4ba5-98cf-9919ed81e401","status":"failed","error":{"code":"build_deadline","message":"The build exceeded its time limit. Your previous release is still online."},"previous_release_preserved":true},
+  "publishing_result": {"contract_version":1,"site_id":152056190,"job_id":"8ade6ad0-7b9e-4ba5-98cf-9919ed81e401","status":"succeeded","release_id":"release-fixture","saved":true,"preview_ready":true,"published_in_wordpress":true,"deployed":true,"publicly_verified":true},
+  "approval_error": {"contract_version":1,"site_id":152056190,"code":"stale_approval","message":"The preview changed. Create a new preview and approve it before publishing."},
+  "notes": "Synthetic contract examples only. Capability values are not a claim about the existing site plugin. Never copy fixture IDs into production job records."
+}

@@ -1,0 +1,486 @@
+{
+  "jobs": [
+    {
+      "job_id": "45113681-bd8e-4079-a5c7-1aa164d88536",
+      "kind": "preview",
+      "status": "queued",
+      "attempts": 0,
+      "created_at": "2026-09-16T13:46:08+00:00",
+      "saved": false,
+      "preview_ready": false,
+      "published_in_wordpress": false,
+      "deployed": false,
+      "publicly_verified": false,
+      "previous_release_preserved": true,
+      "next_action": "get_job",
+      "message": "Your preview is waiting."
+    },
+    {
+      "job_id": "66630bd3-9fe6-46c7-b209-1313c1f42d1d",
+      "kind": "preview",
+      "status": "running",
+      "attempts": 1,
+      "created_at": "2026-09-16T13:46:07+00:00",
+      "saved": false,
+      "preview_ready": false,
+      "published_in_wordpress": false,
+      "deployed": false,
+      "publicly_verified": false,
+      "previous_release_preserved": true,
+      "continuation_required": false,
+      "started_at": "2026-09-16T13:46:12+00:00",
+      "runtime_sha256": "32df9586c630815a5bb947ade4cbf8eff0d3a9307d074e256724dadee522382e",
+      "snapshot_generation": 1,
+      "snapshot_counts": {
+        "posts": 115,
+        "pages": 1,
+        "media": 150
+      },
+      "next_action": "get_job",
+      "message": "This is taking longer than expected. Your saved work is safe. Please contact support.",
+      "needs_reconciliation": true,
+      "lease_expires": 1789566632,
+      "runner_pid": 17,
+      "runner_started": 1789566377
+    }
+  ],
+  "workspaces": [
+    {
+      "path": "/tmp/dashless-site-152056190-30e6bd0348af6bca675e6c0a",
+      "files": [
+        "build-result.json",
+        "fonts.conf",
+        "process.log",
+        "snapshot.json",
+        "source",
+        "usage-17.jsonl"
+      ],
+      "log": "Dashless: snapshot prepared; loading pinned Astro\nDashless: building full shared frontend\n13:50:41 [vite] Re-optimizing dependencies because vite config has changed\n13:50:41 [types] Generated 275ms\n13:50:41 [build] output: \"static\"\n13:50:41 [build] mode: \"static\"\n13:50:41 [build] directory: /tmp/dashless-site-152056190-30e6bd0348af6bca675e6c0a/source/dist/\n13:50:41 [build] Collecting build info...\n13:50:41 [build] \u2713 Completed in 377ms.\n13:50:41 [build] Building static entrypoints...\n13:50:42 [vite] \u2713 built in 408ms\n13:50:42 [vite] \u2713 built in 22ms\n13:50:42 [build] Rearranging server assets...\n\n generating static routes \n13:50:42   \u251c\u2500 /404.html (+19ms) \n13:50:42   \u251c\u2500 /dashless-publication.json (+2ms) \n13:50:42   \u251c\u2500 /robots.txt (+3ms) \n13:50:42   \u251c\u2500 /rss.xml (+54ms) \n13:50:42   \u251c\u2500 /search/index.html (+8ms) \n13:50:42   \u251c\u2500 /sitemap.xml (+23ms) \n13:50:42   \u251c\u2500 /stories/index.html (+8ms) \n13:50:42   \u251c\u2500 /tags/index.html (+3ms) \n13:50:42   \u251c\u2500 /topics/index.html (+9ms) \n13:50:42   \u251c\u2500 /index.html (+8ms) \n13:50:42 \u2713 Completed in 212ms.\n\n13:50:42 [build] \u2713 Completed in 740ms.\n13:50:42 [build] 6 page(s) built in 1.12s\n13:50:42 [build] Complete!\n",
+      "metrics": null,
+      "process": null,
+      "usage": {
+        "usage-17.jsonl": [
+          {
+            "time": "2026-09-16T13:50:39.892Z",
+            "stage": "start",
+            "pid": 17,
+            "ppid": 12,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 39754,
+              "systemCPUTime": 14907,
+              "maxRSS": 128348,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 2613,
+              "majorPageFault": 24,
+              "swappedOut": 0,
+              "fsRead": 888,
+              "fsWrite": 0,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 116,
+              "involuntaryContextSwitches": 6
+            }
+          },
+          {
+            "time": "2026-09-16T13:50:42.541Z",
+            "stage": "sample",
+            "pid": 17,
+            "ppid": 12,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 2195867,
+              "systemCPUTime": 456804,
+              "maxRSS": 232136,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 48197,
+              "majorPageFault": 1049,
+              "swappedOut": 0,
+              "fsRead": 888,
+              "fsWrite": 6745,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 3722,
+              "involuntaryContextSwitches": 3516
+            }
+          },
+          {
+            "time": "2026-09-16T13:50:42.651Z",
+            "stage": "sample",
+            "pid": 17,
+            "ppid": 12,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 2289636,
+              "systemCPUTime": 473164,
+              "maxRSS": 232136,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 49704,
+              "majorPageFault": 1067,
+              "swappedOut": 0,
+              "fsRead": 888,
+              "fsWrite": 6804,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 3993,
+              "involuntaryContextSwitches": 3796
+            }
+          },
+          {
+            "time": "2026-09-16T13:50:42.658Z",
+            "stage": "exit",
+            "pid": 17,
+            "ppid": 12,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 2293215,
+              "systemCPUTime": 477085,
+              "maxRSS": 232136,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 49713,
+              "majorPageFault": 1068,
+              "swappedOut": 0,
+              "fsRead": 888,
+              "fsWrite": 6966,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 4177,
+              "involuntaryContextSwitches": 3980
+            }
+          }
+        ]
+      }
+    },
+    {
+      "path": "/tmp/dashless-site-152056190-392beeb035bb193c70933ca4",
+      "files": [
+        "font-cache",
+        "fonts.conf",
+        "media",
+        "process.log",
+        "snapshot.json",
+        "source",
+        "usage-16.jsonl"
+      ],
+      "log": "Dashless: snapshot prepared; loading pinned Astro\nDashless: building full shared frontend\n13:51:29 [vite] Re-optimizing dependencies because vite config has changed\n13:51:29 [types] Generated 173ms\n13:51:29 [build] output: \"static\"\n13:51:29 [build] mode: \"static\"\n13:51:29 [build] directory: /tmp/dashless-site-152056190-392beeb035bb193c70933ca4/source/dist/\n13:51:29 [build] Collecting build info...\n13:51:29 [build] \u2713 Completed in 261ms.\n13:51:29 [build] Building static entrypoints...\n13:51:30 [vite] \u2713 built in 338ms\n13:51:30 [vite] \u2713 built in 23ms\n13:51:30 [build] Rearranging server assets...\n\n generating static routes \n",
+      "metrics": null,
+      "process": null,
+      "usage": {
+        "usage-16.jsonl": [
+          {
+            "time": "2026-09-16T13:51:27.854Z",
+            "stage": "start",
+            "pid": 16,
+            "ppid": 12,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 40794,
+              "systemCPUTime": 16317,
+              "maxRSS": 137780,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 2620,
+              "majorPageFault": 0,
+              "swappedOut": 0,
+              "fsRead": 0,
+              "fsWrite": 0,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 5,
+              "involuntaryContextSwitches": 6
+            }
+          },
+          {
+            "time": "2026-09-16T13:51:30.319Z",
+            "stage": "sample",
+            "pid": 16,
+            "ppid": 12,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 1983757,
+              "systemCPUTime": 506915,
+              "maxRSS": 262936,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 49364,
+              "majorPageFault": 84,
+              "swappedOut": 0,
+              "fsRead": 0,
+              "fsWrite": 10448,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 3557,
+              "involuntaryContextSwitches": 3344
+            }
+          },
+          {
+            "time": "2026-09-16T13:51:30.423Z",
+            "stage": "sample",
+            "pid": 16,
+            "ppid": 12,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 2075236,
+              "systemCPUTime": 518809,
+              "maxRSS": 265228,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 51645,
+              "majorPageFault": 143,
+              "swappedOut": 0,
+              "fsRead": 0,
+              "fsWrite": 10449,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 3787,
+              "involuntaryContextSwitches": 3544
+            }
+          },
+          {
+            "time": "2026-09-16T13:51:30.525Z",
+            "stage": "sample",
+            "pid": 16,
+            "ppid": 12,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 2152681,
+              "systemCPUTime": 542156,
+              "maxRSS": 278452,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 53519,
+              "majorPageFault": 793,
+              "swappedOut": 0,
+              "fsRead": 0,
+              "fsWrite": 10789,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 3902,
+              "involuntaryContextSwitches": 3649
+            }
+          }
+        ]
+      }
+    },
+    {
+      "path": "/tmp/dashless-site-152056190-507421c5c9942c356102aac1",
+      "files": [
+        "fonts.conf",
+        "media",
+        "process-metrics.json",
+        "process.log",
+        "snapshot.json",
+        "source"
+      ],
+      "log": "Dashless: snapshot prepared; loading pinned Astro\nDashless: building full shared frontend\n13:46:20 [types] Generated 294ms\n13:46:20 [build] output: \"static\"\n13:46:20 [build] mode: \"static\"\n13:46:20 [build] directory: /tmp/dashless-site-152056190-507421c5c9942c356102aac1/source/dist/\n13:46:20 [build] Collecting build info...\n13:46:20 [build] \u2713 Completed in 383ms.\n13:46:20 [build] Building static entrypoints...\n",
+      "metrics": {
+        "peak_memory_bytes": 0,
+        "process_count": 2,
+        "reason": null
+      },
+      "process": null,
+      "usage": []
+    },
+    {
+      "path": "/tmp/dashless-site-152056190-509b0f0bcbe8fe3499e7122d",
+      "files": [
+        "font-cache",
+        "fonts.conf",
+        "media",
+        "process.log",
+        "snapshot.json",
+        "source",
+        "usage-17.jsonl"
+      ],
+      "log": "Dashless: snapshot prepared; loading pinned Astro\nDashless: building full shared frontend\n13:53:07 [vite] Re-optimizing dependencies because vite config has changed\n13:53:07 [types] Generated 212ms\n13:53:07 [build] output: \"static\"\n13:53:07 [build] mode: \"static\"\n13:53:07 [build] directory: /tmp/dashless-site-152056190-509b0f0bcbe8fe3499e7122d/source/dist/\n13:53:07 [build] Collecting build info...\n13:53:07 [build] \u2713 Completed in 314ms.\n13:53:07 [build] Building static entrypoints...\n13:53:07 [vite] \u2713 built in 427ms\n13:53:07 [vite] \u2713 built in 43ms\n13:53:07 [build] Rearranging server assets...\n\n generating static routes \n",
+      "metrics": null,
+      "process": null,
+      "usage": {
+        "usage-17.jsonl": [
+          {
+            "time": "2026-09-16T13:53:05.179Z",
+            "stage": "start",
+            "pid": 17,
+            "ppid": 13,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 42795,
+              "systemCPUTime": 34236,
+              "maxRSS": 138692,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 2630,
+              "majorPageFault": 0,
+              "swappedOut": 0,
+              "fsRead": 888,
+              "fsWrite": 0,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 116,
+              "involuntaryContextSwitches": 8
+            }
+          },
+          {
+            "time": "2026-09-16T13:53:08.465Z",
+            "stage": "sample",
+            "pid": 17,
+            "ppid": 13,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 2686760,
+              "systemCPUTime": 552455,
+              "maxRSS": 270312,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 60998,
+              "majorPageFault": 4,
+              "swappedOut": 0,
+              "fsRead": 904,
+              "fsWrite": 24017,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 4655,
+              "involuntaryContextSwitches": 4346
+            }
+          },
+          {
+            "time": "2026-09-16T13:53:08.565Z",
+            "stage": "sample",
+            "pid": 17,
+            "ppid": 13,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 2759285,
+              "systemCPUTime": 552652,
+              "maxRSS": 271336,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 61333,
+              "majorPageFault": 4,
+              "swappedOut": 0,
+              "fsRead": 904,
+              "fsWrite": 25354,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 4726,
+              "involuntaryContextSwitches": 4412
+            }
+          },
+          {
+            "time": "2026-09-16T13:53:08.673Z",
+            "stage": "sample",
+            "pid": 17,
+            "ppid": 13,
+            "parallelism": 1,
+            "entry": "build.mjs",
+            "usage": {
+              "userCPUTime": 2844306,
+              "systemCPUTime": 564094,
+              "maxRSS": 283624,
+              "sharedMemorySize": 0,
+              "unsharedDataSize": 0,
+              "unsharedStackSize": 0,
+              "minorPageFault": 64664,
+              "majorPageFault": 5,
+              "swappedOut": 0,
+              "fsRead": 904,
+              "fsWrite": 43289,
+              "ipcSent": 0,
+              "ipcReceived": 0,
+              "signalsCount": 0,
+              "voluntaryContextSwitches": 5035,
+              "involuntaryContextSwitches": 4673
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "diagnosis": {
+    "empty-direct": {
+      "stage": "complete",
+      "work": "/tmp/dashless-site-152056190-30e6bd0348af6bca675e6c0a",
+      "started": "2026-09-16T13:50:39+00:00",
+      "php_peak_kb": 128348,
+      "snapshot_posts": 0,
+      "process": {
+        "command": "/srv/htdocs/wp-content/uploads/dashless-hosted-runtime/32df9586c630815a5bb947ade4cbf8eff0d3a9307d074e256724dadee522382e/lib/ld-linux-x86-64.so.2",
+        "pid": 17,
+        "cached": true,
+        "running": false,
+        "signaled": false,
+        "stopped": false,
+        "exitcode": 0,
+        "termsig": 0,
+        "stopsig": 0
+      },
+      "close_code": 0,
+      "finished": "2026-09-16T13:50:42+00:00",
+      "result": {
+        "version": 1,
+        "passed": true,
+        "routes": 5,
+        "articles": 0,
+        "htmlPages": 6
+      }
+    },
+    "full-direct": {
+      "stage": "running",
+      "work": "/tmp/dashless-site-152056190-392beeb035bb193c70933ca4",
+      "started": "2026-09-16T13:51:26+00:00",
+      "php_peak_kb": 129308,
+      "snapshot_posts": 115
+    },
+    "full-serial": {
+      "stage": "running",
+      "work": "/tmp/dashless-site-152056190-509b0f0bcbe8fe3499e7122d",
+      "started": "2026-09-16T13:53:03+00:00",
+      "php_peak_kb": 128388,
+      "snapshot_posts": 115
+    }
+  },
+  "legacy_release": "20260912T190537187Z-7caf64",
+  "legacy_generation": {
+    "generation": 1012,
+    "changed_at_gmt": "2026-09-12T19:05:31+00:00",
+    "object_id": 542
+  },
+  "runtime_root": "/srv/htdocs/wp-content/uploads/dashless-hosted-runtime/32df9586c630815a5bb947ade4cbf8eff0d3a9307d074e256724dadee522382e"
+}

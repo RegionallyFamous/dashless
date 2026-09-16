@@ -8,14 +8,14 @@ const [lead, ...remaining] = posts.slice(0, 10);
 const homePage = pages.find((page: any) => page.isHome);
 ---
 
-<SiteLayout>
+<SiteLayout digest={homePage?.digest}>
   <section class="hero retro-window">
-    <div class="window-bar"><span>home.html</span><span aria-hidden="true">— □ ×</span></div>
+    <div class="window-bar"><span>Home</span><span aria-hidden="true">— □ ×</span></div>
     <div class="hero-copy">
       <p class="online-status"><span aria-hidden="true"></span> TRANSMITTING FROM THE WEIRD LITTLE WEB</p>
       <h1>{homePage?.title || config.siteName}</h1>
       <p>{homePage ? plainText(homePage.excerpt || homePage.content).slice(0, 220) : config.siteDescription}</p>
-      <div class="hero-badges" aria-label="Site features"><span>HUMAN-MADE</span><span>NO ALGORITHM</span><span>SLIGHTLY HAUNTED</span></div>
+      <div class="hero-badges" aria-label="Site features"><span>INDEPENDENT SITE</span><span>NO ALGORITHM</span><span>SLIGHTLY HAUNTED</span></div>
     </div>
     <div class="hero-sticker" aria-hidden="true"><span>LOOK!</span><strong>CERTIFIED<br />STRANGE<br />SIGNAL</strong><small>EST. {new Date().getFullYear()}</small></div>
   </section>
@@ -23,18 +23,18 @@ const homePage = pages.find((page: any) => page.isHome);
   {lead ? (
     <div class="home-layout">
       <section class="post-stream">
-        <div class="section-heading"><div><span aria-hidden="true">✦</span><h2>Latest transmissions</h2></div><p>Sorted newest to oldest, just like nature intended.</p></div>
+        <div class="section-heading"><div><span aria-hidden="true">✦</span><h2>Latest stories</h2></div><p>Sorted newest to oldest, just like nature intended.</p></div>
         <StoryCard story={lead} featured />
         {remaining.length > 0 && <div class="story-grid">{remaining.map((story: any) => <StoryCard story={story} />)}</div>}
         <p class="archive-link"><a href={`/${config.postsPath}/`}>OPEN THE COMPLETE ARCHIVE <span aria-hidden="true">→</span></a></p>
       </section>
       <aside class="blog-sidebar" aria-label="Site extras">
         <section class="sidebar-widget currently-widget">
-          <div class="widget-title">SITE_STATUS.TXT</div>
-          <dl><div><dt>Stories</dt><dd>{posts.length}</dd></div><div><dt>Topics</dt><dd>{categories.length}</dd></div><div><dt>Source</dt><dd>WordPress</dd></div></dl>
+          <div class="widget-title">AT A GLANCE</div>
+          <dl><div><dt>Stories</dt><dd>{posts.length}</dd></div><div><dt>Topics</dt><dd>{categories.length}</dd></div></dl>
         </section>
         <section class="sidebar-widget">
-          <div class="widget-title">BROWSE_BY_TOPIC</div>
+          <div class="widget-title">BROWSE TOPICS</div>
           <div class="topic-buttons">{categories.slice(0, 8).map((term: any) => <a href={term.url}><span>{term.name}</span><small>{term.count}</small></a>)}</div>
         </section>
         <section class="sidebar-widget guestbook-widget">
@@ -45,6 +45,6 @@ const homePage = pages.find((page: any) => page.isHome);
       </aside>
     </div>
   ) : (
-    <section class="empty-state retro-window"><div class="window-bar"><span>archive.txt</span><span>×</span></div><h2>No published stories yet.</h2><p>This site will update when a story is published in WordPress.</p></section>
+    <section class="empty-state retro-window"><div class="window-bar"><span>Stories</span><span>×</span></div><h2>No published stories yet.</h2><p>New stories will appear here when they are published.</p></section>
   )}
 </SiteLayout>

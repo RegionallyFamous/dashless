@@ -1,0 +1,14 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
+import { stories, pages } from './content.mjs';
+const root=path.dirname(fileURLToPath(import.meta.url));
+await sharp(path.join(root,'media/chair.png')).resize({width:1536,withoutEnlargement:true}).webp({quality:86}).toFile(path.join(root,'media/chair.webp'));
+const bytes=await fs.readFile(path.join(root,'media/chair.webp'));
+const item=(p,type)=>({id:p.id,post_type:type,status:'publish',slug:p.slug,title:p.title,content:p.body,excerpt:p.excerpt,rendered:{title:p.title,content:p.body,excerpt:p.excerpt},date_gmt:`${p.date||'2026-09-01'}T10:00:00`,modified_gmt:`${p.date||'2026-09-01'}T10:00:00`,featured_media:p.image?900:0,parent:p.parent||0,menu_order:p.id,categories:type==='post'?[p.category]:[],tags:p.tags||[]});
+const names=['Household Affairs','Public Inconveniences','Office Mysteries','Things Making That Noise'];
+const snapshot={frontend_contract:1,generation:1,site_url:'https://small-problems.example',settings:{language:'en'},design:{version:0,palette:'paper',typography:'editorial',layout:'journal',site_title:'The Department of Small Problems',description:'No concern too minor. No investigation on schedule.',logo_media_id:0,navigation:[{page_id:101,label:'About'}]},items:[...stories.map(p=>item(p,'post')),...pages.map(p=>item(p,'page'))],terms:{category:names.map((name,i)=>({id:i+1,name,slug:['household-affairs','public-inconveniences','office-mysteries','things-making-that-noise'][i],description:['Domestic matters of barely national importance.','Tiny inconveniences. Thoroughly documented.','Somebody put it somewhere sensible.','It stopped as soon as we went to listen.'][i],parent:0})),post_tag:['Evidence','Under investigation','An update on the situation'].map((name,i)=>({id:i+1,name,slug:['evidence','under-investigation','updates'][i],description:'',parent:0}))},media:[{id:900,alt_text:'A wooden chair holding clothes, a tote bag, an envelope, a sock, and a book; a pigeon stands nearby beside evidence marker 07.',caption:'Exhibit 07. The chair, currently unavailable. Illustrative image generated for this fictional demo.',media_details:{width:1536,height:1024},files:['media/chair.webp']}],assets:{'media/chair.webp':{url:'https://small-problems.example/wp-content/uploads/chair.webp',media_id:900,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}},target:null};
+await fs.writeFile(path.join(root,'snapshot.json'),JSON.stringify(snapshot,null,2)+'\n');
+console.log(`Prepared fictional demo: ${stories.length} stories, ${pages.length} pages. No WordPress writes.`);

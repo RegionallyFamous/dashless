@@ -1,0 +1,84 @@
+[
+  {
+    "route": "/jobs/616b4a76-020f-4bf7-b1e1-f5d5c53197a8",
+    "auth": false,
+    "status": 401,
+    "cache_control": null,
+    "bytes": null,
+    "sha256": null
+  },
+  {
+    "route": "/preview/616b4a76-020f-4bf7-b1e1-f5d5c53197a8/index.html",
+    "auth": false,
+    "status": 401,
+    "cache_control": null,
+    "bytes": null,
+    "sha256": null
+  },
+  {
+    "route": "/preview/616b4a76-020f-4bf7-b1e1-f5d5c53197a8/probe.svg",
+    "auth": false,
+    "status": 401,
+    "cache_control": null,
+    "bytes": null,
+    "sha256": null
+  },
+  {
+    "route": "/preview/616b4a76-020f-4bf7-b1e1-f5d5c53197a8/index.html",
+    "auth": true,
+    "status": 200,
+    "cache_control": "private, no-store",
+    "bytes": 234,
+    "sha256": "2b64df7f32bda379a561f8329438e51d590221c96dbc0a61530c7d688450eaa3"
+  },
+  {
+    "route": "/preview/616b4a76-020f-4bf7-b1e1-f5d5c53197a8/probe.svg",
+    "auth": true,
+    "status": 200,
+    "cache_control": "private, no-store",
+    "bytes": 110,
+    "sha256": "fbabec9ed059433c34f959843a95e3072488b864a0e56151fa80163fe29e4e30"
+  },
+  {
+    "route": "/preview/616b4a76-020f-4bf7-b1e1-f5d5c53197a8/%2E%2E/%2E%2E/result.json",
+    "auth": true,
+    "status": 406,
+    "cache_control": null,
+    "bytes": 1156,
+    "sha256": "b6a506b558597d4a21b5d08e73837b1df6698cdfcd93e3a56deae4d3e379363f"
+  },
+  {
+    "repeat": [
+      200,
+      {
+        "id": "616b4a76-020f-4bf7-b1e1-f5d5c53197a8",
+        "owner": 1,
+        "mode": "smoke",
+        "status": "succeeded",
+        "created": 1789525647.334162,
+        "attempts": 1,
+        "started": 1789525647.466726,
+        "exit_code": 0,
+        "finished": 1789525655.461322,
+        "result": {
+          "duration_ms": 7763,
+          "files": 2,
+          "html_pages": 1,
+          "index_sha256": "2b64df7f32bda379a561f8329438e51d590221c96dbc0a61530c7d688450eaa3"
+        }
+      }
+    ]
+  },
+  {
+    "worker_without_token": [
+      401,
+      {
+        "code": "rest_forbidden",
+        "message": "Sorry, you are not allowed to do that.",
+        "data": {
+          "status": 401
+        }
+      }
+    ]
+  }
+]

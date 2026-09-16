@@ -6,7 +6,7 @@ const index = JSON.stringify(searchIndex(posts, pages)).replaceAll("<", "\\u003c
 ---
 
 <SiteLayout title="Search" description={`Search ${config.siteName}.`} noindex>
-  <header class="archive-header retro-window"><div class="window-bar"><span>find.exe</span><span aria-hidden="true">— □ ×</span></div><div><p class="eyebrow">SEARCH THE DATABASE</p><h1>Find something weird.</h1><p>Search every published story and Page. No tracking, no sponsored results, no funny business.</p></div></header>
+  <header class="archive-header retro-window"><div class="window-bar"><span>Search</span><span aria-hidden="true">— □ ×</span></div><div><p class="eyebrow">SEARCH THIS SITE</p><h1>Find a story.</h1><p>Search stories and pages by a word or phrase.</p></div></header>
   <form class="search-form" role="search"><label for="dashless-search">Search this site</label><div><input id="dashless-search" name="q" type="search" autocomplete="off" autocapitalize="none" enterkeyhint="search" aria-describedby="search-summary" /><button type="submit">Search</button></div></form>
   <p id="search-summary" class="search-summary" aria-live="polite"></p>
   <div id="search-results" class="search-results"></div>

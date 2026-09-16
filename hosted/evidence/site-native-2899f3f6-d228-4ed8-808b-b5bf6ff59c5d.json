@@ -1,0 +1,385 @@
+{
+  "site_id": 152056190,
+  "task_ids": [
+    758962
+  ],
+  "passed": false,
+  "p95_seconds": 0.43589166599849705,
+  "samples": [
+    {
+      "user": 1,
+      "seconds": 0.34725116699701175,
+      "status": 200,
+      "uncached": true,
+      "offset": 0.8536553329977323
+    },
+    {
+      "user": 2,
+      "seconds": 0.3530086669998127,
+      "status": 200,
+      "uncached": true,
+      "offset": 0.8539859999946202
+    },
+    {
+      "user": 0,
+      "seconds": 0.5805334169999696,
+      "status": 200,
+      "uncached": true,
+      "offset": 0.853560749994358
+    },
+    {
+      "user": 2,
+      "seconds": 0.3423235000009299,
+      "status": 200,
+      "uncached": true,
+      "offset": 1.462047041997721
+    },
+    {
+      "user": 1,
+      "seconds": 0.41196225000021514,
+      "status": 200,
+      "uncached": true,
+      "offset": 1.453940125000372
+    },
+    {
+      "user": 0,
+      "seconds": 0.3215757500001928,
+      "status": 200,
+      "uncached": true,
+      "offset": 1.687269957998069
+    },
+    {
+      "user": 2,
+      "seconds": 0.37144412499765167,
+      "status": 200,
+      "uncached": true,
+      "offset": 2.0594776249999995
+    },
+    {
+      "user": 1,
+      "seconds": 0.3663492500054417,
+      "status": 200,
+      "uncached": true,
+      "offset": 2.120845499994175
+    },
+    {
+      "user": 0,
+      "seconds": 0.45111154199548764,
+      "status": 200,
+      "uncached": true,
+      "offset": 2.263909749999584
+    },
+    {
+      "user": 2,
+      "seconds": 0.32645508300629444,
+      "status": 200,
+      "uncached": true,
+      "offset": 2.682643124993774
+    },
+    {
+      "user": 1,
+      "seconds": 0.3489929170027608,
+      "status": 200,
+      "uncached": true,
+      "offset": 2.7409785829950124
+    },
+    {
+      "user": 0,
+      "seconds": 0.3242600000012317,
+      "status": 200,
+      "uncached": true,
+      "offset": 2.9700439169973833
+    },
+    {
+      "user": 2,
+      "seconds": 0.28167633400153136,
+      "status": 200,
+      "uncached": true,
+      "offset": 3.2622364579947316
+    },
+    {
+      "user": 1,
+      "seconds": 0.3159969580010511,
+      "status": 200,
+      "uncached": true,
+      "offset": 3.3446277499970165
+    },
+    {
+      "user": 0,
+      "seconds": 0.2959711250005057,
+      "status": 200,
+      "uncached": true,
+      "offset": 3.549328749999404
+    },
+    {
+      "user": 2,
+      "seconds": 0.3148328329989454,
+      "status": 200,
+      "uncached": true,
+      "offset": 3.798932874997263
+    },
+    {
+      "user": 1,
+      "seconds": 0.3714949169952888,
+      "status": 200,
+      "uncached": true,
+      "offset": 3.9156559580005705
+    },
+    {
+      "user": 0,
+      "seconds": 0.28851462499733316,
+      "status": 200,
+      "uncached": true,
+      "offset": 4.100323541999387
+    },
+    {
+      "user": 2,
+      "seconds": 0.2807367499990505,
+      "status": 200,
+      "uncached": true,
+      "offset": 4.36731612499716
+    },
+    {
+      "user": 1,
+      "seconds": 0.32878333299595397,
+      "status": 200,
+      "uncached": true,
+      "offset": 4.542181374999927
+    },
+    {
+      "user": 0,
+      "seconds": 0.2785316659937962,
+      "status": 200,
+      "uncached": true,
+      "offset": 4.643872417000239
+    },
+    {
+      "user": 2,
+      "seconds": 0.3441353749949485,
+      "status": 200,
+      "uncached": true,
+      "offset": 4.900938708000467
+    },
+    {
+      "user": 1,
+      "seconds": 0.30829875000199536,
+      "status": 200,
+      "uncached": true,
+      "offset": 5.126030666993756
+    },
+    {
+      "user": 0,
+      "seconds": 0.320973290996335,
+      "status": 200,
+      "uncached": true,
+      "offset": 5.177438416998484
+    },
+    {
+      "user": 2,
+      "seconds": 0.419186457998876,
+      "status": 200,
+      "uncached": true,
+      "offset": 5.495122624997748
+    },
+    {
+      "user": 1,
+      "seconds": 0.33035041599941906,
+      "status": 200,
+      "uncached": true,
+      "offset": 5.68827666699508
+    },
+    {
+      "user": 0,
+      "seconds": 0.40550899999652756,
+      "status": 200,
+      "uncached": true,
+      "offset": 5.753446791997703
+    },
+    {
+      "user": 2,
+      "seconds": 0.29198683299910044,
+      "status": 200,
+      "uncached": true,
+      "offset": 6.16596729199955
+    },
+    {
+      "user": 1,
+      "seconds": 0.41154708300018683,
+      "status": 200,
+      "uncached": true,
+      "offset": 6.2705819999973755
+    },
+    {
+      "user": 0,
+      "seconds": 0.42396158300107345,
+      "status": 200,
+      "uncached": true,
+      "offset": 6.411438916999032
+    },
+    {
+      "user": 2,
+      "seconds": 0.296352792000107,
+      "status": 200,
+      "uncached": true,
+      "offset": 6.7122234999987995
+    },
+    {
+      "user": 1,
+      "seconds": 0.40144400000281166,
+      "status": 200,
+      "uncached": true,
+      "offset": 6.936297249994823
+    },
+    {
+      "user": 0,
+      "seconds": 0.4111302079982124,
+      "status": 200,
+      "uncached": true,
+      "offset": 7.088392999998177
+    },
+    {
+      "user": 2,
+      "seconds": 0.36166445900016697,
+      "status": 200,
+      "uncached": true,
+      "offset": 7.263617207994685
+    },
+    {
+      "user": 1,
+      "seconds": 0.3656560830058879,
+      "status": 200,
+      "uncached": true,
+      "offset": 7.59279274999426
+    },
+    {
+      "user": 0,
+      "seconds": 0.30056512499868404,
+      "status": 200,
+      "uncached": true,
+      "offset": 7.753894124994986
+    },
+    {
+      "user": 2,
+      "seconds": 0.43589166599849705,
+      "status": 200,
+      "uncached": true,
+      "offset": 7.878910542000085
+    },
+    {
+      "user": 1,
+      "seconds": 0.320891458002734,
+      "status": 200,
+      "uncached": true,
+      "offset": 8.213490999994974
+    },
+    {
+      "user": 0,
+      "seconds": 0.3104842499960796,
+      "status": 200,
+      "uncached": true,
+      "offset": 8.30951054199977
+    },
+    {
+      "user": 2,
+      "seconds": 0.2989791250001872,
+      "status": 200,
+      "uncached": true,
+      "offset": 8.569849332998274
+    },
+    {
+      "user": 1,
+      "seconds": 0.29520537499774946,
+      "status": 200,
+      "uncached": true,
+      "offset": 8.787911583000096
+    },
+    {
+      "user": 0,
+      "seconds": 0.3521852089979802,
+      "status": 200,
+      "uncached": true,
+      "offset": 8.87060845799715
+    },
+    {
+      "user": 2,
+      "seconds": 0.328304709000804,
+      "status": 200,
+      "uncached": true,
+      "offset": 9.120570332997886
+    },
+    {
+      "user": 1,
+      "seconds": 0.2961457909987075,
+      "status": 200,
+      "uncached": true,
+      "offset": 9.33791054199537
+    },
+    {
+      "user": 0,
+      "seconds": 0.39079841599595966,
+      "status": 200,
+      "uncached": true,
+      "offset": 9.47669841699826
+    },
+    {
+      "user": 2,
+      "seconds": 0.3520727080031065,
+      "status": 200,
+      "uncached": true,
+      "offset": 9.704041499993764
+    },
+    {
+      "user": 1,
+      "seconds": 0.31918045899510616,
+      "status": 200,
+      "uncached": true,
+      "offset": 9.886995458000456
+    },
+    {
+      "user": 0,
+      "seconds": 0.3289163750014268,
+      "status": 200,
+      "uncached": true,
+      "offset": 10.121167416997196
+    },
+    {
+      "user": 2,
+      "seconds": 0.3770879160001641,
+      "status": 200,
+      "uncached": true,
+      "offset": 10.310294167000393
+    },
+    {
+      "user": 1,
+      "seconds": 0.3711693329969421,
+      "status": 200,
+      "uncached": true,
+      "offset": 10.46124529199733
+    },
+    {
+      "user": 0,
+      "seconds": 0.39794370800518664,
+      "status": 200,
+      "uncached": true,
+      "offset": 10.70428324999375
+    },
+    {
+      "user": 2,
+      "seconds": 0.35843637499783654,
+      "status": 200,
+      "uncached": true,
+      "offset": 10.94245633299579
+    }
+  ],
+  "failure": "RuntimeError: First full build failed or exceeded deadline",
+  "job_metrics": {
+    "first": {
+      "status": "running",
+      "peak_memory_bytes": null,
+      "runtime_sha256": "6fbdebe414977176f061ab9629f6be14d62e68172a24c5a978b26cecab4aefb6",
+      "snapshot_generation": 1,
+      "release_id": null
+    }
+  },
+  "note": "Confirm diagnostics render the actual uncached public page; confirm both jobs use a full Teddy-sized snapshot. Task pricing and Hub capacity need separate evidence."
+}

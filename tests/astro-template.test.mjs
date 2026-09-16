@@ -39,7 +39,7 @@ test("the generated Astro frontend installs and produces digest-marked static pa
     site: { site_url: mock.url, username: "editor" },
     password: "app-password",
     releasePrefix: "https://gazette.example/wp-content/uploads/dashless/releases/20260808T120000000Z-abcdef",
-  });
+  }).catch(error => { console.error(error.details); throw error; });
   assert.equal(build.dependencies_installed, true);
   const lock = JSON.parse(await readFile(path.join(project, "package-lock.json"), "utf8"));
   assert.equal(lock.packages[""].version, "1.0.0");
@@ -65,7 +65,7 @@ test("the generated Astro frontend installs and produces digest-marked static pa
   assert.match(home, /href="\/favicon\.svg"/);
   assert.doesNotMatch(home, /PERSONAL WEB LOG|WELCOME TO MY WEBSITE/);
   assert.match(home, /DO NOT PRESS/);
-  assert.match(home, /Try typing T-E-D-D-Y/);
+  assert.doesNotMatch(home, /Try typing T-E-D-D-Y|id="teddy-sighting"|src="\/teddy-logo\.png"/);
   assert.match(home, /https:\/\/gazette\.example\/wp-content\/uploads\/dashless\/releases\/20260808T120000000Z-abcdef\/_astro\//);
   assert.match(story, /dashless-content-digest/);
   assert.match(story, /Original body/);
@@ -165,7 +165,7 @@ test("the generated Astro frontend installs and produces digest-marked static pa
   });
   const emptyHome = await readFile(path.join(emptyBuild.dist_path, "index.html"), "utf8");
   assert.match(emptyHome, /No published stories yet/);
-  assert.match(emptyHome, /update when a story is published in WordPress/);
+  assert.match(emptyHome, /New stories will appear here when they are published/);
   assert.doesNotMatch(emptyHome, /Create your first WordPress draft|A Published Story|The Golden Path|About this publication|Meet the team/);
   await assert.rejects(readFile(path.join(emptyBuild.dist_path, "_dashless", "social", socialFiles[0])));
 

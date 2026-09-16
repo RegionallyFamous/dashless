@@ -1,0 +1,6 @@
+{
+  "kind": "local fixture host, not ChatGPT",
+  "checks": 10,
+  "axeViolations": 0,
+  "screenshots": "actual packaged component; synthetic state and no customer data"
+}

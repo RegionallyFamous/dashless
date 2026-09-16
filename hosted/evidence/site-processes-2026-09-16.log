@@ -1,0 +1,2 @@
+PASS deadline: bounded supervisor terminates and reaps child tree
+PASS parent_lost: bounded supervisor terminates and reaps child tree

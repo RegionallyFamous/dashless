@@ -1,0 +1,36 @@
+{
+  "task_id": 758910,
+  "site_id": 152056190,
+  "created_at": 1789559800.283969,
+  "purpose": "native WP CLI smoke; NOT a full build responsiveness acceptance test",
+  "result": {
+    "message": "OK",
+    "data": {
+      "task_id": "758910",
+      "client_id": "103",
+      "type": "run-wp-cli-command",
+      "created": "2026-09-16 11:56:40",
+      "complete": "2026-09-16 11:56:43",
+      "meta": {
+        "active_jobs": "",
+        "args": [
+          "dashless",
+          "build-job",
+          "00000000-0000-4000-8000-000000000000"
+        ],
+        "cli_mode": "full",
+        "concurrency": "20",
+        "failure_count": "1",
+        "priority": "-15",
+        "send_webhook_for": "none",
+        "site_run_list": "",
+        "success_count": "0",
+        "took": "1473",
+        "took_failure": "1473",
+        "took_success": "0",
+        "_job_retries": "1",
+        "_ready": "ready"
+      }
+    }
+  }
+}

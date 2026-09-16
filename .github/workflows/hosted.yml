@@ -1,0 +1,69 @@
+name: Hosted product gate
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  hosted:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-only-password
+          MYSQL_DATABASE: dashless_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pfixture-only-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.2'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, sodium, zip
+          tools: composer, wp-cli
+          coverage: none
+      - run: composer install --working-dir=hosted/hub --no-dev --prefer-dist --no-interaction
+      - run: composer audit --working-dir=hosted/hub
+      - run: npm ci --prefix hosted/chatgpt --ignore-scripts
+      - run: npm ci --prefix hosted/runtime
+      - run: npm audit --prefix hosted/chatgpt --omit=dev --audit-level=high
+      - run: npm audit --prefix hosted/runtime --omit=dev --audit-level=high
+      - run: npm run check:hosted
+      - run: npm --prefix hosted/chatgpt run build
+      - run: npm --prefix hosted/chatgpt test
+      - run: npm exec --prefix hosted/chatgpt -- playwright install --with-deps chromium
+      - run: npm --prefix hosted/chatgpt run test:browser
+      - run: node --test hosted/railway/test.mjs hosted/runtime/test.mjs
+      - name: Create disposable Hub fixture
+        run: |
+          mkdir -p /tmp/dashless-wp-test
+          wp core download --version=7.0.3 --path=/tmp/dashless-wp-test
+          wp config create --path=/tmp/dashless-wp-test --dbname=dashless_test --dbuser=root --dbpass=fixture-only-password --dbhost=127.0.0.1
+          wp config set WP_ENVIRONMENT_TYPE local --path=/tmp/dashless-wp-test
+          wp config set DISABLE_WP_CRON true --raw --path=/tmp/dashless-wp-test
+          wp core install --path=/tmp/dashless-wp-test --url=http://localhost:8874 --title=Fixture --admin_user=operator --admin_password=fixture-only-password --admin_email=operator@example.test --skip-email
+          ln -s "$GITHUB_WORKSPACE/hosted/hub" /tmp/dashless-wp-test/wp-content/plugins/dashless-hub
+          wp plugin activate dashless-hub --path=/tmp/dashless-wp-test
+      - name: Real WordPress and OAuth integration with external service fixtures
+        run: |
+          php -d display_errors=stderr hosted/chatgpt/tests/integration.php /tmp/dashless-wp-test > /tmp/integration.log 2>&1
+          cat /tmp/integration.log
+          grep -q 'ChatGPT integration checks passed' /tmp/integration.log
+      - run: npm run package:hosted
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hosted-release-candidate
+          path: |
+            hosted/dist/dashless-hub-0.1.0.zip
+            hosted/dist/dashless-0.1.0.zip
+            hosted/dist/manifest.json
+            hosted/chatgpt/submission/screenshots/
+          if-no-files-found: error

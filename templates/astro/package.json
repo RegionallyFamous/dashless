@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro check && astro build && node scripts/check-publication.mjs",
     "preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
     "@astrojs/rss": "^4.0.19",
-    "astro": "^7.1.6",
+    "astro": "7.2.8",
     "sharp": "^0.35.3",
     "typescript": "^5.9.2"
   }

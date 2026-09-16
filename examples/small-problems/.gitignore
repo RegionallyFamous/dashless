@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+.dashless-cache/
+demo/snapshot.json
+demo/media/chair.webp
+public/media/
+public/_dashless/

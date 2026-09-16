@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { cp, lstat, mkdir, readdir, readFile, rename, rm, stat, symlink, writeFile } from "node:fs/promises";
+import { cp, lstat, mkdir, readdir, readFile, realpath, rename, rm, stat, symlink, writeFile } from "node:fs/promises";
 import net from "node:net";
 import { homedir } from "node:os";
 import path from "node:path";
@@ -47,7 +47,10 @@ export async function createFrontend({ projectPath, siteName, siteDescription, w
   if (new Set(routeSegments).size !== routeSegments.length || routeSegments.includes("search")) {
     throw new DashlessError("frontend_route_conflict", "Posts, topics, tags, and search must use distinct URL paths.");
   }
-  await cp(templateRoot, target, { recursive: true, errorOnExist: false, force: false });
+  await cp(templateRoot, target, {
+    recursive: true, errorOnExist: false, force: false,
+    filter: (file) => !["node_modules", "dist", ".astro", ".dashless-cache", ".git"].includes(path.basename(file)) && !path.basename(file).startsWith(".env"),
+  });
   const temporaryRoutes = [];
   for (const [index, sourceName] of ["stories", "topics", "tags"].entries()) {
     const temporary = `.dashless-route-${index}`;
@@ -126,7 +129,7 @@ function run(command, args, { cwd, env, timeoutMs = 10 * 60 * 1000 } = {}) {
 }
 
 export async function buildFrontend({ projectPath, site, password, previewPayloadPath = null, releasePrefix = null, install = true }) {
-  const target = path.resolve(projectPath);
+  const target = await realpath(path.resolve(projectPath)).catch(() => path.resolve(projectPath));
   if (!(await exists(path.join(target, "package.json"))) || !(await exists(path.join(target, "dashless.config.mjs")))) {
     throw new DashlessError("frontend_not_dashless", "The selected directory is not a Dashless Astro frontend.");
   }
