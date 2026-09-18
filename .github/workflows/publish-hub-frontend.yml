@@ -45,34 +45,27 @@ jobs:
           set -euo pipefail
           release_id="$(node -p "require('./hosted/dist/hub/release.json').release_id")"
           remote_dir="$HTDOCS_PATH/wp-content/uploads/dashless/releases/$release_id"
-          sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" <<SFTP
-          -mkdir $HTDOCS_PATH/wp-content/uploads/dashless
-          -mkdir $HTDOCS_PATH/wp-content/uploads/dashless/releases
-          -mkdir $remote_dir
-          SFTP
+          batch_file="$(mktemp)"
+          printf -- '-mkdir %s\n' "$HTDOCS_PATH/wp-content/uploads/dashless" >> "$batch_file"
+          printf -- '-mkdir %s\n' "$HTDOCS_PATH/wp-content/uploads/dashless/releases" >> "$batch_file"
+          printf -- '-mkdir %s\n' "$remote_dir" >> "$batch_file"
           find "hosted/dist/hub/$release_id" -type f -print0 | while IFS= read -r -d '' file; do
             rel="${file#hosted/dist/hub/$release_id/}"
             remote="$remote_dir/${rel}"
             parent="$(dirname "$remote")"
-            printf -- '-mkdir %s\n' "$parent" > /tmp/dashless-sftp-batch
-            printf 'put %s %s\n' "$file" "$remote" >> /tmp/dashless-sftp-batch
-            sftp -b /tmp/dashless-sftp-batch -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+            printf -- '-mkdir %s\n' "$parent" >> "$batch_file"
+            printf 'put %s %s\n' "$file" "$remote" >> "$batch_file"
           done
-          sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" <<SFTP
-          put hosted/dist/hub/current.json $HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json.tmp
-          rename $HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json.tmp $HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json
-          -mkdir $HTDOCS_PATH/wp-content/mu-plugins
-          put wordpress/dashless-wpcloud.php $HTDOCS_PATH/wp-content/mu-plugins/dashless-wpcloud.php
-          SFTP
+          printf 'put hosted/dist/hub/current.json %s\n' "$HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json.tmp" >> "$batch_file"
+          printf 'rename %s %s\n' "$HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json.tmp" "$HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json" >> "$batch_file"
+          printf -- '-mkdir %s\n' "$HTDOCS_PATH/wp-content/mu-plugins" >> "$batch_file"
+          printf 'put wordpress/dashless-wpcloud.php %s\n' "$HTDOCS_PATH/wp-content/mu-plugins/dashless-wpcloud.php" >> "$batch_file"
           find "hosted/dist/hub/$release_id/_astro" -type f -print0 | while IFS= read -r -d '' file; do
             rel="${file#hosted/dist/hub/$release_id/}"
-            sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" <<SFTP
-            -mkdir $HTDOCS_PATH/_astro
-            put $file $HTDOCS_PATH/$rel.tmp
-            rename $HTDOCS_PATH/$rel.tmp $HTDOCS_PATH/$rel
-            SFTP
+            printf -- '-mkdir %s\n' "$HTDOCS_PATH/_astro" >> "$batch_file"
+            printf 'put %s %s\n' "$file" "$HTDOCS_PATH/$rel.tmp" >> "$batch_file"
+            printf 'rename %s %s\n' "$HTDOCS_PATH/$rel.tmp" "$HTDOCS_PATH/$rel" >> "$batch_file"
           done
-          sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" <<SFTP
-          put hosted/dist/hub/$release_id/index.html $HTDOCS_PATH/index.html.tmp
-          rename $HTDOCS_PATH/index.html.tmp $HTDOCS_PATH/index.html
-          SFTP
+          printf 'put hosted/dist/hub/%s/index.html %s\n' "$release_id" "$HTDOCS_PATH/index.html.tmp" >> "$batch_file"
+          printf 'rename %s %s\n' "$HTDOCS_PATH/index.html.tmp" "$HTDOCS_PATH/index.html" >> "$batch_file"
+          sftp -b "$batch_file" -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
