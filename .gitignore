@@ -1,6 +1,7 @@
 .DS_Store
 dist/
 node_modules/
+.astro/
 .canonical/
 examples/small-problems/.canonical/
 .wp-env.override.json
