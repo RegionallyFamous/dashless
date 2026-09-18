@@ -5,6 +5,7 @@ on:
     paths:
       - 'hosted/hub-frontend/**'
       - 'hosted/scripts/make-hub-release.mjs'
+      - 'hosted/scripts/cleanup-hub-releases.mjs'
       - 'wordpress/dashless-wpcloud.php'
   workflow_dispatch:
 permissions:
@@ -69,3 +70,30 @@ jobs:
           printf 'put hosted/dist/hub/%s/index.html %s\n' "$release_id" "$HTDOCS_PATH/index.html.tmp" >> "$batch_file"
           printf 'rename %s %s\n' "$HTDOCS_PATH/index.html.tmp" "$HTDOCS_PATH/index.html" >> "$batch_file"
           sftp -b "$batch_file" -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+      - name: Remove superseded release artifacts
+        env:
+          SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST }}
+          SSH_USER: ${{ secrets.WPCLOUD_SSH_USER }}
+          SSH_PORT: ${{ secrets.WPCLOUD_SSH_PORT || 22 }}
+          HTDOCS_PATH: ${{ secrets.WPCLOUD_HTDOCS_PATH || '.' }}
+        run: |
+          set -euo pipefail
+          release_id="$(node -p "require('./hosted/dist/hub/release.json').release_id")"
+          release_root="$HTDOCS_PATH/wp-content/uploads/dashless/releases"
+          listing_file="$(mktemp)"
+          manifests_dir="$(mktemp -d)"
+          ids_file="$(mktemp)"
+          cleanup_file="$(mktemp)"
+          trap 'rm -rf "$listing_file" "$manifests_dir" "$ids_file" "$cleanup_file"' EXIT
+          printf 'ls -1 %s\n' "$release_root" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" > "$listing_file"
+          node --input-type=module -e 'import fs from "node:fs"; import { releaseIdsFromListing } from "./hosted/scripts/cleanup-hub-releases.mjs"; const listing=fs.readFileSync(process.argv[1], "utf8"); const root=process.argv[2].replace(/\\\/+$/, ""); const active=process.argv[3]; const ids=releaseIdsFromListing(listing, root); if (!ids.includes(active)) throw new Error(`Active release ${active} missing from listing`); for (const id of ids.filter((value) => value !== active)) console.log(id);' "$listing_file" "$release_root" "$release_id" > "$ids_file"
+          while IFS= read -r old_release_id; do
+            [ -z "$old_release_id" ] && continue
+            printf 'get %s/%s/dashless-release.json %s/%s.json\n' "$release_root" "$old_release_id" "$manifests_dir" "$old_release_id"
+          done < "$ids_file" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+          node hosted/scripts/cleanup-hub-releases.mjs --active "$release_id" --remote-root "$release_root" --manifests-dir "$manifests_dir" < "$listing_file" > "$cleanup_file"
+          if [ -s "$cleanup_file" ]; then
+            sftp -b "$cleanup_file" -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+          else
+            echo "No superseded Hub release artifacts to remove."
+          fi

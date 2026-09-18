@@ -192,6 +192,16 @@ cached HTML response. Add a small machine-checkable fingerprint for the
 redesigned shell when practical, so a live check can distinguish the new
 composition from the prior one without relying on visual memory.
 
+Release hygiene is part of activation, not later housekeeping. After the new
+`current.json` pointer, root entrypoint, and asset swaps verify successfully,
+remove every superseded static release directory from WP Cloud. The cleanup
+must be manifest-driven because WP Cloud's SFTP service does not support
+recursive `rm`: download each old release's manifest, delete exactly its listed
+files, then remove empty directories. Preserve the active release and
+`current.json`; never use a broad wildcard or delete WordPress content. If an
+old manifest is missing, malformed, or the active release is not present in the
+remote listing, fail closed and leave the previous state for operator review.
+
 ## Implement safely
 
 - Keep content queries and publication logic separate from presentation.
