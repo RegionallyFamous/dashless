@@ -26,6 +26,10 @@ final class Routes {
         $this->endpoint('/builder','POST',fn($r)=>(new RemoteRuntime($this->app))->configure($r->get_json_params()??[]));
         $this->endpoint('/capabilities','GET',fn()=>$this->app->capabilities());
         $this->endpoint('/health','GET',fn()=>['ready'=>$this->app->runtime->ready() && (bool)$this->app->store->get('release','active'),'release_id'=>$this->app->store->get('release','active')['data']['release_id']??null,'runtime_status'=>$this->app->runtime->ready()?'verified':'not_installed','quota'=>$this->app->quota()]);
+        $this->endpoint('/diagnostics/queue','GET',function(){
+            $rows=[];foreach($this->app->store->rows('job') as $job){$rows[]=array_intersect_key($job,array_flip(['job_id','owner','kind','status','attempts','created_at','started_at','lease_expires','continuation_required','poll_after']));}
+            return ['jobs'=>$rows,'quota'=>$this->app->quota()];
+        });
         $this->endpoint('/entitlement','POST',fn($r)=>$this->app->entitlement($r->get_json_params()??[]));
         $this->endpoint('/jobs','POST',function($r){$this->app->active();$a=$r->get_json_params()??[];
             if (($a['kind']??'')!=='initial_release') { throw new Failure('invalid_job','Unsupported provisioning job.',400); }

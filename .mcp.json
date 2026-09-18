@@ -6,6 +6,10 @@
         "./server/dashless-mcp.mjs"
       ],
       "cwd": "."
+    },
+    "dashless-hub": {
+      "type": "http",
+      "url": "https://dashless.blog/mcp"
     }
   }
 }

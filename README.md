@@ -9,7 +9,16 @@ Private product monorepo: https://github.com/RegionallyFamous/dashless-platform.
 | Dashless Hub | `hosted/hub/`, `hosted/theme/` | Account, OAuth, billing, provisioning and public site |
 | Shared build infrastructure | `hosted/railway/`, `hosted/runtime/`, `templates/astro/` | Railway image and shared frontend source |
 
-The original local Codex plugin remains in `server/`, `.codex-plugin/` and `skills/`. It is separate from the customer-facing ChatGPT plugin.
+The original local Codex plugin remains in `server/`, `.codex-plugin/` and `skills/`. The packaged plugin now exposes both sides of the product: the local, direct WordPress workflow and the authenticated hosted Hub at `https://dashless.blog/mcp`.
+
+## Use Dashless from Codex
+
+Install the packaged plugin in Codex. It includes:
+
+- `dashless`: the local-first server for a directly connected WordPress site, Astro source, previews, builds, deployment, and rollback.
+- `dashless-hub`: the hosted Streamable HTTP MCP connector for the Dashless Hub. It adds account-bound site status, themes and design, hosted jobs, exports, media transfer, publication approval, release inspection, and rollback.
+
+The first hosted Hub action opens Codex OAuth sign-in. No WordPress password, Hub secret, or bearer token belongs in chat. Publishing and rollback still require the authenticated approval flow; the connector cannot manufacture that approval.
 
 Start with the [launch audit and outstanding gates](docs/launch-audit-2026-09-16.md). Paid launch is not approved. Shared contracts and atomic cross-component changes are why these pieces live in one private repository. Installable/deployable artifacts remain separate. Dependencies, secrets and generated ZIPs are excluded; lockfiles and reproducible package scripts are included.
 
@@ -86,7 +95,7 @@ The Astro project contains presentation code. **WordPress remains the only produ
 - **Small, human reader signals.** Optional private notes, double-opt-in story notifications, count-free reactions, and moderated Webmentions—without turning your personal site into a growth dashboard.
 - **A system other agents can learn.** Packaged skills teach the editorial contract, Astro design workflow, visual QA passes, and release criteria.
 
-Everything is local-first. The generated Astro project is normal source code. Restyle it, extend it, move it, or replace the whole visual layer. There is no Dashless runtime holding it hostage.
+The local workflow remains source-owned and inspectable. The hosted Hub adds managed account, provisioning, job, and release orchestration when you want those operations available from Codex as well. The generated Astro project remains normal source code; there is no proprietary editor holding the publication hostage.
 
 ## Yes, this works on WP Cloud
 
