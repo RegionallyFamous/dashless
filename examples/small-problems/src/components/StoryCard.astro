@@ -1,6 +1,0 @@
----
-import { plainText } from '../lib/dashless.mjs';
-const {story}=Astro.props;
-const symbols:Record<number,string>={1:'↗',2:'≈',3:'⌁',4:'✂',5:'☕',6:'↯',7:'⑦'};
----
-<article class="story-card"><div class="card-docket"><span>CASE {String(story.id).padStart(3,'0')}</span><span aria-hidden="true">{symbols[story.id]||'✳'}</span></div><a class="category-link" href={story.categoryTerms[0]?.url||'/topics/'}>{story.categoryTerms[0]?.name||'Department report'}</a><h2><a href={story.url}>{story.title}</a></h2><p>{plainText(story.excerpt)}</p><div class="card-footer"><time datetime={story.date}>{new Date(story.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'})}</time><a class="card-read" href={story.url} aria-label={`Read: ${story.title}`}>Read report <span aria-hidden="true">↗</span></a></div></article>

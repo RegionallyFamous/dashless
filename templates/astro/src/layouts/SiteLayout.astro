@@ -140,7 +140,7 @@ const structuredData = article ? {
           <a href="/rss.xml" data-astro-reload>RSS FEED ↗</a>
         </div>
       </header>}
-      {(hypertext || department) && <aside class="hypertext-rail" aria-label="Quick navigation">
+      {hypertext && <aside class="hypertext-rail" aria-label="Quick navigation">
         <nav>
           <a href="/" data-astro-prefetch aria-current={Astro.url.pathname === "/" ? "page" : undefined}><span aria-hidden="true">⌂</span> Home</a>
           <a href={`/${config.postsPath}/`} data-astro-prefetch aria-current={Astro.url.pathname.startsWith(`/${config.postsPath}/`) ? "page" : undefined}><span aria-hidden="true">▣</span> Archive</a>
@@ -244,7 +244,10 @@ const structuredData = article ? {
           if (oddityTimer) window.clearTimeout(oddityTimer);
           if (active) {
             oddityToast.hidden = false;
-            window.requestAnimationFrame(() => oddityToast.classList.add("is-visible"));
+            // Apply the visible state synchronously. Besides making keyboard
+            // activation feel immediate, this keeps the secret-tunnel toast
+            // deterministic for reduced-motion and automated browser checks.
+            oddityToast.classList.add("is-visible");
             oddityTimer = window.setTimeout(() => {
               oddityToast.classList.remove("is-visible");
               oddityTimer = window.setTimeout(() => { oddityToast.hidden = true; }, 240);

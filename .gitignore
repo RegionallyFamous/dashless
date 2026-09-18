@@ -1,6 +1,8 @@
 .DS_Store
 dist/
 node_modules/
+.canonical/
+examples/small-problems/.canonical/
 .wp-env.override.json
 .wp-env/
 

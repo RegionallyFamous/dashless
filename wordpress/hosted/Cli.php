@@ -6,6 +6,7 @@ final class Cli {
     public static function register(App $app): void {
         \WP_CLI::add_command('dashless bootstrap',function($args,$assoc)use($app){self::command(fn()=>self::bootstrap($app,$assoc));});
         \WP_CLI::add_command('dashless build-job',function($args,$assoc)use($app){self::command(function()use($app,$args,$assoc){$id=Support::uuid($args[0]??'');if (isset($assoc['retry'])) { $app->jobs->retry($id); }return $app->jobs->run($id);});});
+        \WP_CLI::add_command('dashless list-jobs',function()use($app){self::command(fn()=>['jobs'=>$app->jobs->queue()]);});
         \WP_CLI::add_command('dashless rotate-credential',function($args,$assoc)use($app){self::command(fn()=>self::rotate($app,(string)($assoc['credential-hash']??'')));});
         \WP_CLI::add_command('dashless cleanup',function($args,$assoc)use($app){self::command(function()use($app,$assoc){$result=$app->cleanupExpired((int)($assoc['limit']??100));update_option('dashless_hosted_last_cleanup',['time'=>time()]+$result,false);return ['cleanup'=>$result];});});
     }

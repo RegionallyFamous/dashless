@@ -17,7 +17,13 @@ const design = validateDesign(snapshot.design);
 const source = path.join(work, 'source');
 await fs.rm(source, { recursive:true, force:true });
 await fs.cp(template, source, { recursive:true, filter: file => !['node_modules', 'dist', '.astro', '.dashless-cache'].includes(path.basename(file))&&!path.basename(file).startsWith('.env') });
-await fs.symlink(path.join(runtime, 'node_modules'), path.join(source, 'node_modules'), 'dir');
+// Keep dependencies inside the disposable project. A symlink to the packaged
+// runtime looks convenient, but Astro's compiler records the real module path
+// and then cannot resolve its virtual CSS modules when the project lives in a
+// temporary directory (the hosted builder runs exactly this way). Copying the
+// immutable dependency tree makes the build location-stable and avoids that
+// class of release-only failures.
+await fs.cp(path.join(runtime, 'node_modules'), path.join(source, 'node_modules'), { recursive: true, dereference: true });
 let logo = null;
 if (design.logo_media_id) {
   const { data } = adapter.request(`wp/v2/media/${design.logo_media_id}`);

@@ -25,9 +25,8 @@ Open [the local demo](http://127.0.0.1:4327/). To edit and see updates, use `npm
 ## Where things live
 
 - `demo/content.mjs`: the original fictional stories and pages.
-- `src/styles/global.css`: colors, typography, page layouts, responsive behavior.
-- `src/layouts/SiteLayout.astro`: shared header, navigation, metadata, theme control, and footer.
-- `src/pages/index.astro`: the customer-demo homepage.
+- `../../templates/astro`: the only frontend. The demo is built from this canonical source.
+- `dashless.config.mjs`: demo site configuration consumed by the canonical frontend.
 - `demo/media/chair.png`: original image created with the built-in image-generation tool.
 - `demo/image-prompt.md`: the image prompt and provenance.
 - `demo/art-direction.md`: the creative brief and palette.
@@ -54,4 +53,4 @@ node examples/small-problems/demo/verify.mjs
 
 It covers the 23 pages at 390, 768, 1280, and 320 pixels, search, pagination, nested pages, theme persistence, keyboard access, image failure, and reading without JavaScript. Screenshots are saved under `demo/evidence/`.
 
-The source was created from the shared Astro foundation and customized as an independent example. Existing customer sites and the shared template were not changed for this demo.
+The example deliberately has no separate `src/` frontend. `demo/run.mjs` generates a disposable project from `../../templates/astro`, injects this demo's config and snapshot, and runs the canonical build/dev/preview commands. This keeps local screenshots, builder output, and production releases on the same frontend codepath.

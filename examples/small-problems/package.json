@@ -4,10 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "node demo/prepare.mjs",
-    "build": "astro check && astro build && node scripts/check-publication.mjs",
+    "build": "node demo/run.mjs build",
     "dev": "node demo/run.mjs dev",
-    "preview": "astro preview --host 127.0.0.1 --port 4327"
+    "preview": "node demo/run.mjs preview"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

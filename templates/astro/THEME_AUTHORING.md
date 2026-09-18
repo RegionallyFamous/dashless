@@ -63,6 +63,12 @@ customization lists that cannot reproduce the defaults. The browser suite
 renders every theme with empty, single-post, and archive content at desktop and
 mobile widths.
 
+The frontend quality gate also runs during the canonical build. It checks
+static HTML landmarks and doctype/language requirements, rejects inline event
+handlers, and enforces JavaScript, CSS, HTML, and individual asset budgets.
+Run `npm run check:frontend:quality` from the repository root to exercise the
+same canonical build used by the Small Problems fixture.
+
 Avoid adding a new one-off setting unless it belongs in the shared design
 contract. New themes should feel different through composition, type, color,
 and spacing—not by forking the entire site.

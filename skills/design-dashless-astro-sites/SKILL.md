@@ -29,6 +29,30 @@ Build a memorable reader-facing publication without weakening Dashless's editori
 4. Map WordPress content to reader needs before decorating it. Posts, Pages, terms, media, archives, search, RSS, and errors must all have deliberate states.
 5. Use system assets by default. Add dependencies only when they materially improve the result and remain compatible with static deployment.
 
+### One frontend, many content fixtures
+
+Dashless must have one presentation source of truth. The bundled frontend in
+`templates/astro` is canonical for local previews, builder output, demos, and
+production releases. Example sites such as `examples/small-problems` may own
+content fixtures, snapshots, media, and `dashless.config.mjs`, but must not
+contain their own `src/`, Astro routes, layouts, component tree, design
+system, or duplicate publication audit. Run those examples through a small
+adapter that copies or mounts the canonical template into a disposable build
+directory and injects the fixture snapshot/config.
+
+Before calling a redesign complete, verify that:
+
+- the example has no second frontend or route implementation;
+- its build, dev, and preview scripts all invoke the canonical template;
+- the canonical template's checks and publication audit pass against the
+  fixture;
+- a machine-checkable test fails if an example `src/` directory or duplicate
+  frontend entrypoint is reintroduced.
+
+This is an architecture rule, not merely a cleanup preference: separate demo
+frontends create false visual confidence and are forbidden because they can
+look correct locally while the builder and WP Cloud release a different site.
+
 ## Create the visual reference before major theme work
 
 For a new theme, a substantial redesign, or a request to make the theme system

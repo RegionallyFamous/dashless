@@ -17,7 +17,8 @@
     "release": "npm run check && npm run package",
     "check:hosted": "node hosted/scripts/check.mjs",
     "package:hosted": "npm run check:hosted && node hosted/scripts/package.mjs",
-    "test:frontend": "node --test tests/publication-contract.test.mjs && node tests/frontend-browser.mjs"
+    "test:frontend": "node --test tests/publication-contract.test.mjs && node tests/frontend-browser.mjs",
+    "check:frontend:quality": "npm --prefix examples/small-problems run build"
   },
   "license": "MIT",
   "devDependencies": {

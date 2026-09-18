@@ -7,6 +7,17 @@ final class Jobs {
     public function get(string $id): array {
         $r=$this->app->store->get('job',Support::uuid($id));if (!$r) { throw new Failure('job_missing','The job was not found.',404); }return $r['data'];
     }
+    /** Operator-only queue inspection. Never exposes arguments or customer content. */
+    public function queue(): array {
+        $rows=[];
+        foreach ($this->app->store->rows('job') as $row) {
+            $job=$row['data']??[];
+            if (!in_array($job['status']??'', ['queued','running'], true)) { continue; }
+            $rows[] = array_intersect_key($job, array_flip(['job_id','kind','status','attempts','created_at','started_at','lease_expires','remote_build_id','continuation_required','poll_after']));
+        }
+        usort($rows, fn($a,$b)=>strcmp((string)($a['created_at']??''),(string)($b['created_at']??'')));
+        return $rows;
+    }
     private function save(array $job): void { $this->app->store->put('job',$job['job_id'],$job,$job['owner']); }
     public function public(array $j): array {
         $keys=['job_id','kind','status','attempts','created_at','started_at','finished_at','peak_memory_bytes','memory_method','runtime_sha256','release_id','preview_id','export_id','saved','preview_ready','published_in_wordpress','deployed','publicly_verified','previous_release_preserved','error','snapshot_generation','snapshot_counts','full_snapshot','html_pages','continuation_required','poll_after','build_driver','progress'];

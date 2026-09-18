@@ -3,11 +3,30 @@ namespace Dashless\Hub;
 
 final class Config {
     public const GATES = ['task_concurrency', 'runtime_memory', 'provisioning', 'dns_tls', 'email_delivery', 'oauth', 'tenant_isolation', 'restore_drill', 'chatgpt_published', 'billing_verified', 'policies'];
+    private static ?array $release = null;
     public static function get(string $name, mixed $default = ''): mixed {
+        if (in_array($name, ['site_package_url', 'site_package_sha256', 'site_plugin_version'], true)) {
+            $release = self::release();
+            if ($release !== null && array_key_exists($name, $release)) return $release[$name];
+        }
         $key = 'DASHLESS_' . strtoupper($name);
         if (defined($key)) return constant($key);
         $value = getenv($key);
         return $value === false ? $default : $value;
+    }
+    /** Read the atomically published release pointer, if one is present. */
+    public static function release(): ?array {
+        if (self::$release !== null) return self::$release;
+        $file = defined('WP_CONTENT_DIR') ? WP_CONTENT_DIR . '/dashless-packages/current.json' : '';
+        if ($file === '' || !is_readable($file)) return self::$release = [];
+        $data = json_decode((string) file_get_contents($file), true);
+        if (!is_array($data) || (int) ($data['schema'] ?? 0) !== 1) return self::$release = [];
+        foreach (['site_package_url', 'site_package_sha256', 'site_plugin_version'] as $key) {
+            if (!is_string($data[$key] ?? null) || $data[$key] === '') return self::$release = [];
+        }
+        $url = wp_parse_url($data['site_package_url']);
+        if (($url['scheme'] ?? '') !== 'https' || empty($url['host']) || !preg_match('/^[a-f0-9]{64}$/', $data['site_package_sha256'])) return self::$release = [];
+        return self::$release = ['site_package_url' => $data['site_package_url'], 'site_package_sha256' => $data['site_package_sha256'], 'site_plugin_version' => $data['site_plugin_version']];
     }
     public static function flag(string $name): bool { return filter_var(self::get($name, false), FILTER_VALIDATE_BOOL); }
     public static function origin(): string { return untrailingslashit(home_url('', wp_get_environment_type()==='local' ? null : 'https')); }

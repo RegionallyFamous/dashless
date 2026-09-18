@@ -1,8 +1,0 @@
----
-import StoryCard from './StoryCard.astro';
-import Pagination from './Pagination.astro';
-const {title,description,posts,current=1,total=1,base}=Astro.props;
----
-<header class="archive-header"><p class="eyebrow">FROM THE DEPARTMENT FILES</p><h1>{title}</h1>{description && <p>{description}</p>}</header>
-{posts.length?<div class="archive-grid">{posts.map((story:any)=><StoryCard story={story}/>)}</div>:<div class="empty-state"><h2>Nothing to report. Suspicious.</h2><p>Check back when something mildly inconvenient happens.</p></div>}
-<Pagination current={current} total={total} base={base}/>
