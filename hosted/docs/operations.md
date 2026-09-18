@@ -19,7 +19,7 @@ Verify duplicate/out-of-order delivery, initial payment failure, renewal failure
 
 ## Background execution
 
-`wp dashless-hub reconcile` runs a bounded native drain (internal 240-second window), releasing its durable lease before any continuation. `--once` performs one reconciliation pass. Normal webhooks/user actions request immediate native dispatch. The included `Reconcile Dashless Hub` GitHub Actions workflow dispatches a bounded pass every five minutes using only WP Cloud API credentials when the production environment variable `DASHLESS_RECONCILE_ENABLED=true`; until then it remains intentionally skipped. The registered hourly WP-Cron hook remains a fallback, not proof of reliable external scheduling. All Hub task dispatch must target `DASHLESS_HUB_SITE_ID` alone.
+`wp dashless-hub reconcile` runs a bounded native drain (internal 240-second window), releasing its durable lease before any continuation. `--once` performs one reconciliation pass. Normal webhooks/user actions request immediate native dispatch. The Hub's WP Cloud native cron runs `wp dashless-hub reconcile --once` twice per hour (cron entry `10132` in the current Hub environment); the registered hourly WP-Cron hook remains a fallback, not proof of reliable external scheduling. All Hub task dispatch must target `DASHLESS_HUB_SITE_ID` alone.
 
 ## Customer plugin rollouts
 
