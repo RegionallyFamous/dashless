@@ -51,7 +51,12 @@ const editorialFields = {
 };
 
 function objectSchema(properties, required = []) {
-  return { type: "object", properties, required, additionalProperties: false };
+  const schema = { type: "object", properties, additionalProperties: false };
+  // Some MCP hosts reject an explicitly empty required array for no-argument
+  // tools even though it is valid JSON Schema. Omitting it is equivalent and
+  // maximizes compatibility with strict OpenAI tool-schema validation.
+  if (required.length) schema.required = required;
+  return schema;
 }
 
 function tool(name, title, description, inputSchema, annotations, handler) {

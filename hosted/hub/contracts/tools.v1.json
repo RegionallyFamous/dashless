@@ -6,7 +6,6 @@
     "inputSchema": {
       "type": "object",
       "properties": {},
-      "required": [],
       "additionalProperties": false
     },
     "annotations": {
@@ -50,10 +49,10 @@
           "default": 20
         }
       },
+      "additionalProperties": false,
       "required": [
         "post_type"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": true,
@@ -82,11 +81,11 @@
           "minimum": 1
         }
       },
+      "additionalProperties": false,
       "required": [
         "post_type",
         "id"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": true,
@@ -156,13 +155,13 @@
           "description": "Page navigation order. Used only for pages."
         }
       },
+      "additionalProperties": false,
       "required": [
         "post_type",
         "client_key",
         "title",
         "content"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -235,12 +234,12 @@
           "description": "Page navigation order. Used only for pages."
         }
       },
+      "additionalProperties": false,
       "required": [
         "post_type",
         "id",
         "expected_modified_gmt"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -316,17 +315,16 @@
               "description": "Page navigation order. Used only for pages."
             }
           },
-          "required": [],
           "additionalProperties": false
         }
       },
+      "additionalProperties": false,
       "required": [
         "post_type",
         "id",
         "expected_modified_gmt",
         "changes"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -361,11 +359,11 @@
           "default": 20
         }
       },
+      "additionalProperties": false,
       "required": [
         "post_type",
         "id"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": true,
@@ -402,13 +400,13 @@
           "minLength": 1
         }
       },
+      "additionalProperties": false,
       "required": [
         "post_type",
         "id",
         "revision_id",
         "expected_modified_gmt"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -444,10 +442,10 @@
           "maximum": 100
         }
       },
+      "additionalProperties": false,
       "required": [
         "taxonomy"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": true,
@@ -480,11 +478,11 @@
           }
         }
       },
+      "additionalProperties": false,
       "required": [
         "taxonomy",
         "names"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -524,7 +522,6 @@
           "default": 20
         }
       },
-      "required": [],
       "additionalProperties": false
     },
     "annotations": {
@@ -558,10 +555,10 @@
           "type": "string"
         }
       },
+      "additionalProperties": false,
       "required": [
         "id"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -577,7 +574,6 @@
     "inputSchema": {
       "type": "object",
       "properties": {},
-      "required": [],
       "additionalProperties": false
     },
     "annotations": {
@@ -598,10 +594,48 @@
           "minLength": 1
         }
       },
+      "additionalProperties": false,
       "required": [
         "job_id"
-      ],
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_themes",
+    "description": "Discover Dashless themes during setup or redesign. Offer these named starting points and preview images; customers can customize them.",
+    "scope": "blog:read",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
       "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_theme",
+    "description": "Read one theme, its version, design defaults, preview image and customization options.",
+    "scope": "blog:read",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "theme_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "theme_id"
+      ]
     },
     "annotations": {
       "readOnlyHint": true,
@@ -616,7 +650,6 @@
     "inputSchema": {
       "type": "object",
       "properties": {},
-      "required": [],
       "additionalProperties": false
     },
     "annotations": {
@@ -627,7 +660,7 @@
   },
   {
     "name": "update_design",
-    "description": "Stage requested curated design changes; does not publish.",
+    "description": "Stage design changes; does not publish. Set theme_id and theme_version from get_theme to apply its defaults; explicit palette, typography and layout in the same changes override those defaults. Identity and content are preserved. Omit theme fields for later customization.",
     "scope": "blog:write",
     "inputSchema": {
       "type": "object",
@@ -645,6 +678,15 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "theme_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "theme_version": {
+              "type": "integer",
+              "minimum": 1
+            },
             "palette": {
               "type": "string",
               "enum": [
@@ -706,12 +748,12 @@
           }
         }
       },
+      "additionalProperties": false,
       "required": [
         "expected_version",
         "client_key",
         "changes"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -751,10 +793,10 @@
           "minimum": 0
         }
       },
+      "additionalProperties": false,
       "required": [
         "client_key"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -774,10 +816,10 @@
           "minLength": 1
         }
       },
+      "additionalProperties": false,
       "required": [
         "preview_id"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -806,12 +848,12 @@
           "maxLength": 100
         }
       },
+      "additionalProperties": false,
       "required": [
         "preview_id",
         "approval_id",
         "client_key"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -826,7 +868,6 @@
     "inputSchema": {
       "type": "object",
       "properties": {},
-      "required": [],
       "additionalProperties": false
     },
     "annotations": {
@@ -856,12 +897,12 @@
           "maxLength": 100
         }
       },
+      "additionalProperties": false,
       "required": [
         "release_id",
         "approval_id",
         "client_key"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -882,10 +923,10 @@
           "maxLength": 100
         }
       },
+      "additionalProperties": false,
       "required": [
         "client_key"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,
@@ -914,12 +955,12 @@
           "maxLength": 100
         }
       },
+      "additionalProperties": false,
       "required": [
         "filename",
         "alt_text",
         "client_key"
-      ],
-      "additionalProperties": false
+      ]
     },
     "annotations": {
       "readOnlyHint": false,

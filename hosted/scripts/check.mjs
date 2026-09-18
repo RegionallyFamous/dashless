@@ -12,5 +12,8 @@ for(const file of [...await walk(root),...await walk(path.resolve('wordpress'))]
 const tools=JSON.parse(await readFile(path.join(root,'hub/contracts/tools.v1.json'),'utf8'));
 if(new Set(tools.map(t=>t.name)).size!==tools.length)throw new Error('Duplicate hosted tool');
 if(tools.some(t=>/shell|exec|setup_site|checkout|subscription|billing/.test(t.name)))throw new Error('Infrastructure/commerce tool exposed');
-for(const tool of tools)if(!tool.scope || tool.inputSchema.additionalProperties!==false)throw new Error('Tool needs scope and closed argument schema: '+tool.name);
+for(const tool of tools) {
+ if(!tool.scope || tool.inputSchema.additionalProperties!==false)throw new Error('Tool needs scope and closed argument schema: '+tool.name);
+ if(Array.isArray(tool.inputSchema.required) && tool.inputSchema.required.length===0)throw new Error('Omit empty required array for OpenAI-compatible tool schema: '+tool.name);
+}
 console.log(`${count} PHP/JS syntax checks passed; ${tools.length} scoped hosted tools validated.`);
