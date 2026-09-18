@@ -1,0 +1,75 @@
+name: Publish Hub Astro frontend
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hosted/hub-frontend/**'
+      - 'hosted/scripts/make-hub-release.mjs'
+      - 'wordpress/dashless-wpcloud.php'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  publish:
+    if: ${{ vars.DASHLESS_RELEASE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.2'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix hosted/hub-frontend --ignore-scripts --no-audit --no-fund
+      - run: npm run build --prefix hosted/hub-frontend
+      - run: node hosted/scripts/make-hub-release.mjs
+        env:
+          DASHLESS_RELEASE_ORIGIN: ${{ vars.DASHLESS_RELEASE_ORIGIN || 'https://dashless.blog' }}
+      - name: Install SFTP key
+        env:
+          SSH_KEY: ${{ secrets.WPCLOUD_SSH_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+      - name: Upload static release and pointer
+        env:
+          SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST }}
+          SSH_USER: ${{ secrets.WPCLOUD_SSH_USER }}
+          SSH_PORT: ${{ secrets.WPCLOUD_SSH_PORT || 22 }}
+          HTDOCS_PATH: ${{ secrets.WPCLOUD_HTDOCS_PATH || '.' }}
+        run: |
+          set -euo pipefail
+          release_id="$(node -p "require('./hosted/dist/hub/release.json').release_id")"
+          remote_dir="$HTDOCS_PATH/wp-content/uploads/dashless/releases/$release_id"
+          sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" <<SFTP
+          -mkdir $HTDOCS_PATH/wp-content/uploads/dashless
+          -mkdir $HTDOCS_PATH/wp-content/uploads/dashless/releases
+          -mkdir $remote_dir
+          SFTP
+          find "hosted/dist/hub/$release_id" -type f -print0 | while IFS= read -r -d '' file; do
+            rel="${file#hosted/dist/hub/$release_id/}"
+            remote="$remote_dir/${rel}"
+            parent="$(dirname "$remote")"
+            printf -- '-mkdir %s\n' "$parent" > /tmp/dashless-sftp-batch
+            printf 'put %s %s\n' "$file" "$remote" >> /tmp/dashless-sftp-batch
+            sftp -b /tmp/dashless-sftp-batch -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+          done
+          sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" <<SFTP
+          put hosted/dist/hub/current.json $HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json.tmp
+          rename $HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json.tmp $HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json
+          -mkdir $HTDOCS_PATH/wp-content/mu-plugins
+          put wordpress/dashless-wpcloud.php $HTDOCS_PATH/wp-content/mu-plugins/dashless-wpcloud.php
+          SFTP
+          find "hosted/dist/hub/$release_id/_astro" -type f -print0 | while IFS= read -r -d '' file; do
+            rel="${file#hosted/dist/hub/$release_id/}"
+            sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" <<SFTP
+            -mkdir $HTDOCS_PATH/_astro
+            put $file $HTDOCS_PATH/$rel.tmp
+            rename $HTDOCS_PATH/$rel.tmp $HTDOCS_PATH/$rel
+            SFTP
+          done
+          sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" <<SFTP
+          put hosted/dist/hub/$release_id/index.html $HTDOCS_PATH/index.html.tmp
+          rename $HTDOCS_PATH/index.html.tmp $HTDOCS_PATH/index.html
+          SFTP

@@ -33,7 +33,7 @@ final class Screens {
         add_action('template_redirect',function(){if(is_front_page() || is_page(['account','sign-in','preview'])){nocache_headers();header('Cache-Control: private, no-store');header('Referrer-Policy: no-referrer');}},-100);
     }
     public static function publicAccount(array $a): array {
-        return ['state'=>$a['state'],'step'=>$a['step']??null,'slug'=>$a['slug']??null,'site_url'=>isset($a['public_domain'])?'https://'.$a['public_domain']:(isset($a['domain'])?'https://'.$a['domain']:null),
+        return ['state'=>$a['state'],'step'=>$a['step']??null,'slug'=>$a['slug']??null,'site_url'=>isset($a['public_domain'])?'https://'.$a['public_domain']:(isset($a['domain'])?'https://'.$a['domain']:null),'logout_url'=>Identity::logoutUrl(),
             'custom_domain'=>['status'=>$a['custom_domain_status']??'none','domain'=>$a['custom_domain']??null],
             'entitlement'=>$a['entitlement']??'none','subscription_status'=>$a['subscription_status']??null,'paid_through'=>$a['paid_through']??null,'delete_after'=>$a['delete_after']??null,
             'cancel_at_period_end'=>$a['cancel_at_period_end']??false,'message'=>$a['last_error']['message']??null,

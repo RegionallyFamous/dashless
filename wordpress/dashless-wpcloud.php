@@ -49,7 +49,7 @@ foreach ( array( 'save_post_post', 'save_post_page', 'trashed_post', 'untrashed_
  */
 function dashless_site_status() {
 	$content_version = get_option( DASHLESS_CONTENT_VERSION_OPTION, array() );
-	$release         = get_option( DASHLESS_WPCLOUD_OPTION, array() );
+	$release         = dashless_wpcloud_active_release();
 	$post_counts     = function_exists( 'wp_count_posts' ) ? wp_count_posts( 'post' ) : null;
 	$page_counts     = function_exists( 'wp_count_posts' ) ? wp_count_posts( 'page' ) : null;
 	$media_counts    = function_exists( 'wp_count_attachments' ) ? wp_count_attachments() : null;
@@ -104,6 +104,47 @@ function dashless_wpcloud_releases_directory() {
 	return trailingslashit( $uploads['basedir'] ) . 'dashless/releases';
 }
 
+/** Read the SFTP-published immutable frontend pointer without requiring a WP login. */
+function dashless_wpcloud_pointer_release() {
+	$pointer = dashless_wpcloud_releases_directory() . '/current.json';
+	if ( ! is_file( $pointer ) || ! is_readable( $pointer ) ) {
+		return array();
+	}
+	$data = json_decode( (string) file_get_contents( $pointer ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+	$release_id = (string) ( $data['release_id'] ?? '' );
+	$public_host = strtolower( (string) ( $data['public_host'] ?? '' ) );
+	if ( ! is_array( $data ) || ! preg_match( '/^[0-9T]+Z-[a-f0-9]{6}$/', $release_id ) || ! preg_match( '/^[a-z0-9.-]+$/', $public_host ) ) {
+		return array();
+	}
+	$directory = dashless_wpcloud_releases_directory() . '/' . $release_id;
+	if ( ! is_file( $directory . '/index.html' ) || ! is_file( $directory . '/404.html' ) || ! is_file( $directory . '/dashless-release.json' ) ) {
+		return array();
+	}
+	return array( 'id' => $release_id, 'public_host' => $public_host, 'activated_at' => $data['created_at'] ?? null, 'content_generation' => (int) ( $data['content_generation'] ?? 0 ), 'pointer' => true );
+}
+
+function dashless_wpcloud_active_release() {
+	$stored = get_option( DASHLESS_WPCLOUD_OPTION, array() );
+	$pointer = dashless_wpcloud_pointer_release();
+	if ( empty( $pointer['id'] ) ) {
+		return $stored;
+	}
+	if ( ( $stored['id'] ?? '' ) !== $pointer['id'] || ( $stored['public_host'] ?? '' ) !== $pointer['public_host'] ) {
+		$pointer['previous'] = ! empty( $stored['id'] ) ? array(
+			'id'                 => $stored['id'],
+			'public_host'        => $stored['public_host'] ?? $pointer['public_host'],
+			'activated_at'       => $stored['activated_at'] ?? null,
+			'content_generation' => isset( $stored['content_generation'] ) ? (int) $stored['content_generation'] : null,
+		) : null;
+		update_option( DASHLESS_WPCLOUD_OPTION, $pointer, false );
+		wp_cache_flush();
+		if ( function_exists( 'wpcom_cache_flush' ) ) {
+			wpcom_cache_flush();
+		}
+	}
+	return $pointer;
+}
+
 /**
  * Restrict release activation to users trusted to publish public content.
  */
@@ -112,10 +153,22 @@ function dashless_wpcloud_can_activate() {
 }
 
 /**
+ * Return a REST nonce to the Astro account page for the current WP session.
+ * The nonce is not an authentication credential; the Hub routes still require
+ * the logged-in, verified owner cookie on every state-changing request.
+ */
+function dashless_wpcloud_browser_nonce() {
+	if ( ! is_user_logged_in() ) {
+		return new WP_Error( 'dashless_auth_required', 'Sign in to continue.', array( 'status' => 401 ) );
+	}
+	return rest_ensure_response( array( 'nonce' => wp_create_nonce( 'wp_rest' ) ) );
+}
+
+/**
  * Report the currently active release without exposing server paths.
  */
 function dashless_wpcloud_release_status() {
-	$release = get_option( DASHLESS_WPCLOUD_OPTION, array() );
+	$release = dashless_wpcloud_active_release();
 
 	return rest_ensure_response(
 		array(
@@ -963,6 +1016,16 @@ add_action(
 
 		register_rest_route(
 			'dashless/v1',
+			'/nonce',
+			array(
+				'methods'              => WP_REST_Server::READABLE,
+				'callback'            => 'dashless_wpcloud_browser_nonce',
+				'permission_callback' => 'is_user_logged_in',
+			)
+		);
+
+		register_rest_route(
+			'dashless/v1',
 			'/mailbox',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
@@ -1281,7 +1344,7 @@ function dashless_wpcloud_route_request() {
 		return;
 	}
 
-	$release = get_option( DASHLESS_WPCLOUD_OPTION, array() );
+	$release = dashless_wpcloud_active_release();
 	if ( empty( $release['id'] ) || empty( $release['public_host'] ) ) {
 		return;
 	}

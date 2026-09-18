@@ -6,7 +6,7 @@ Private product monorepo: https://github.com/RegionallyFamous/dashless-platform.
 | --- | --- | --- |
 | ChatGPT plugin | `hosted/chatgpt/` | Component and MCP adapter bundled with the Hub |
 | Customer WordPress plugin | `wordpress/dashless-hosted.php`, `wordpress/hosted/` | Pinned site ZIP automatically provisioned by the Hub |
-| Dashless Hub | `hosted/hub/`, `hosted/theme/` | Account, OAuth, billing, provisioning and public site |
+| Dashless Hub | `hosted/hub/`, `hosted/hub-frontend/` | Account, OAuth, billing, provisioning, and the Astro public homepage/account |
 | Shared build infrastructure | `hosted/railway/`, `hosted/runtime/`, `templates/astro/` | Railway image and shared frontend source |
 
 The original local Codex plugin remains in `server/`, `.codex-plugin/` and `skills/`. The packaged plugin now exposes both sides of the product: the local, direct WordPress workflow and the authenticated hosted Hub at `https://dashless.blog/mcp`.

@@ -2,7 +2,7 @@
 
 ## Dedicated Hub setup
 
-1. Create a fresh WP Cloud WordPress site for `dashless.blog`. Install the packaged Hub ZIP and activate the Dashless theme. Run `wp dashless-hub install-pages`. Keep `DASHLESS_LIVE_CHECKOUT=false`.
+1. Create a fresh WP Cloud WordPress site for `dashless.blog`. Install the packaged Hub ZIP and keep WordPress available for `/wp-admin`, `/wp-login.php`, and `/wp-json`. The public `/` and `/account/` routes are served by the Astro Hub frontend release; no public WordPress theme is required. Keep `DASHLESS_LIVE_CHECKOUT=false`.
 2. Set constants/environment following `config.example.php`. Generate a stable random 32-byte encryption key. Auth0 owns token-signing keys. Store them outside public web roots and outside database backups; restrict PHP/native CLI file permissions. Back them up in the operator's existing secure recovery system. Do not write keys into `_data`, cloned blueprints, screenshots or logs.
 3. Configure API egress allowlisting for the Hub's actual WP Cloud outgoing addresses. Verify from both HTTP and native CLI. Local API success is not Hub egress evidence.
 4. Set actual DNS provider records for the apex and customer subdomains using WP Cloud's returned routing target. Do not invent a wildcard target. Verify new-host TLS and expected release header before declaring ready. DNS provider credentials and actual records are not supplied yet; DNS mutation is intentionally not implemented against an assumed provider.
