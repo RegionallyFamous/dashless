@@ -3,14 +3,24 @@ namespace Dashless\Hub;
 require_once (is_file(dirname(__DIR__).'/chatgpt/php/Integration.php') ? dirname(__DIR__).'/chatgpt/php/Integration.php' : dirname(__DIR__,2).'/chatgpt/php/Integration.php');
 final class Mcp {
     public function __construct(private Store $store,private Identity $identity,private Agent $agent,private Jobs $jobs) {}
-    public static function tools(): array { return array_merge(json_decode(file_get_contents(dirname(__DIR__).'/contracts/tools.v1.json'),true,512,JSON_THROW_ON_ERROR),Chatgpt::extraTools()); }
+    public static function tools(): array {
+        $tools=array_merge(json_decode(file_get_contents(dirname(__DIR__).'/contracts/tools.v1.json'),true,512,JSON_THROW_ON_ERROR),Chatgpt::extraTools());
+        // PHP decodes an empty JSON object as [], which wp_json_encode() would
+        // emit as an array. OpenAI's MCP validator requires properties to stay
+        // an object, even for no-argument tools such as inspect_site.
+        foreach($tools as &$tool) {
+            if(isset($tool['inputSchema']['properties']) && is_array($tool['inputSchema']['properties']) && $tool['inputSchema']['properties']===[])$tool['inputSchema']['properties']=new \stdClass();
+        }
+        unset($tool);
+        return $tools;
+    }
     public function handle(array $message,array $auth): ?array {
         $id=$message['id']??null;$method=$message['method']??'';
         if(!array_key_exists('id',$message) && ($message['jsonrpc']??'')==='2.0' && is_string($method) && str_starts_with($method,'notifications/'))return null;
         try {
             if (($message['jsonrpc']??'')!=='2.0' || !is_string($method) || !array_key_exists('id',$message) || !(is_int($id) || is_string($id)) || (isset($message['params']) && !is_array($message['params']))) throw new Failure('invalid_request','Invalid MCP request.');
             $result=match($method) {
-                'initialize'=>['protocolVersion'=>in_array($message['params']['protocolVersion']??'',Chatgpt::PROTOCOLS,true)?$message['params']['protocolVersion']:Chatgpt::PROTOCOLS[0],'capabilities'=>['tools'=>['listChanged'=>false],'resources'=>['subscribe'=>false,'listChanged'=>false]],'serverInfo'=>['name'=>'dashless','version'=>'0.1.0'],'instructions'=>'Manage the connected blog. Content changes require an editorial request. Publishing requires the exact preview and an authenticated user approval. Never create starter posts to populate a design.'],
+                'initialize'=>['protocolVersion'=>in_array($message['params']['protocolVersion']??'',Chatgpt::PROTOCOLS,true)?$message['params']['protocolVersion']:Chatgpt::PROTOCOLS[0],'capabilities'=>['tools'=>['listChanged'=>false],'resources'=>['subscribe'=>false,'listChanged'=>false]],'serverInfo'=>['name'=>'dashless','version'=>'0.1.0'],'instructions'=>'Manage the connected blog. Content changes require an editorial request. Publishing requires the exact preview and an authenticated user approval. Never create starter posts to populate a design. During setup and redesign call list_themes and offer the available named themes with their preview images. Use get_theme before selection, then update_design with theme_id and theme_version. Explicit presentation settings override theme defaults. Preserve identity and content, and create a private preview using real content before requesting publication approval. Custom design uses the supported options; do not promise arbitrary generated code.'],
                 'ping'=>new \stdClass(),
                 'resources/list'=>['resources'=>[['uri'=>Chatgpt::URI,'name'=>'Dashless publishing workflow','mimeType'=>'text/html;profile=mcp-app']]],
                 'resources/templates/list'=>['resourceTemplates'=>[]],
@@ -36,6 +46,8 @@ final class Mcp {
         $this->store->rate('tools:'.$owner,120,60);
         try {
             $a=$this->identity->account($owner);
+            if($name==='list_themes')return self::result(['themes'=>Themes::catalog()]);
+            if($name==='get_theme')return self::result(Themes::get($args['theme_id']));
             if($name==='get_status')return self::result(['state'=>$a['state'],'entitlement'=>$a['entitlement']??'none','site_url'=>isset($a['domain'])?'https://'.$a['domain']:null,'ready'=>$a['state']==='ready']);
             if(!in_array($a['entitlement']??'',['active','grace'],true) && !in_array($name,['export_site','get_job','show_workflow'],true))throw new Failure('subscription_inactive','This account does not currently include editing access.',403);
             if($a['state']!=='ready' && !(in_array($name,['export_site','get_job','show_workflow'],true) && $a['state']==='suspended'))throw new Failure('site_not_ready','Your site is not ready for this action.',409);
@@ -55,6 +67,7 @@ final class Mcp {
                 return self::result(['release_id'=>$args['release_id'],'approval_required'=>true],false,Chatgpt::handoff($this->store,$a,'rollback',$args['release_id'],Chatgpt::rollbackBinding($releases,$args['release_id'])));
             }
             $required=match($name){'create_preview','request_publication_approval'=>['private_previews','jobs'],'publish_previewed'=>['approvals','jobs'],'rollback_release'=>['rollback_approval_v1','jobs'],'export_site'=>['exports','jobs'],'get_design','update_design'=>['design'],default=>[]};
+            if($name==='update_design' && (isset($args['changes']['theme_id']) || isset($args['changes']['theme_version'])))$required[]='theme_catalog_v1';
             Chatgpt::capabilities($this->agent,$a,$required);
             // All tenant routing is derived from the OAuth identity, never a tool argument.
             $result=$this->agent->call($a,'POST','/tools/'.$name,['arguments'=>$args,'actor'=>['account_id'=>$owner],'idempotency_key'=>$args['client_key']??null]);
