@@ -4,7 +4,7 @@ import presetStyles from "../styles/presets.css?url";
 import themeStyles from "../styles/themes.css?url";
 import bulletinStyles from "../styles/bulletin.css?url";
 import { ClientRouter } from "astro:transitions";
-import { config, getNavigation } from "../lib/dashless.mjs";
+import { config, getNavigation, sitePath } from "../lib/dashless.mjs";
 import { themeTemplate } from "../lib/theme-registry.mjs";
 
 const {
@@ -82,8 +82,8 @@ const structuredData = article ? {
     ) : (
       <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     )}
-    <link rel="sitemap" href="/sitemap.xml" />
-    <link rel="alternate" type="application/rss+xml" title={config.siteName} href="/rss.xml" />
+    <link rel="sitemap" href={sitePath("/sitemap.xml")} />
+    <link rel="alternate" type="application/rss+xml" title={config.siteName} href={sitePath("/rss.xml")} />
     {digest && <meta name="dashless-content-digest" content={digest} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -122,7 +122,7 @@ const structuredData = article ? {
           <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme">NIGHT MODE</button>
         </div>
         <div class="masthead">
-          <a class:list={["wordmark", { "has-teddy-mark": usesTeddyMark }]} href="/" data-astro-prefetch aria-label={`${config.siteName} — home`}>
+          <a class:list={["wordmark", { "has-teddy-mark": usesTeddyMark }]} href={sitePath("/")} data-astro-prefetch aria-label={`${config.siteName} — home`}>
             {config.logo ? <span class="wordmark-logo"><img src={config.logo} alt="" width="60" height="60" /></span> : usesTeddyMark ? (
               <span class="wordmark-logo" aria-hidden="true"><img src="/teddy-logo.png" alt="" width="512" height="512" /></span>
             ) : (
@@ -137,23 +137,23 @@ const structuredData = article ? {
         <div class="signal-strip" aria-label="Site status">
           <span><i aria-hidden="true"></i> {config.siteName.toUpperCase()} IS ONLINE</span>
           <span aria-hidden="true">✦ FRESH POSTS ✦ STRANGE LINKS ✦ GOOD INTERNET ✦</span>
-          <a href="/rss.xml" data-astro-reload>RSS FEED ↗</a>
+          <a href={sitePath("/rss.xml")} data-astro-reload>RSS FEED ↗</a>
         </div>
       </header>}
       {hypertext && <aside class="hypertext-rail" aria-label="Quick navigation">
         <nav>
-          <a href="/" data-astro-prefetch aria-current={Astro.url.pathname === "/" ? "page" : undefined}><span aria-hidden="true">⌂</span> Home</a>
-          <a href={`/${config.postsPath}/`} data-astro-prefetch aria-current={Astro.url.pathname.startsWith(`/${config.postsPath}/`) ? "page" : undefined}><span aria-hidden="true">▣</span> Archive</a>
-          <a href={`/${config.topicsPath}/`} data-astro-prefetch aria-current={Astro.url.pathname.startsWith(`/${config.topicsPath}/`) ? "page" : undefined}><span aria-hidden="true">▤</span> Topics</a>
-          <a href="/search/" data-astro-prefetch aria-current={Astro.url.pathname.startsWith("/search/") ? "page" : undefined}><span aria-hidden="true">⌕</span> Search</a>
-          <a href="/404.html"><span aria-hidden="true">☻</span> 404</a>
+          <a href={sitePath("/")} data-astro-prefetch aria-current={Astro.url.pathname === "/" ? "page" : undefined}><span aria-hidden="true">⌂</span> Home</a>
+          <a href={sitePath(`/${config.postsPath}/`)} data-astro-prefetch aria-current={Astro.url.pathname.startsWith(`/${config.postsPath}/`) ? "page" : undefined}><span aria-hidden="true">▣</span> Archive</a>
+          <a href={sitePath(`/${config.topicsPath}/`)} data-astro-prefetch aria-current={Astro.url.pathname.startsWith(`/${config.topicsPath}/`) ? "page" : undefined}><span aria-hidden="true">▤</span> Topics</a>
+          <a href={sitePath("/search/")} data-astro-prefetch aria-current={Astro.url.pathname.startsWith("/search/") ? "page" : undefined}><span aria-hidden="true">⌕</span> Search</a>
+          <a href={sitePath("/404.html")}><span aria-hidden="true">☻</span> 404</a>
         </nav>
         <div class="hypertext-rail-note"><span aria-hidden="true">▰</span><p>Small things<br />last longer<br />here.</p></div>
       </aside>}
       <main id="main-content"><slot /></main>
       {bulletin ? <footer class="bulletin-footer"><p><strong>{config.siteName}</strong><br/>{department ? 'No concern too minor. No investigation on schedule.' : config.siteDescription}</p><div><a href="/rss.xml">RSS</a><a href="#main-content">Back to top ↑</a></div></footer> : <footer class="site-footer">
         <div>{usesTeddyMark ? <img class="footer-teddy" src="/teddy-logo.png" alt="" width="512" height="512" /> : <span class="footer-star" aria-hidden="true">✦</span>}<p><strong>{config.siteName}</strong><br />A small corner of the big internet.</p></div>
-        <p>Made with curiosity and unreasonable enthusiasm.<br /><a href="/rss.xml" data-astro-reload>Subscribe via RSS</a> · <a href="#main-content">Back to top ↑</a></p>
+        <p>Made with curiosity and unreasonable enthusiasm.<br /><a href={sitePath("/rss.xml")} data-astro-reload>Subscribe via RSS</a> · <a href="#main-content">Back to top ↑</a></p>
         <div class="footer-curiosities">
           <div class="web-badge" aria-label="Independent website"><span>WORLD</span><strong>WIDE WEB</strong><small>BEST VIEWED WITH CURIOSITY</small></div>
           <button class="oddity-switch" id="oddity-switch" type="button" aria-pressed="false" title="There may be another way in">DO NOT PRESS</button>
