@@ -93,14 +93,13 @@ jobs:
           done < "$ids_file" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
           node hosted/scripts/cleanup-hub-releases.mjs --active "$release_id" --remote-root "$release_root" --manifests-dir "$manifests_dir" < "$listing_file" > "$cleanup_file"
           if [ -s "$cleanup_file" ]; then
-            # File removal is idempotent so a retry can recover from a partial
-            # cleanup. Empty-directory removal is best effort because a prior
-            # run may already have removed that directory.
-            sed -n 's/^rm /rm -f /p' "$cleanup_file" | sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+            # SFTP has no recursive rm and this endpoint does not support rm -f.
+            # Run each exact manifest-derived command independently so a retry
+            # can recover from a partial cleanup without touching other paths.
             while IFS= read -r command; do
               [ -z "$command" ] && continue
               printf '%s\n' "$command" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" || true
-            done < <(sed -n '/^rmdir /p' "$cleanup_file")
+            done < "$cleanup_file"
           else
             echo "No superseded Hub release artifacts to remove."
           fi
