@@ -36,8 +36,8 @@ final class Previews {
         });
     }
     public function screen(): string {
-        if(!is_user_logged_in() || !Identity::verified(get_current_user_id()))return '<p>Sign in to view your private preview.</p><a class="dl-button" href="'.esc_url(add_query_arg('return',Identity::returnPath((string)wp_unslash($_SERVER['REQUEST_URI']??'')),Config::origin().'/auth/login')).'">Sign in →</a>';
         try {
+            if(!is_user_logged_in() || !Identity::verified(get_current_user_id()))return '<p>Sign in to view your private preview.</p><a class="dl-button" href="'.esc_url(add_query_arg('return',Identity::returnPath((string)wp_unslash($_SERVER['REQUEST_URI']??'')),Config::origin().'/auth/login')).'">Sign in →</a>';
             nocache_headers();
             if(!headers_sent()){header('Referrer-Policy: no-referrer');header('X-Frame-Options: DENY');}
             $handoff=(string)wp_unslash($_GET['handoff']??'');
@@ -57,5 +57,11 @@ final class Previews {
             if(parse_url($url,PHP_URL_SCHEME)!=='https' || parse_url($url,PHP_URL_HOST)!==$a['domain'] || !str_starts_with((string)parse_url($url,PHP_URL_PATH),'/wp-json/dashless-hosted/v1/previews/'))throw new Failure('preview_invalid','Preview destination failed validation.',503);
             return '<section class="dl-panel"><h2>Review your preview.</h2><p>Publishing applies this exact preview. If its content, design, or assets change, create a new preview first.</p><iframe class="dl-preview-frame" title="Private blog preview" src="'.esc_url($url).'" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe><form data-dl-form="preview/approve"><input type="hidden" name="preview_id" value="'.esc_attr($id).'"><input type="hidden" name="handoff" value="'.esc_attr($handoff).'"><label><input type="checkbox" required> I have reviewed this preview and want to publish it.</label><button class="dl-button" type="submit">Publish this preview →</button><p class="dl-form-status" role="status"></p></form></section>';
         }catch(Failure $e){return '<section class="dl-panel"><h2>Preview unavailable</h2><p>'.esc_html($e->getMessage()).'</p></section>';}
+        catch(\Throwable $e){
+            // A private review must never take down the entire WordPress page. Keep the
+            // public response generic, but leave a short operator breadcrumb in PHP logs.
+            error_log('Dashless preview recovery: '.get_class($e).' code '.(string)$e->getCode());
+            return '<section class="dl-panel"><h2>Preview needs a quick recovery</h2><p>We could not open this preview safely. Return to ChatGPT and create a fresh preview, or try this link again in a moment.</p></section>';
+        }
     }
 }

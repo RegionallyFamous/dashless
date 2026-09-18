@@ -44,6 +44,16 @@ test('Astro and Hub catalogs stay in sync', async () => {
   assert.deepEqual(hub.map(({id, version, template}) => ({id, version, template})), themes.map(({id, version, template}) => ({id, version, template})));
 });
 
+test('the Dashless wordmark remains asset-backed through the stylesheet cascade', async () => {
+  const css = await readFile(new URL('../hosted/theme/assets/site.css', import.meta.url), 'utf8');
+  const functions = await readFile(new URL('../hosted/theme/functions.php', import.meta.url), 'utf8');
+  assert.match(functions, /class="dl-rip"/);
+  assert.match(functions, /class="dl-hot-type"/);
+  assert.doesNotMatch(css, /\.dl-rip\{display:none\}/);
+  assert.doesNotMatch(css, /\.dl-hot-type:after\{content:['"]Dashless/);
+  assert.match(css, /\.dl-hot-type\{[^}]*background:[^}]*hot-type-v3\.webp/);
+});
+
 test('PHP selection preserves identity, applies explicit overrides and rejects stale/unknown versions', () => {
   const result=spawnSync('php',['tests/helpers/themes.php'],{encoding:'utf8'});
   assert.equal(result.status,0,result.stdout+result.stderr);

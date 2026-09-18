@@ -127,6 +127,23 @@ motion, forced colors, missing-media, and no-JavaScript checks. Imagegen may
 inspire the bitmap reference, but deterministic browser screenshots and the
 reviewed diffs are the fidelity gate.
 
+Treat visual identity assets as protected contracts. Logos, wordmarks, favicons,
+theme thumbnails, and signature illustrations must have one source asset and one
+semantic markup owner. Do not replace an asset-backed logo with CSS-generated
+text, hide part of a brand mark in a later override, or append a second style
+layer to “finish” a design. Before release, inspect the computed logo DOM and
+capture a stable asset/DOM fingerprint for the header at desktop and mobile.
+The fingerprint must prove that the expected asset URLs, dimensions, accessible
+name, and visibility survived the full cascade.
+
+For Dashless's shared Hub/theme shell, run `npm run check:brand` before every
+release. Run `npm run check:live-reader` for the public Astro reader surface.
+The Hub uses authenticated WordPress routing on the same hostname, so its live
+header fingerprint must be captured from an authenticated browser session (the
+unauthenticated root may legitimately be the Astro reader). Keep the emitted
+fingerprints with release evidence so a deployment can be compared to the
+source artifact; never treat an ambiguous homepage response as Hub proof.
+
 ### Non-superficial redesign gate
 
 Do not describe a redesign as complete when the result is only a palette,
@@ -158,6 +175,15 @@ fingerprint or release header is unchanged, say the old release is still live
 and continue debugging or stop with that blocker. A failed preview or builder
 job must preserve the previous public release and must be surfaced as a
 deployment failure, not worked around with a claim of completion.
+
+When a visual regression is found, trace it in this order: rendered screenshot,
+computed styles, final generated HTML, source template/component, then deployed
+artifact. Do not patch production first and “fix the source later.” If a live
+hotfix is unavoidable, immediately reproduce it in source, compare source and
+live asset hashes, and remove the temporary patch before declaring the release
+healthy. A successful build is not visual proof; a successful upload is not
+deployment proof; an unchanged live fingerprint means the old release is still
+serving.
 
 For a theme-switcher demo, verify at least two visibly different styles in a
 fresh browser context and verify that the selected style survives navigation,

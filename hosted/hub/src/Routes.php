@@ -51,7 +51,7 @@ final class Routes {
             if(!is_page('preview'))return;
             nocache_headers();header('Cache-Control: private, no-store');header('Referrer-Policy: no-referrer');header('X-Frame-Options: DENY');
             $frame="'none'";
-            if(is_user_logged_in())try{$a=$this->app->identity->account(get_current_user_id());if(($a['domain']??'')===Identity::slug($a['slug']).'.'.Config::domain())$frame='https://'.$a['domain'];}catch(Failure $e){}
+            if(is_user_logged_in())try{$a=$this->app->identity->account(get_current_user_id());$slug=$a['slug']??null;if(is_string($slug) && ($a['domain']??'')===Identity::slug($slug).'.'.Config::domain())$frame='https://'.$a['domain'];}catch(\Throwable $e){}
             header("Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; connect-src 'self'; frame-src ".$frame);
         },-90);
     }
