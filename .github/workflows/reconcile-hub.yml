@@ -21,7 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           response="$(curl --fail --silent --show-error --request POST \
-            --header "Authorization: Bearer $API_KEY" \
+            --header "auth: $API_KEY" \
             --data-urlencode 'args[0]=dashless-hub' \
             --data-urlencode 'args[1]=reconcile' \
             --data-urlencode 'args[2]=--once' \
