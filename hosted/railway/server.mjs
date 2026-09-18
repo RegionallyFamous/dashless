@@ -40,16 +40,19 @@ export async function createBuilder({ root, master, runtime = path.resolve('host
     await new Promise((resolve, reject) => {
       // No Railway/API credentials in the child; only pinned template code executes.
       const child = spawn(process.execPath, [path.join(runtime, 'build.mjs'), work], {
-        cwd: work, detached: true, stdio: 'ignore', env: {
+        cwd: work, detached: true, stdio: ['ignore', 'pipe', 'pipe'], env: {
           PATH: process.env.PATH, HOME: work, TMPDIR: work, NODE_OPTIONS: '--max-old-space-size=1024',
           ASTRO_TELEMETRY_DISABLED: '1', UV_THREADPOOL_SIZE: '2', VIPS_CONCURRENCY: '1', RAYON_NUM_THREADS: '2'
         }
       });
       j.child = child;
+      let output = '';
+      const capture = chunk => { output = (output + chunk.toString()).slice(-8000); };
+      child.stdout.on('data', capture); child.stderr.on('data', capture);
       const stop = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} };
       const timer = setTimeout(stop, deadlineMs);
       child.once('error', e => { clearTimeout(timer); delete j.child; reject(e); });
-      child.once('close', code => { clearTimeout(timer); stop(); delete j.child; code === 0 ? resolve() : reject(new Error('build_failed')); });
+      child.once('close', code => { clearTimeout(timer); stop(); delete j.child; if (code === 0) resolve(); else { const detail=output.replace(/\s+/g,' ').trim().slice(-500); reject(new Error(detail ? `build_failed: ${detail}` : 'build_failed')); } });
     });
   }
   async function pump() {
@@ -76,7 +79,7 @@ export async function createBuilder({ root, master, runtime = path.resolve('host
       result.archive = { bytes: archive.length, sha256: digest(archive) };
       await atomic(path.join(work, 'build-result.json'), JSON.stringify(result));
       j.status = 'succeeded';
-    } catch (error) { console.error(`Dashless build failed for ${j.site}/${j.id}: ${error instanceof Error ? error.message : String(error)}`); j.status = 'failed'; j.error = 'build_failed'; }
+    } catch (error) { const detail=error instanceof Error ? error.message : String(error); console.error(`Dashless build failed for ${j.site}/${j.id}: ${detail}`); j.status = 'failed'; j.error = detail.replace(/\s+/g,' ').slice(-600); }
     finally { j.finished = Date.now(); await save(j); running = null; setImmediate(() => pump().catch(() => {})); }
   }
   async function body(req, limit) {

@@ -13,10 +13,19 @@ final class Jobs {
         foreach ($this->app->store->rows('job') as $row) {
             $job=$row['data']??[];
             if (!in_array($job['status']??'', ['queued','running'], true)) { continue; }
-            $rows[] = array_intersect_key($job, array_flip(['job_id','kind','status','attempts','created_at','started_at','lease_expires','remote_build_id','continuation_required','poll_after']));
+            $rows[] = array_intersect_key($job, array_flip(['job_id','kind','status','attempts','created_at','started_at','lease_expires','remote_build_id','task_id','continuation_required','poll_after']));
         }
         usort($rows, fn($a,$b)=>strcmp((string)($a['created_at']??''),(string)($b['created_at']??'')));
         return $rows;
+    }
+    /** Cancel only a queued job. Running work is never force-killed by cleanup. */
+    public function cancelQueued(string $id): array {
+        return $this->app->store->transaction(function() use ($id) {
+            $job=$this->get($id);
+            if (($job['status']??'')!=='queued') { throw new Failure('job_not_queued','Only queued jobs can be removed safely.'); }
+            $job['status']='canceled';$job['continuation_required']=false;$job['finished_at']=gmdate('c');$job['error']=['code'=>'operator_queue_cleanup','message'=>'Queued before the current release workflow and removed during reconciliation.'];
+            $this->save($job);return $this->public($job);
+        });
     }
     private function save(array $job): void { $this->app->store->put('job',$job['job_id'],$job,$job['owner']); }
     public function public(array $j): array {

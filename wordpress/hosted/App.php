@@ -76,6 +76,24 @@ final class App {
         return $removed;
         } finally { $this->store->unlock('maintenance',$lease); }
     }
+    public function prunePreviews(int $limit=100): array {
+        $removed=['previews'=>0,'candidates'=>0,'vault_blobs'=>0];
+        $active=$this->store->get('release','active')['data']??[];$previous=$this->store->get('release','previous')['data']??[];
+        foreach (array_slice($this->store->rows('preview'),0,max(1,$limit)) as $preview) {
+            $candidate=(string)($preview['candidate']??'');
+            if (!$candidate || in_array($candidate,[$active['candidate']??null,$previous['candidate']??null],true)) { continue; }
+            $record=$this->store->get('candidate',$candidate);$manifest=$record['data']['manifest']??[];$keys=[];
+            foreach (($manifest['files']??[]) as $file) {
+                $base='candidate:'.$candidate.':'.$file['path'];$meta=[];
+                try { $meta=json_decode($this->vault()->get($base.':meta'),true)?:[]; } catch (\Throwable $e) {}
+                for($i=0;$i<(int)($meta['chunks']??0);$i++) $keys[]=$base.':'.$i;
+                $keys[]=$base.':meta';
+            }
+            $keys[]='snapshot:'.$candidate;$removed['vault_blobs']+=$this->vault()->deleteKeys($keys);
+            $this->store->deleteKey('candidate',$candidate);$this->store->deleteKey('preview',(string)($preview['preview_id']??''));$removed['previews']++;$removed['candidates']++;
+        }
+        return $removed;
+    }
     public function envelope(array $data): array { return ['contract_version'=>1,'site_id'=>$this->siteId()]+$data; }
     public function active(bool $export=false): void {
         $c=$this->config();
