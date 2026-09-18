@@ -15,6 +15,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
+    # Keep the repository green until the production environment has been
+    # intentionally configured with the WP Cloud SSH secrets below.
+    if: ${{ vars.DASHLESS_RELEASE_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     environment: production
     steps:

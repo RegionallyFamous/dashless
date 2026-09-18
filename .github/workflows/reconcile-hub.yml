@@ -7,6 +7,9 @@ permissions:
   contents: read
 jobs:
   reconcile:
+    # The schedule is safe to install before the WP Cloud API credentials are
+    # provisioned; enabling it is an explicit production-environment choice.
+    if: ${{ vars.DASHLESS_RECONCILE_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     environment: production
     steps:

@@ -19,7 +19,7 @@ Verify duplicate/out-of-order delivery, initial payment failure, renewal failure
 
 ## Background execution
 
-`wp dashless-hub reconcile` runs a bounded native drain (internal 240-second window), releasing its durable lease before any continuation. `--once` performs one reconciliation pass. Normal webhooks/user actions request immediate native dispatch. The included `Reconcile Dashless Hub` GitHub Actions workflow dispatches a bounded pass every five minutes using only WP Cloud API credentials; the registered hourly WP-Cron hook remains a fallback, not proof of reliable external scheduling. All Hub task dispatch must target `DASHLESS_HUB_SITE_ID` alone.
+`wp dashless-hub reconcile` runs a bounded native drain (internal 240-second window), releasing its durable lease before any continuation. `--once` performs one reconciliation pass. Normal webhooks/user actions request immediate native dispatch. The included `Reconcile Dashless Hub` GitHub Actions workflow dispatches a bounded pass every five minutes using only WP Cloud API credentials when the production environment variable `DASHLESS_RECONCILE_ENABLED=true`; until then it remains intentionally skipped. The registered hourly WP-Cron hook remains a fallback, not proof of reliable external scheduling. All Hub task dispatch must target `DASHLESS_HUB_SITE_ID` alone.
 
 ## Customer plugin rollouts
 
@@ -40,7 +40,7 @@ wp dashless-hub rollout-pause <rollout-id>
 wp dashless-hub rollout-resume <rollout-id>
 ```
 
-The `Publish site release` workflow builds the site and runtime archives, uploads them to the Hub's `wp-content/dashless-packages/` directory, and atomically replaces `current.json`. The Hub reads that pointer on the next request, while existing rollouts retain their original immutable URL and checksum. GitHub builds and publishes artifacts; customer sites never contact GitHub and no customer needs to log in.
+The `Publish site release` workflow builds the site and runtime archives, uploads them to the Hub's `wp-content/dashless-packages/` directory, and atomically replaces `current.json`. Set the production environment variable `DASHLESS_RELEASE_ENABLED=true` only after the WP Cloud SSH secrets are present; otherwise the workflow stays intentionally skipped. The Hub reads that pointer on the next request, while existing rollouts retain their original immutable URL and checksum. GitHub builds and publishes artifacts; customer sites never contact GitHub and no customer needs to log in.
 
 Customer builds use `wp dashless build-job <uuid>` on exactly one site. A running or uncertain task blocks later builds. Job polling reconciles completion and releases the next queued build. Site/plugin must implement the internal runtime deadline, local snapshot and child-process resource measurement. Native task results are authoritative; callback payloads only wake reconciliation and must carry the configured callback secret. Keep callbacks disabled until their delivery/authentication configuration is verified.
 
