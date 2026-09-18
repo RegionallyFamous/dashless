@@ -121,6 +121,37 @@ try {
       assert.equal(await page.locator('.wp-block-gallery .inline-image-fallback[role="img"]').count(),1);
       assert.equal(await page.locator('.wp-block-gallery .inline-image-fallback[aria-hidden="true"]').count(),1);
     }
+    if (options.theme) {
+      const matrixRoutes = {
+        home: '/',
+        archive: '/stories/',
+        article: '/stories/story-1/',
+        search: '/search/',
+        taxonomy: '/topics/news/',
+        rss: '/rss.xml',
+        '404': '/404.html',
+      };
+      const matrixRoot = path.join(evidence, 'theme-matrix', options.theme.id);
+      await mkdir(matrixRoot, { recursive: true });
+      const matrixEvidence = {};
+      for (const [state, route] of Object.entries(matrixRoutes)) {
+        matrixEvidence[state] = {};
+        for (const [label, width] of [['desktop', 1280], ['mobile', 390]]) {
+          await page.setViewportSize({ width, height: label === 'mobile' ? 844 : 900 });
+          const response = await page.goto(url + route);
+          assert.equal(response?.status(), 200, `${options.theme.id} ${state} returned HTTP ${response?.status()}`);
+          if (state === 'rss') {
+            matrixEvidence[state] = { status: response.status(), contentType: response.headers()['content-type'] || 'unknown' };
+            continue;
+          }
+          const filename = `${state}-${label}.png`;
+          await page.screenshot({ path: path.join(matrixRoot, filename), fullPage: true });
+          matrixEvidence[state][label] = path.relative(root, path.join(matrixRoot, filename));
+        }
+      }
+      report.themeMatrix ??= {};
+      report.themeMatrix[options.theme.id] = { states: Object.keys(matrixRoutes), screenshots: matrixEvidence };
+    }
     await page.setViewportSize({width:1280,height:1000});await page.goto(url+'/');await page.screenshot({path:path.join(evidence,`${name}.png`),fullPage:true});
     if(options.theme) {
       await page.evaluate(palette=>localStorage.setItem('dashless-theme',palette==='night'?'dark':'light'),options.theme.defaults.palette);await page.reload();
