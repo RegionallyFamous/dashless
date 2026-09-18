@@ -34,8 +34,10 @@ jobs:
       - run: composer audit --working-dir=hosted/hub
       - run: npm ci --prefix hosted/chatgpt --ignore-scripts
       - run: npm ci --prefix hosted/runtime
+      - run: npm ci --prefix hosted/hub-frontend --ignore-scripts --no-audit --no-fund
       - run: npm audit --prefix hosted/chatgpt --omit=dev --audit-level=high
       - run: npm audit --prefix hosted/runtime --omit=dev --audit-level=high
+      - run: npm run build --prefix hosted/hub-frontend
       - run: npm run check:hosted
       - run: npm --prefix hosted/chatgpt run build
       - run: npm --prefix hosted/chatgpt test
