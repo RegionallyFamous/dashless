@@ -11,7 +11,9 @@ final class Maintenance {
         return false;
     }
     public function run(): array {
-        $counts=['events'=>0,'accounts'=>0,'rollouts'=>0,'errors'=>0];$deadline=microtime(true)+30;
+        $counts=['events'=>0,'accounts'=>0,'rollouts'=>0,'errors'=>0,'provider_cron'=>0,'cloud_diagnostics'=>0];$deadline=microtime(true)+30;
+        $this->ensureProviderCron($counts);
+        $this->refreshCloudDiagnostics($counts);
         if(microtime(true)<$deadline){$this->rollouts->ensureCurrent();$rollout=$this->rollouts->drain();if(!empty($rollout['rollout_id']))$counts['rollouts']=1;}
         foreach($this->store->rows('stripe_event',null,100,0,'pending') as $r) {
             if(microtime(true)>$deadline)break;
@@ -80,6 +82,15 @@ final class Maintenance {
             $site=$this->cloud->find($a['domain']);
             if($site && $site['site_id']!==(int)$a['site_id'])throw new Failure('site_mismatch','Deletion blocked by a site identity mismatch.',409);
             if($site) {
+                // Preserve a provider-side filesystem snapshot before deletion. The
+                // request is idempotent and deletion remains blocked until the
+                // completed on-demand backup is visible in the backup inventory.
+                $backup=$this->cloud->backupBeforeDelete((int)$a['site_id'],isset($a['delete_backup_requested_at'])?(int)$a['delete_backup_requested_at']:null);
+                if(empty($backup['ready'])) {
+                    if(!empty($backup['requested_at'])) {$a['delete_backup_requested_at']=(int)$backup['requested_at'];$this->identity->save($a);}
+                    return;
+                }
+                if(!empty($backup['backup'])) {$a['delete_backup']=['id'=>$backup['backup']['atomic_backup_id']??null,'type'=>$backup['backup']['type']??null,'timestamp'=>$backup['backup']['backup_timestamp']??null];$this->identity->save($a);}
                 if(empty($a['delete_sent'])) {$a['delete_sent']=time();$this->identity->save($a);$a['delete_job']=$this->cloud->delete($a['domain']);$this->identity->save($a);}
                 return; // Verify absence on a later pass, never claim completion from an accepted request.
             }
@@ -87,5 +98,23 @@ final class Maintenance {
             // Keep the name tombstoned; reassignment must not make old links point to a different customer.
             $this->store->audit($owner,'site_deleted');
         });
+    }
+    private function ensureProviderCron(array &$counts): void {
+        $site=(int)Config::get('hub_site_id',0);if($site<1)return;
+        try {
+            $result=$this->cloud->ensureCron((string)$site,'2h','wp dashless-hub reconcile --once');
+            if(!empty($result['created']))$counts['provider_cron']=1;
+        } catch(\Throwable $e) {
+            $counts['errors']++;$this->store->audit(0,'provider_cron_failed',['code'=>$e instanceof Failure?$e->slug:'internal_error']);
+        }
+    }
+    private function refreshCloudDiagnostics(array &$counts): void {
+        $site=(int)Config::get('hub_site_id',0);if($site<1)return;
+        try {
+            update_option('dashless_hub_cloud_health',$this->cloud->diagnostics((string)$site),false);$counts['cloud_diagnostics']=1;
+        } catch(\Throwable $e) {
+            // Provider observability must never prevent billing or provisioning.
+            $counts['errors']++;$this->store->audit(0,'cloud_diagnostics_failed',['code'=>$e instanceof Failure?$e->slug:'internal_error']);
+        }
     }
 }

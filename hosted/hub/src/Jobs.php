@@ -26,7 +26,20 @@ final class Jobs {
                 // A terminal site record alone is insufficient while a dispatched task may still be executing.
                 if (!empty($job['task_id'])) {
                     $task=$this->cloud->taskStatus($job['task_id']);
-                    if(empty($task['complete'])) return;
+                    if(empty($task['complete'])) {
+                        // A provider task that has exceeded the bounded native
+                        // execution window must not block a site's queue forever.
+                        // Interrupt it once, then leave the durable job marked for
+                        // reconciliation rather than submitting a duplicate.
+                        if(!empty($job['dispatched_at']) && $job['dispatched_at']<time()-15*MINUTE_IN_SECONDS && empty($job['interrupt_sent'])) {
+                            try {$this->cloud->interruptTask((string)$job['task_id']);$job['interrupt_sent']=time();$this->store->put('job',$job['job_id'],$job,$owner,'running');}
+                            catch(\Throwable $e) {$this->store->audit($owner,'task_interrupt_failed',['job_id'=>$job['job_id'],'task_id'=>$job['task_id']]);}
+                        }
+                        return;
+                    }
+                    if((int)($task['meta']['failure_count']??0)>0) {
+                        $job['provider_task']=$task;$job['needs_reconciliation']=true;$this->store->put('job',$job['job_id'],$job,$owner,'running');return;
+                    }
                 }
                 $remote=$this->agent->call($a,'GET','/jobs/'.$job['job_id']);
                 // Explicit site checkpoint only: the prior known native task must have stopped.

@@ -70,6 +70,7 @@ final class Admin {
         foreach($this->app->store->rows('rollout',null,20) as $row){echo '<p>'.esc_html($row['data']['rollout_id'].' · '.$row['data']['version'].' · '.$row['status']).'</p>';$this->formStart('rollout_advance');echo '<input type="hidden" name="rollout_id" value="'.esc_attr($row['data']['rollout_id']).'">';submit_button('Advance / verify one site','secondary','submit',false);echo '</form>';}
         echo '<h2>Billing reconciliation failures</h2>';
         foreach($this->app->store->rows('stripe_event',null,50,0,'failed') as $row){echo '<p>'.esc_html($row['data']['event_id'].' · '.($row['data']['last_error']??'Review required')).'</p>';$this->formStart('retry_event');echo '<input type="hidden" name="event_id" value="'.esc_attr($row['data']['event_id']).'">';submit_button('Retry after diagnosis','secondary','submit',false);echo '</form>';}
-        echo '<p>Health: <code>'.esc_html(wp_json_encode(get_option('dashless_hub_health',[]))).'</code></p></div>';
+        echo '<p>Health: <code>'.esc_html(wp_json_encode(get_option('dashless_hub_health',[]))).'</code></p>';
+        echo '<h2>WP Cloud diagnostics</h2><p>Last provider snapshot (rolling one-hour window; raw logs are never stored here):</p><pre style="max-width:100%;overflow:auto">'.esc_html(wp_json_encode(get_option('dashless_hub_cloud_health',[]),JSON_PRETTY_PRINT)).'</pre></div>';
     }
 }

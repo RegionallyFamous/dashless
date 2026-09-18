@@ -19,7 +19,7 @@ Verify duplicate/out-of-order delivery, initial payment failure, renewal failure
 
 ## Background execution
 
-`wp dashless-hub reconcile` runs a bounded native drain (internal 240-second window), releasing its durable lease before any continuation. `--once` performs one reconciliation pass. Normal webhooks/user actions request immediate native dispatch. The Hub's WP Cloud native cron runs `wp dashless-hub reconcile --once` twice per hour (cron entry `10132` in the current Hub environment); the registered hourly WP-Cron hook remains a fallback, not proof of reliable external scheduling. All Hub task dispatch must target `DASHLESS_HUB_SITE_ID` alone.
+`wp dashless-hub reconcile` runs a bounded native drain (internal 240-second window), releasing its durable lease before any continuation. `--once` performs one reconciliation pass. Normal webhooks/user actions request immediate native dispatch. Each maintenance pass idempotently verifies a WP Cloud provider cron entry for `wp dashless-hub reconcile --once` at the provider's `2h` schedule (twice per hour); the registered hourly WP-Cron hook remains a fallback, not proof of reliable external scheduling. All Hub task dispatch must target `DASHLESS_HUB_SITE_ID` alone.
 
 ## Customer plugin rollouts
 
@@ -54,7 +54,7 @@ Canceled/past-due sites become offline through the site plugin, retaining authen
 
 ## Backup and restore drill
 
-Back up the Hub database, plugin packages/manifests and protected encryption key and Auth0 client configuration separately. WP Cloud site backups must cover customer database, runtime and release artifacts. Restore a disposable Hub copy without exposing production hostname, outbound email, live Stripe webhooks or native dispatch. Load the original encryption key and verify one fixture credential decrypts; verify OAuth tokens as appropriate, then rotate/revoke fixture credentials. Restore one customer site and compare snapshot generation, release manifest and private asset access. Document retention/deletion behavior for provider backups. Record actual restore evidence before launch.
+Back up the Hub database, plugin packages/manifests and protected encryption key and Auth0 client configuration separately. Before a customer site is deleted, Dashless requests an on-demand WP Cloud filesystem backup and blocks deletion until the completed `ondemand-fs` backup appears in the provider inventory. WP Cloud site backups must cover customer database, runtime and release artifacts. Restore a disposable Hub copy without exposing production hostname, outbound email, live Stripe webhooks or native dispatch. Load the original encryption key and verify one fixture credential decrypts; verify OAuth tokens as appropriate, then rotate/revoke fixture credentials. Restore one customer site and compare snapshot generation, release manifest and private asset access. Document retention/deletion behavior for provider backups. Record actual restore evidence before launch.
 
 If the encryption key is lost, do not overwrite encrypted values with new ciphertext under an unrelated key. Pause signup and reconcile recovery first. Key rotation requires decrypt/re-encrypt under a migration procedure and a backup of the previous key; Auth0 signing-key rotation uses provider JWKS discovery and must be verified before retiring old keys. Rotating a per-site secret is separate and supported by the operator action.
 
