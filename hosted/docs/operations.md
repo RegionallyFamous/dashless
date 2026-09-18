@@ -25,7 +25,7 @@ Verify duplicate/out-of-order delivery, initial payment failure, renewal failure
 
 Customer site-plugin updates are fleet operations, not WordPress admin actions. The Hub stores an immutable package URL, SHA-256, version, target site IDs, task IDs, attempts, and health results in its durable table. WP Cloud receives one explicitly scoped site task at a time because the provider serializes these operations.
 
-Create a rollout for every active ready site, using a small cohort size while proving a release:
+The next Hub reconciliation automatically creates one rollout for the newly published package when no active or paused rollout is in progress. It is idempotent by package checksum; there is no duplicate rollout when cron, a webhook and an operator action overlap. To create one manually for a canary or recovery operation, use:
 
 ```sh
 wp dashless-hub rollout-create --all --cohort=25

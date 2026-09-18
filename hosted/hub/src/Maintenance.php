@@ -12,7 +12,7 @@ final class Maintenance {
     }
     public function run(): array {
         $counts=['events'=>0,'accounts'=>0,'rollouts'=>0,'errors'=>0];$deadline=microtime(true)+30;
-        if(microtime(true)<$deadline){$rollout=$this->rollouts->drain();if(!empty($rollout['rollout_id']))$counts['rollouts']=1;}
+        if(microtime(true)<$deadline){$this->rollouts->ensureCurrent();$rollout=$this->rollouts->drain();if(!empty($rollout['rollout_id']))$counts['rollouts']=1;}
         foreach($this->store->rows('stripe_event',null,100,0,'pending') as $r) {
             if(microtime(true)>$deadline)break;
             if($r['status']!=='pending')continue;

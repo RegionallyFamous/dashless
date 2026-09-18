@@ -37,6 +37,27 @@ final class Rollouts {
         return $this->create($owners,$cohort);
     }
 
+    /** Create at most one rollout for a newly published package pointer. */
+    public function ensureCurrent(int $cohort=25): ?string {
+        $version=(string)Config::get('site_plugin_version','');
+        $package=(string)Config::get('site_package_url','');
+        $sha=(string)Config::get('site_package_sha256','');
+        if($version==='' || $package==='' || $sha==='')return null;
+        foreach($this->app->store->rows('rollout',null,500,0) as $row){
+            $data=$row['data'];
+            if(($data['sha256']??'')===$sha)return (string)($data['rollout_id']??'');
+            if(in_array($row['status'],['active','paused'],true))return null;
+        }
+        return $this->app->store->locked('rollout-current',function()use($cohort,$sha){
+            foreach($this->app->store->rows('rollout',null,500,0) as $row){
+                $data=$row['data'];
+                if(($data['sha256']??'')===$sha)return (string)($data['rollout_id']??'');
+                if(in_array($row['status'],['active','paused'],true))return null;
+            }
+            try{return $this->createAll($cohort);}catch(Failure $e){if($e->slug==='rollout_targets')return null;throw $e;}
+        });
+    }
+
     /** Process at most one provider task per pass; WP Cloud serializes tasks globally. */
     public function drain(): array {
         foreach($this->app->store->rows('rollout',null,20,0,'active') as $row){
