@@ -10,29 +10,29 @@ final class Admin {
         if(!current_user_can('manage_options'))wp_die('Not allowed.',403);
         check_admin_referer('dashless_hub_operator');
         try {
-            $action=(string)($_POST['operation']??'');
+            $action=sanitize_key(wp_unslash($_POST['operation']??''));
             if($action==='pause')update_option('dashless_hub_signup_paused',!empty($_POST['paused']),false);
             elseif($action==='pages')Screens::installPages();
             elseif($action==='reconcile')$this->app->kick();
-            elseif(in_array($action,['reconcile_site','resume_provisioning'],true)){ $owner=absint($_POST['owner']??0);if(!$owner)throw new Failure('owner_missing','Choose an account to reconcile.',400);$this->app->maintenance->advance($owner); }
+            elseif(in_array($action,['reconcile_site','resume_provisioning'],true)){ $owner=absint(wp_unslash($_POST['owner']??0));if(!$owner)throw new Failure('owner_missing','Choose an account to reconcile.',400);$this->app->maintenance->advance($owner); }
             elseif($action==='purge_expired')$this->app->maintenance->run();
             elseif($action==='gates'){
                 $gates=[];
                 foreach(Config::GATES as $gate){$evidence=sanitize_textarea_field(wp_unslash($_POST['evidence'][$gate]??''));$gates[$gate]=['passed'=>!empty($_POST['passed'][$gate])&&$evidence!=='','evidence'=>$evidence,'by'=>get_current_user_id(),'at'=>time()];}
                 update_option('dashless_hub_gates',$gates,false);
             } elseif($action==='rollout_create') {
-                (new Rollouts($this->app))->create(preg_split('/[\s,]+/',trim((string)($_POST['owners']??''))));
+                (new Rollouts($this->app))->create(preg_split('/[\s,]+/',trim((string)wp_unslash($_POST['owners']??''))));
             } elseif($action==='rollout_advance') {
-                (new Rollouts($this->app))->advance(sanitize_text_field($_POST['rollout_id']??''));
+                (new Rollouts($this->app))->advance(sanitize_text_field(wp_unslash($_POST['rollout_id']??'')));
             } elseif($action==='retry_event') {
-                $id=sanitize_text_field($_POST['event_id']??'');$row=$this->app->store->get('stripe_event',$id);
+                $id=sanitize_text_field(wp_unslash($_POST['event_id']??''));$row=$this->app->store->get('stripe_event',$id);
                 if(!$row || $row['status']!=='failed')throw new Failure('event_missing','No failed billing event to retry.',404);
                 $data=$row['data'];$data['attempts']=0;$this->app->store->put('stripe_event',$id,$data,0,'pending');$this->app->kick();
             } elseif($action==='retry') {
-                $owner=absint($_POST['owner']??0);$this->app->identity->account($owner);
+                $owner=absint(wp_unslash($_POST['owner']??0));$this->app->identity->account($owner);
                 $this->app->maintenance->advance($owner);
             } elseif($action==='rotate') {
-                $owner=absint($_POST['owner']??0);
+                $owner=absint(wp_unslash($_POST['owner']??0));
                 $this->app->store->locked('account:'.$owner,function()use($owner){
                     $a=$this->app->identity->account($owner);
                     if(empty($a['site_id']))throw new Failure('site_missing','Site is not provisioned.');
@@ -59,7 +59,7 @@ final class Admin {
         echo '<h2>Launch evidence</h2>';$this->formStart('gates');echo '<table class="widefat"><thead><tr><th>Check</th><th>Passed</th><th>Evidence / date / result</th></tr></thead><tbody>';
         foreach(Config::GATES as $g)echo '<tr><td>'.esc_html($g).'</td><td><input aria-label="'.esc_attr($g).' passed" type="checkbox" name="passed['.esc_attr($g).']" value="1" '.checked(!empty($gates[$g]['passed']),true,false).'></td><td><textarea aria-label="'.esc_attr($g).' evidence" name="evidence['.esc_attr($g).']" rows="2" style="width:100%">'.esc_textarea($gates[$g]['evidence']??'').'</textarea></td></tr>';
         echo '</tbody></table>';submit_button('Save evidence');echo '</form><h2>Accounts and provisioning</h2><table class="widefat"><thead><tr><th>Owner</th><th>Blog</th><th>State / step</th><th>Access</th><th>Last issue</th><th>Actions</th></tr></thead><tbody>';
-        $offset=max(0,(int)($_GET['offset']??0));
+        $offset=max(0,(int)absint(wp_unslash($_GET['offset']??0)));
         foreach($this->app->store->rows('account',null,50,$offset) as $r){$a=$r['data'];echo '<tr><td>'.(int)$r['owner'].'</td><td>'.esc_html($a['domain']??'—').'</td><td>'.esc_html($a['state'].' / '.($a['step']??'—')).'</td><td>'.esc_html($a['entitlement']??'none').'</td><td>'.esc_html($a['last_error']['message']??'—').'</td><td>';
             foreach(['retry'=>'Reconcile','resume_provisioning'=>'Resume provisioning','reconcile_site'=>'Reconcile site','rotate'=>'Rotate / verify credential'] as $op=>$label){$this->formStart($op);echo '<input type="hidden" name="owner" value="'.(int)$r['owner'].'">';submit_button($label,'secondary','submit',false);echo '</form>';}
             echo '</td></tr>';}

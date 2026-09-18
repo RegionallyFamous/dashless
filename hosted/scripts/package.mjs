@@ -16,7 +16,10 @@ try {
    const unpack=spawnSync('/usr/bin/unzip',['-q',path.join(root,'chatgpt/dist/dashless-hub-chatgpt-0.1.0.zip'),'-d',stage],{encoding:'utf8'});
    if(unpack.status!==0)throw new Error(unpack.stderr);
   } else await cp(path.join(root,source),path.join(stage,slug),{recursive:true,filter:file=>!['.git','.env','auth.json'].includes(path.basename(file))});
-  if(source==='hub')await readFile(path.join(stage,slug,'vendor/autoload.php'));
+  if(source==='hub') {
+   await readFile(path.join(stage,slug,'vendor/autoload.php'));
+   await readFile(path.join(stage,slug,'chatgpt/php/Integration.php'));
+  }
   await normalize(path.join(stage,slug));
   const name=`${slug}-0.1.0.zip`,target=path.join(out,name);await rm(target,{force:true});
   const r=spawnSync('/usr/bin/zip',['-qr',target,slug],{cwd:stage,encoding:'utf8'});if(r.status!==0)throw new Error(r.stderr);

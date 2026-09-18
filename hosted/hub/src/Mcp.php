@@ -1,6 +1,6 @@
 <?php
 namespace Dashless\Hub;
-require_once (is_file(dirname(__DIR__).'/chatgpt/php/Integration.php') ? dirname(__DIR__).'/chatgpt/php/Integration.php' : dirname(__DIR__,2).'/chatgpt/php/Integration.php');
+require_once dirname(__DIR__).'/chatgpt/php/Integration.php';
 final class Mcp {
     public function __construct(private Store $store,private Identity $identity,private Agent $agent,private Jobs $jobs) {}
     public static function tools(): array {

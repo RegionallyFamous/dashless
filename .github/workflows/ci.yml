@@ -101,6 +101,33 @@ jobs:
         with:
           build-dir: ./plugin-check-build/dashless
 
+  hosted-hub-plugin-check:
+    name: WordPress Plugin Check (Dashless Hub)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+      - name: Install Hub PHP dependencies
+        run: composer install --working-dir=hosted/hub --no-dev --prefer-dist --no-interaction
+      - name: Install ChatGPT component dependencies
+        run: npm ci --prefix hosted/chatgpt
+      - name: Install browser used by the release packager
+        run: npx --prefix hosted/chatgpt playwright install --with-deps chromium
+      - name: Build the installable Hub archive
+        run: node hosted/scripts/package.mjs
+      - name: Extract the Hub archive
+        run: unzip -q hosted/dist/dashless-hub-0.1.0.zip -d hosted-plugin-check-build
+      - uses: wordpress/plugin-check-action@v1.1.6
+        with:
+          build-dir: ./hosted-plugin-check-build/dashless-hub
+          exclude-directories: vendor
+
   frontend:
     name: Shared frontend and browser contract
     runs-on: ubuntu-latest
@@ -112,6 +139,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:frontend
+      - run: npm run check:frontend:quality
       - run: npm ci --prefix hosted/runtime --no-audit --no-fund
       - run: node --test hosted/runtime/test.mjs
       - uses: actions/upload-artifact@v4

@@ -15,12 +15,13 @@ const out=path.join(root,'dist');await mkdir(target,{recursive:true});
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function walk(dir){const all=[];for(const d of await readdir(dir,{withFileTypes:true})){const p=path.join(dir,d.name);if(d.isSymbolicLink())throw Error('Symlinks are not packaged: '+p);if(d.isDirectory())all.push(...await walk(p));else all.push(p);}return all;}
 try{
- for(const name of ['src','assets','contracts','vendor','composer.json','composer.lock','dashless-hub.php'])await cp(path.join(hub,name),path.join(target,name),{recursive:true,filter:file=>!/(^|\/)(?:\.env[^/]*|auth\.json|\.git)$/.test(file)});
+ for(const name of ['src','assets','contracts','vendor','composer.json','composer.lock','dashless-hub.php','readme.txt'])await cp(path.join(hub,name),path.join(target,name),{recursive:true,filter:file=>!/(^|\/)(?:\.env[^/]*|auth\.json|\.git)$/.test(file)});
  await readFile(path.join(target,'vendor/autoload.php'));
  await cp(path.resolve(root,'../../templates/astro/src/lib/themes.json'),path.join(target,'contracts/themes.v1.json'));
  await cp(path.resolve(root,'../../wordpress/hosted/theme-previews'),path.join(target,'assets/theme-previews'),{recursive:true});
  const component=path.join(target,'chatgpt');await mkdir(component,{recursive:true});
  for(const name of ['php','tools.json','README.md','LICENSE'])await cp(path.join(root,name),path.join(component,name),{recursive:true});
+ await readFile(path.join(component,'php/Integration.php'));
  await mkdir(path.join(component,'dist'),{recursive:true});
  for(const name of ['workflow.html','manifest.json'])await cp(path.join(root,'dist',name),path.join(component,'dist',name));
  const composer=JSON.parse(await readFile(path.join(hub,'composer.lock'),'utf8'));

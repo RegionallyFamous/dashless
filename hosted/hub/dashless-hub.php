@@ -12,6 +12,9 @@ if (!defined('ABSPATH')) exit;
 if (!is_file(__DIR__.'/vendor/autoload.php')) {
     add_action('admin_notices',function(){echo '<div class="notice notice-error"><p>Dashless Hub needs its packaged Composer dependencies. Install the complete release ZIP.</p></div>';});return;
 }
+if (!is_file(__DIR__.'/chatgpt/php/Integration.php')) {
+    add_action('admin_notices',function(){echo '<div class="notice notice-error"><p>Dashless Hub needs the packaged ChatGPT adapter. Install the complete release ZIP.</p></div>';});return;
+}
 require_once __DIR__.'/vendor/autoload.php';
 register_activation_hook(__FILE__,function(){(new \Dashless\Hub\Store())->install();});
 add_action('plugins_loaded',function(){

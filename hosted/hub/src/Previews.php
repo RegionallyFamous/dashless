@@ -40,9 +40,9 @@ final class Previews {
         try {
             nocache_headers();
             if(!headers_sent()){header('Referrer-Policy: no-referrer');header('X-Frame-Options: DENY');}
-            $handoff=(string)($_GET['handoff']??'');
+            $handoff=(string)wp_unslash($_GET['handoff']??'');
             if(isset($_GET['release'])) {
-                $release=(string)$_GET['release'];$a=$this->account(get_current_user_id());
+                $release=(string)wp_unslash($_GET['release']);$a=$this->account(get_current_user_id());
                 Chatgpt::verifyHandoff($this->app->store,$a,'rollback',$release,$handoff);
                 Chatgpt::capabilities($this->app->agent,$a,['rollback_approval_v1']);
                 $releases=$this->app->agent->call($a,'POST','/tools/get_release',['arguments'=>[],'actor'=>['account_id'=>get_current_user_id()]]);
@@ -50,7 +50,7 @@ final class Previews {
                 if(Chatgpt::rollbackBinding($releases,$release)!==$ticket['binding'])throw new Failure('stale_rollback','The releases changed. Open a new rollback review.',409);
                 return '<section class="dl-panel"><h2>Review this rollback.</h2><p>Restore exactly release <strong>'.esc_html($release).'</strong>. This changes the public site. The site validates that this target is still eligible.</p><form data-dl-form="preview/rollback"><input type="hidden" name="release_id" value="'.esc_attr($release).'"><input type="hidden" name="handoff" value="'.esc_attr($handoff).'"><label><input type="checkbox" required> I want to restore this exact release.</label><button class="dl-button" type="submit">Restore this release</button><p class="dl-form-status" role="status"></p></form></section>';
             }
-            $id=(string)($_GET['preview']??'');
+            $id=(string)wp_unslash($_GET['preview']??'');
             if(!preg_match('/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/',$id))throw new Failure('preview_missing','Open a preview from your Dashless conversation.');
             $a=$this->account(get_current_user_id());if($handoff!=='')Chatgpt::verifyHandoff($this->app->store,$a,'publish',$id,$handoff);$preview=$this->app->agent->call($a,'POST','/previews/'.$id.'/browser',['account_id'=>get_current_user_id(),'ttl'=>60]);
             $url=(string)($preview['url']??'');
