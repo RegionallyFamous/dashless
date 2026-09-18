@@ -1,6 +1,6 @@
 ---
 import StoryCard from './StoryCard.astro';
-import { config, plainText } from '../lib/dashless.mjs';
+import { config, plainText, sitePath } from '../lib/dashless.mjs';
 const { posts, categories } = Astro.props;
 const lead = posts.find((p:any) => p.featuredImage) || posts[0];
 const rest = posts.filter((p:any) => p.id !== lead?.id).slice(0,8);
@@ -16,7 +16,7 @@ const department = new URL(config.publicUrl).hostname === 'smallproblems.dashles
  {lead.featuredImage && <a class="bulletin-lead-image" href={lead.url} aria-label={lead.title}><img src={lead.featuredImage.src} alt={lead.featuredImage.alt || ''} width={lead.featuredImage.width} height={lead.featuredImage.height} fetchpriority="high"/><span>FROM THE CASE FILES ↗</span></a>}
  <div class="bulletin-lead-copy"><p class="eyebrow">THE LEAD REPORT</p>{lead.categoryTerms?.[0] && <a class="bulletin-category" href={lead.categoryTerms[0].url}>{lead.categoryTerms[0].name}</a>}<h2><a href={lead.url}>{lead.title}</a></h2><p>{plainText(lead.excerpt || lead.content).slice(0,220)}</p><a class="bulletin-read" href={lead.url}>Read the investigation <span aria-hidden="true">↗</span></a></div>
 </section>
-<section class="bulletin-latest" aria-labelledby="bulletin-latest"><div class="section-heading"><h2 id="bulletin-latest">The latest dispatches</h2><a href={`/${config.postsPath}/`}>All stories ↗</a></div><div class="bulletin-list">{rest.map((story:any) => <StoryCard story={story}/>)}</div></section>
+<section class="bulletin-latest" aria-labelledby="bulletin-latest"><div class="section-heading"><h2 id="bulletin-latest">The latest dispatches</h2><a href={sitePath(`/${config.postsPath}/`)}>All stories ↗</a></div><div class="bulletin-list">{rest.map((story:any) => <StoryCard story={story}/>)}</div></section>
 </> : <section class="empty-state"><h2>The first dispatch is on its way.</h2><p>New stories will appear here when they’re published.</p></section>}
 {categories.length>0 && <section class="bulletin-departments" aria-label="Browse topics"><p class="eyebrow">CHOOSE YOUR DEPARTMENT</p><div>{categories.map((t:any)=><a href={t.url}>{t.name}<span aria-hidden="true">↗</span></a>)}</div></section>}
-<section class="bulletin-follow"><div><p class="eyebrow">THE NEXT SMALL THING</p><h2>Stay curious.</h2><p>Follow every new dispatch in your favorite RSS reader.</p></div><a class="bulletin-read" href="/rss.xml">Follow the bulletin <span aria-hidden="true">↗</span></a></section>
+<section class="bulletin-follow"><div><p class="eyebrow">THE NEXT SMALL THING</p><h2>Stay curious.</h2><p>Follow every new dispatch in your favorite RSS reader.</p></div><a class="bulletin-read" href={sitePath("/rss.xml")}>Follow the bulletin <span aria-hidden="true">↗</span></a></section>

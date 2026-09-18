@@ -3,7 +3,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 import BulletinHome from "../components/BulletinHome.astro";
 import StoryCard from "../components/StoryCard.astro";
 import { themeTemplate } from "../lib/theme-registry.mjs";
-import { config, getCategories, getPages, getPosts, plainText } from "../lib/dashless.mjs";
+import { config, getCategories, getPages, getPosts, plainText, sitePath } from "../lib/dashless.mjs";
 
 const [posts, pages, categories] = await Promise.all([getPosts(), getPages(), getCategories()]);
 const [lead, ...remaining] = posts.slice(0, 10);
@@ -30,7 +30,7 @@ const template = themeTemplate(config.design);
         <div class="section-heading"><div><span aria-hidden="true">✦</span><h2>Latest stories</h2></div><p>Sorted newest to oldest, just like nature intended.</p></div>
         <StoryCard story={lead} featured />
         {remaining.length > 0 && <div class="story-grid">{remaining.map((story: any) => <StoryCard story={story} />)}</div>}
-        <p class="archive-link"><a href={`/${config.postsPath}/`}>OPEN THE COMPLETE ARCHIVE <span aria-hidden="true">→</span></a></p>
+        <p class="archive-link"><a href={sitePath(`/${config.postsPath}/`)}>OPEN THE COMPLETE ARCHIVE <span aria-hidden="true">→</span></a></p>
       </section>
       <aside class="blog-sidebar" aria-label="Site extras">
         <section class="sidebar-widget currently-widget">
@@ -44,7 +44,7 @@ const template = themeTemplate(config.design);
         <section class="sidebar-widget guestbook-widget">
           <div class="widget-title">DON'T MISS A POST</div>
           <p>RSS: the original follow button. Quiet, chronological, perfect.</p>
-          <a class="chunky-button" href="/rss.xml">ADD TO READER ↗</a>
+          <a class="chunky-button" href={sitePath("/rss.xml")}>ADD TO READER ↗</a>
         </section>
       </aside>
     </div>

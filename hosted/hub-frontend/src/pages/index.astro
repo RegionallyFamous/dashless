@@ -1,32 +1,69 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import storefront from '../assets/studio-minimal-storefront-hd.png';
+import zine from '../assets/studio-minimal-zine-hd.webp';
+import night from '../assets/studio-minimal-night-hd.webp';
+import chair from '../assets/studio-minimal-chair-hd.png';
+import desk from '../assets/studio-minimal-desk-hd.webp';
+import smallProblems from '../assets/small-problems-home-desktop.png';
+import fieldNotes from '../assets/theme-preview-field-notes.png';
+import afterHours from '../assets/theme-preview-after-hours.png';
+import hypertext from '../assets/theme-preview-hypertext-diary.png';
+
+const themes = [
+  { name: 'Field Notes', image: fieldNotes, className: 'field', description: 'For walks, places, recipes, and small observations worth keeping.' },
+  { name: 'After Hours', image: afterHours, className: 'after', description: 'For midnight notes, city lights, playlists, and thoughts after dark.' },
+  { name: 'Hypertext Diary', image: hypertext, className: 'hyper', description: 'For links, fragments, references, and a mind that refuses one tab.' },
+];
 ---
 <Layout title="A small publishing studio">
-  <section class="hero" aria-labelledby="hero-title">
-    <div>
-      <p class="eyebrow">Your own little corner of the internet.</p>
+  <section class="dl-studio-layout" id="start" aria-labelledby="hero-title">
+    <div class="dl-studio-photo"><img src={storefront.src} width="1024" height="1536" fetchpriority="high" alt="A sunlit neighborhood bookshop with paper ephemera and a bicycle." /><span class="dl-paper-note">Good stories<br />live here.</span></div>
+    <div class="dl-studio-copy dl-intro">
+      <p class="dl-eyebrow">YOUR OWN LITTLE CORNER OF THE INTERNET.</p>
       <h1 id="hero-title">A small<br />publishing studio<br />for a <em>kinder internet.</em></h1>
-      <p class="lede">For people who care about what they put into the world.</p>
-      <p class="intro">Your ideas. Your own blog.<br />Write, design, and publish with ChatGPT.</p>
-      <a class="button" href="/auth/login?return=%2Faccount%2F">Make it yours →</a>
-      <p class="fine">$9.99 / month · Your domain. Your writing.</p>
+      <p class="dl-studio-deck">For people who care about what they put into the world.</p>
+      <p class="dl-no-admin">Your ideas. Your own blog.<br />Write, design, and publish with ChatGPT.</p>
+      <a class="dl-paper-button" href="/auth/login?return=%2Faccount%2F">Make room for your ideas <span aria-hidden="true">↗</span></a>
+      <p class="dl-studio-price">$9.99 / month · Your domain. Your writing.</p>
     </div>
-    <div class="hero-note" aria-label="Dashless promise"><span>Good stories<br />live here.</span><strong>↗</strong></div>
+    <div class="dl-studio-zine">
+      <figure><img src={zine.src} width="1536" height="1024" loading="lazy" alt="A handmade zine with landscape photographs, pressed flowers and paper scraps." /><figcaption>Small ideas. Bigger, braver stories.</figcaption></figure>
+      <div class="dl-night-postcard"><img src={night.src} width="1254" height="1254" loading="lazy" alt="A welcoming neighborhood bookshop street at night." /><p>Same streets.<br />New stories. ☾</p></div>
+    </div>
+    <section class="dl-theme-gallery" id="themes" aria-labelledby="themes-title">
+      <div class="dl-theme-gallery-head"><h2 id="themes-title">Themes <span aria-hidden="true">—</span></h2><p>Find a look that feels like you.</p></div>
+      <div class="dl-theme-grid">
+        {themes.map((theme) => <article class={`dl-theme-card dl-theme-card--${theme.className}`}><a href="/themes/"><img src={theme.image.src} width="1280" height="1000" loading="lazy" alt={`${theme.name} theme preview`} /></a><div class="dl-theme-card-copy"><h3>{theme.name}</h3><p>{theme.description}</p></div></article>)}
+      </div>
+      <p class="dl-theme-gallery-note">Different is a feature. <a href="/themes/">See all six themes ↗</a></p>
+    </section>
   </section>
-  <section class="steps" id="how-it-works" aria-labelledby="steps-title">
-    <div><p class="eyebrow">Three simple steps.</p><h2 id="steps-title">Make a place<br />for your ideas.</h2></div>
-    <ol>
-      <li><b>01</b><div><h3>Pick your address.</h3><p>Bring your own domain, or use an included .dashless.blog address.</p></div></li>
-      <li><b>02</b><div><h3>Make it yours.</h3><p>Shape your words, photos, and ideas with ChatGPT.</p></div></li>
-      <li><b>03</b><div><h3>Preview. Approve. Publish.</h3><p>Take a look, make your final tweaks, and share your blog.</p></div></li>
+
+  <section class="dl-studio-steps" id="how-it-works" aria-labelledby="steps-title">
+    <div class="dl-steps-heading"><h2 id="steps-title">How it works</h2><p>THREE SIMPLE STEPS.</p></div>
+    <ol class="dl-steps" aria-label="How Dashless works">
+      <li><span class="dl-step-number">01</span><div><h3>Pick your address.</h3><p>Bring your own domain, or use an included .dashless.blog address.</p><span class="dl-step-sketch" aria-hidden="true">⌂</span></div></li>
+      <li><span class="dl-step-number">02</span><div><h3>Make it yours.</h3><p>Pick a theme. Shape your words, photos, and ideas with ChatGPT.</p><span class="dl-step-sketch" aria-hidden="true">✎</span></div></li>
+      <li><span class="dl-step-number">03</span><div><h3>Preview. Approve. Publish.</h3><p>Take a look. Make your final tweaks. Share your blog with the world.</p><span class="dl-step-sketch" aria-hidden="true">↗</span></div></li>
     </ol>
+    <p class="dl-steps-note">A kinder internet<br />is a few brave<br />people away. ♡</p>
   </section>
-  <section class="offer" id="pricing" aria-labelledby="offer-title">
-    <div><p class="eyebrow">Made for curious humans.</p><h2 id="offer-title">One blog.<br /><em>All yours.</em></h2><p>WordPress hosting, your own address, private previews, and writing you can take with you.</p></div>
-    <div class="ticket"><strong>$9.99</strong><span>/ month</span><ul><li>WordPress hosting</li><li>Your own domain</li><li>Private previews</li><li>Your writing to keep</li></ul><a class="button" href="/auth/login?return=%2Faccount%2F">Start your account →</a></div>
+
+  <section class="dl-example dl-example--collage" id="live-demo" aria-labelledby="example-title">
+    <div class="dl-example-copy"><p class="dl-eyebrow">MADE WITH DASHLESS</p><h2 id="example-title">Small problems.<br />Real live blog.</h2><p>Missing scissors. Mysterious fridge noises. A chair with too many responsibilities. Meet the Department of Small Problems.</p><a class="dl-paper-button" href="https://smallproblems.dashless.blog/">Explore the live example <span aria-hidden="true">↗</span></a></div>
+    <div class="dl-example-collage"><img class="dl-chair-photo" src={chair.src} width="1536" height="1024" loading="lazy" alt="A wooden chair with books, an olive jacket and a coffee mug." /><p class="dl-example-note">Real stories.<br />Not perfect<br />ones. ♡</p><a class="dl-example-preview" href="https://smallproblems.dashless.blog/"><img src={smallProblems.src} width="1440" height="2193" loading="lazy" alt="The Department of Small Problems homepage." /><span>A real blog.<br />A real human. ↗</span></a><p class="dl-example-label">Made with<br />Dashless.<br />All yours. ♡</p></div>
   </section>
-  <section class="questions" aria-labelledby="questions-title"><p class="eyebrow">A few good questions.</p><h2 id="questions-title">Straight answers for curious humans.</h2><details><summary>Do I need to learn WordPress?</summary><p>No. Write posts, shape your design, and preview changes through conversation. You approve what goes live.</p></details><details><summary>Do I own my writing?</summary><p>Yes. Your content lives in WordPress. You can export it and take it with you.</p></details><details><summary>Can I bring my own domain?</summary><p>Yes. Add a domain you own from your account and follow the short DNS checklist.</p></details></section>
+
+  <section class="dl-bottom-grid dl-bottom-grid--collage" aria-label="Pricing and questions">
+    <figure class="dl-pricing-photo"><img src={desk.src} width="1536" height="1024" loading="lazy" alt="A desk with coffee, postcards, flowers, a notebook and a fountain pen." /><figcaption>Same place.<br />Different perspective. ♡</figcaption></figure>
+    <div class="dl-price-ticket" id="pricing"><h2>One blog. All yours.</h2><p class="dl-plan-price">$9.99 <span>/ month</span></p><ul class="dl-price-features"><li>WordPress hosting</li><li>Your own domain</li><li>Private previews</li><li>Your writing to keep</li></ul><p class="dl-caption">ChatGPT access is separate.<br />No annual commitment.<br />Applicable taxes are shown at checkout.</p><a class="dl-paper-button" href="/auth/login?return=%2Faccount%2F">Make it yours <span aria-hidden="true">→</span></a></div>
+    <div class="dl-questions" id="account"><h2>A few good questions.</h2><p class="dl-questions-intro">Straight answers for curious humans.</p>
+      <details><summary>Do I need to learn WordPress?<span aria-hidden="true">+</span></summary><p>No. Write posts, shape your design, and preview changes through conversation. You approve what goes live.</p></details>
+      <details><summary>Do I own my writing?<span aria-hidden="true">+</span></summary><p>Yes. Your content lives in WordPress. You can export it and take it with you.</p></details>
+      <details><summary>Do I need a WordPress account?<span aria-hidden="true">+</span></summary><p>No. Start with your email, and we’ll take care of the rest.</p></details>
+      <details><summary>Can I bring my own domain?<span aria-hidden="true">+</span></summary><p>Yes. Add a domain you own from your account and follow the short DNS checklist.</p></details>
+      <p class="dl-questions-signoff"><span aria-hidden="true">❧</span> Different questions.<br />Same brighter internet.</p>
+    </div>
+  </section>
 </Layout>
-<style>
-  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center;padding:clamp(58px,9vw,120px) 0 90px}.hero h1{font:900 clamp(52px,7vw,100px)/.92 Arial,sans-serif;letter-spacing:-.075em;margin:18px 0 26px}.hero h1 em,.offer h2 em{font-style:normal;background:linear-gradient(transparent 72%,#dfff00 72%)}.lede{font:clamp(21px,2.4vw,30px)/1.3 Georgia,serif;max-width:20ch;margin:0 0 20px}.intro{font:16px/1.5 Georgia,serif;margin:0 0 28px}.hero-note{min-height:440px;display:flex;align-items:end;justify-content:space-between;padding:30px;background:linear-gradient(145deg,#efd3c6,#d9e4a3 52%,#e9d897);border:6px solid #fbf6eb;box-shadow:6px 7px 0 #201f22;transform:rotate(2deg);font:29px/1.05 Georgia,serif}.hero-note strong{font:100px/1 Arial;align-self:start}.fine{margin:18px 0 0}.steps{display:grid;grid-template-columns:.65fr 1.35fr;gap:40px;padding:34px 0;border-block:1px solid #aaa399}.steps h2,.offer h2{font:400 clamp(36px,4.8vw,62px)/1 Georgia,serif;letter-spacing:-.06em;margin:14px 0}.steps ol{list-style:none;margin:0;padding:0}.steps li{display:flex;gap:22px;padding:18px 0;border-bottom:1px solid #aaa399}.steps li:last-child{border:0}.steps b{font:italic 30px/1 Georgia,serif;box-shadow:inset 0 -10px #dfff00}.steps h3{font:700 20px/1.2 Georgia,serif;margin:0 0 7px}.steps p{font:15px/1.5 Georgia,serif;margin:0;max-width:45ch}.offer{display:grid;grid-template-columns:1fr .75fr;gap:40px;padding:90px 0}.offer>div:first-child p:not(.eyebrow){font:20px/1.5 Georgia,serif;max-width:36ch}.ticket{align-self:start;background:#edd897;padding:30px;box-shadow:4px 5px 0 #201f2230;transform:rotate(-1deg)}.ticket strong{font:58px/1 Georgia,serif}.ticket>span{font:18px Georgia,serif}.ticket ul{padding:0;list-style:none;font:17px/1.5 Georgia,serif}.ticket li:before{content:'✓';margin-right:10px}.questions{padding:0 0 84px;max-width:760px}.questions h2{font:400 36px/1.05 Georgia,serif;letter-spacing:-.05em;margin:12px 0 28px}.questions details{border-top:1px solid #aaa399;padding:16px 0}.questions details:last-child{border-bottom:1px solid #aaa399}.questions summary{cursor:pointer;font:18px Georgia,serif}.questions details p{font:15px/1.6 Arial,sans-serif;max-width:60ch}.questions summary::marker{color:#ad5237}@media(max-width:760px){.hero{grid-template-columns:1fr;padding:48px 0 58px}.hero-note{min-height:280px}.steps,.offer{grid-template-columns:1fr;gap:24px}.offer{padding:58px 0}.ticket{max-width:420px}.hero h1{font-size:clamp(52px,14vw,82px)}}
-</style>

@@ -6,6 +6,8 @@ on:
       - 'hosted/hub-frontend/**'
       - 'hosted/scripts/make-hub-release.mjs'
       - 'hosted/scripts/cleanup-hub-releases.mjs'
+      - 'hosted/scripts/check-hub-frontend.mjs'
+      - 'hosted/scripts/cleanup-hub-root-assets.mjs'
       - 'wordpress/dashless-wpcloud.php'
   workflow_dispatch:
 permissions:
@@ -23,6 +25,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm ci --prefix hosted/hub-frontend --ignore-scripts --no-audit --no-fund
       - run: npm run build --prefix hosted/hub-frontend
+      - run: node hosted/scripts/check-hub-frontend.mjs
       - run: node hosted/scripts/make-hub-release.mjs
         env:
           DASHLESS_RELEASE_ORIGIN: ${{ vars.DASHLESS_RELEASE_ORIGIN || 'https://dashless.blog' }}
@@ -70,6 +73,22 @@ jobs:
           printf 'put hosted/dist/hub/%s/index.html %s\n' "$release_id" "$HTDOCS_PATH/index.html.tmp" >> "$batch_file"
           printf 'rename %s %s\n' "$HTDOCS_PATH/index.html.tmp" "$HTDOCS_PATH/index.html" >> "$batch_file"
           sftp -b "$batch_file" -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+      - name: Remove stale root assets
+        env:
+          SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST }}
+          SSH_USER: ${{ secrets.WPCLOUD_SSH_USER }}
+          SSH_PORT: ${{ secrets.WPCLOUD_SSH_PORT || 22 }}
+          HTDOCS_PATH: ${{ secrets.WPCLOUD_HTDOCS_PATH || '.' }}
+        run: |
+          set -euo pipefail
+          listing_file="$(mktemp)"
+          cleanup_file="$(mktemp)"
+          printf 'ls -1 %s/_astro\n' "$HTDOCS_PATH" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" > "$listing_file"
+          node hosted/scripts/cleanup-hub-root-assets.mjs --manifest=hosted/dist/hub/current.json --remote-root="$HTDOCS_PATH/_astro" < "$listing_file" > "$cleanup_file"
+          while IFS= read -r command; do
+            [ -z "$command" ] && continue
+            printf '%s\n' "$command" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+          done < "$cleanup_file"
       - name: Remove superseded release artifacts
         env:
           SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST }}

@@ -1,6 +1,6 @@
 ---
 import SiteLayout from "../../layouts/SiteLayout.astro";
-import { config, formatDate, getPosts, plainText } from "../../lib/dashless.mjs";
+import { config, formatDate, getPosts, plainText, sitePath } from "../../lib/dashless.mjs";
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -16,7 +16,7 @@ const description = plainText(post.excerpt || post.content).slice(0, 180);
     <header class="article-header retro-window">
       <div class="window-bar"><span>Story</span><span aria-hidden="true">— □ ×</span></div>
       <div class="article-heading-copy">
-        <a class="back-link" href={`/${config.postsPath}/`} data-astro-prefetch>← RETURN TO ARCHIVE</a>
+        <a class="back-link" href={sitePath(`/${config.postsPath}/`)} data-astro-prefetch>← RETURN TO ARCHIVE</a>
         <p class="kicker"><time datetime={post.date}>{formatDate(post.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</time></p>
         <h1 style={`view-transition-name: dashless-story-title-${post.id};`}>{post.title}</h1>
         {post.excerpt && <p class="dek">{plainText(post.excerpt)}</p>}

@@ -4,6 +4,12 @@ ob_start();
 $root=$argv[1]??'';
 if(!is_file($root.'/wp-load.php'))throw new RuntimeException('Pass a disposable WordPress installation.');
 putenv('DASHLESS_TEST_CHECKOUT=1');putenv('DASHLESS_STRIPE_SECRET_KEY=sk_test_fixture');putenv('DASHLESS_STRIPE_PRICE_ID=price_fixture');putenv('DASHLESS_ENCRYPTION_KEY='.base64_encode(random_bytes(32)));
+// WP-CLI's disposable fixture is intentionally outside the repository. Load
+// the Hub Composer classes explicitly so the integration harness does not rely
+// on WordPress having already discovered a symlinked plugin directory.
+$autoload=dirname(__DIR__).'/hub/vendor/autoload.php';
+if(!is_file($autoload))throw new RuntimeException('Hub Composer dependencies are missing.');
+require_once $autoload;
 require $root.'/wp-load.php';
 if(wp_get_environment_type()!=='local')throw new RuntimeException('Local environment required.');
 error_reporting(E_ALL & ~E_DEPRECATED);

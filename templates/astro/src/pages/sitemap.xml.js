@@ -1,14 +1,14 @@
-import { archivePages, config, getCategories, getPages, getPosts, getTags } from "../lib/dashless.mjs";
+import { archivePages, config, getCategories, getPages, getPosts, getTags, sitePath } from "../lib/dashless.mjs";
 
 export async function GET() {
   const [posts, pages, categories, tags] = await Promise.all([getPosts(), getPages(), getCategories(), getTags()]);
   const postPages = archivePages(posts);
   const urls = [...new Set([
-    "/",
-    `/${config.postsPath}/`,
-    ...postPages.slice(1).map((_, index) => `/${config.postsPath}/page/${index + 2}/`),
-    `/${config.topicsPath}/`,
-    `/${config.tagsPath}/`,
+    sitePath("/"),
+    sitePath(`/${config.postsPath}/`),
+    ...postPages.slice(1).map((_, index) => sitePath(`/${config.postsPath}/page/${index + 2}/`)),
+    sitePath(`/${config.topicsPath}/`),
+    sitePath(`/${config.tagsPath}/`),
     ...posts.map((post) => post.url),
     ...pages.map((page) => page.url),
     ...categories.map((term) => term.url),

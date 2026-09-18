@@ -24,12 +24,19 @@ export const config = {
 
 const wordpressUrl = (process.env.WORDPRESS_URL || config.wordpressUrl).replace(/\/$/, "");
 const releasePrefix = (process.env.DASHLESS_RELEASE_PREFIX || "").replace(/\/$/, "");
+const basePath = (process.env.DASHLESS_BASE_PATH || "").replace(/\/$/, "");
 const username = process.env.WORDPRESS_USERNAME || "";
 const password = process.env.WORDPRESS_APP_PASSWORD || "";
 const auth = username && password
   ? `Basic ${Buffer.from(`${username}:${password}`, "utf8").toString("base64")}`
   : null;
 const requestCache = new Map();
+
+export function sitePath(value = "/") {
+  const path = String(value || "/");
+  if (!basePath) return path;
+  return `${basePath}${path.startsWith("/") ? path : `/${path}`}`;
+}
 
 function textField(value) {
   if (typeof value === "string") return value;
@@ -125,7 +132,7 @@ async function listTerms(endpoint, urlBase) {
     description: textField(term.description),
     count: Number(term.count || 0),
     parent: Number(term.parent || 0),
-    url: `/${urlBase}/${term.slug}/`,
+    url: sitePath(`/${urlBase}/${term.slug}/`),
   }));
 }
 
@@ -242,7 +249,7 @@ async function normalize(post, postType, termMaps = {}) {
     socialImageAlt: socialImage ? `${plainText(canonical.title)} — ${config.siteName}` : "",
     categoryTerms,
     tagTerms,
-    url: postType === "post" ? `/${config.postsPath}/${canonical.slug}/` : `/${canonical.slug}/`,
+    url: sitePath(postType === "post" ? `/${config.postsPath}/${canonical.slug}/` : `/${canonical.slug}/`),
   };
 }
 
@@ -263,7 +270,7 @@ function applyPagePaths(pages) {
     page.path = slugs.filter(Boolean).join("/");
     page.isHome = page.id === Number(config.homePageId || 0);
     page.isPostsIndex = page.id === Number(config.postsPageId || 0);
-    page.url = page.isHome ? "/" : page.isPostsIndex ? `/${config.postsPath}/` : `/${page.path}/`;
+    page.url = page.isHome ? sitePath("/") : page.isPostsIndex ? sitePath(`/${config.postsPath}/`) : sitePath(`/${page.path}/`);
   }
   const reserved = new Set([config.postsPath, config.topicsPath, config.tagsPath, "search", "404", "rss.xml", "sitemap.xml", "robots.txt", "_astro", "_dashless", "media", "dashless-publication.json"]);
   const conflict = pages.find((page) => !page.isHome && !page.isPostsIndex && reserved.has(page.path.split("/")[0]));
@@ -341,15 +348,15 @@ export const getTags = () => listTerms("tags", config.tagsPath);
 export async function getNavigation() {
   const pages = await getPages();
   return [
-    { label: "Latest", url: "/" },
-    { label: "Stories", url: `/${config.postsPath}/` },
-    { label: "Topics", url: `/${config.topicsPath}/` },
+    { label: "Latest", url: sitePath("/") },
+    { label: "Stories", url: sitePath(`/${config.postsPath}/`) },
+    { label: "Topics", url: sitePath(`/${config.topicsPath}/`) },
     ...(config.navigation ? config.navigation.map(item => {
       const page = pages.find(page => page.id === item.page_id);
       if (!page) throw new Error("Navigation references a missing page");
       return { label: item.label, url: page.url };
     }) : pages.filter((page) => page.parent === 0 && !page.isHome && !page.isPostsIndex).slice(0, 5).map((page) => ({ label: page.title, url: page.url }))),
-    { label: "Search", url: "/search/" },
+    { label: "Search", url: sitePath("/search/") },
   ];
 }
 

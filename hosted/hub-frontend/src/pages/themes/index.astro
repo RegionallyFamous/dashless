@@ -1,0 +1,117 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import hypertext from '../../assets/theme-preview-hypertext-diary.png';
+import fieldNotes from '../../assets/theme-preview-field-notes.png';
+import afterHours from '../../assets/theme-preview-after-hours.png';
+import bulletin from '../../assets/theme-preview-bulletin.png';
+import sunroom from '../../assets/theme-preview-sunroom.png';
+import monoPress from '../../assets/theme-preview-mono-press.png';
+
+const themes = [
+  {
+    name: 'Hypertext Diary',
+    kicker: '01 / PLAYFUL WEB',
+    description: 'A handmade browser-window journal for links, fragments, references, and a mind that refuses to stay in one tab.',
+    bestFor: 'Personal blogs · creative journals · internet culture',
+    className: 'hyper',
+    image: hypertext,
+  },
+  {
+    name: 'Field Notes',
+    kicker: '02 / QUIET EDITORIAL',
+    description: 'A literary notebook for walks, places, recipes, and the small observations worth keeping.',
+    bestFor: 'Essays · travel journals · independent writers',
+    className: 'field',
+    image: fieldNotes,
+  },
+  {
+    name: 'After Hours',
+    kicker: '03 / NOCTURNAL MAGAZINE',
+    description: 'A late-night culture desk for city lights, music, photography, and the thoughts that arrive after dark.',
+    bestFor: 'Music · culture · photography · design',
+    className: 'after',
+    image: afterHours,
+  },
+  {
+    name: 'Bulletin',
+    kicker: '04 / CONSIDERED PRINT',
+    description: 'A restrained independent publication where dispatches are treated like a small printed journal.',
+    bestFor: 'Independent magazines · essays · cultural reporting',
+    className: 'bulletin',
+    image: bulletin,
+  },
+  {
+    name: 'Sunroom',
+    kicker: '05 / WARM READING ROOM',
+    description: 'A sunny reading room where a publication feels collected, human, and close at hand.',
+    bestFor: 'Personal essays · lifestyle journals · small magazines',
+    className: 'sunroom',
+    image: sunroom,
+  },
+  {
+    name: 'Mono Press',
+    kicker: '06 / DIRECT PRINT DESK',
+    description: 'A confident black-and-white newspaper grid translated to the open web.',
+    bestFor: 'Newsletters · culture writing · design studios',
+    className: 'mono',
+    image: monoPress,
+  },
+];
+---
+
+<Layout
+  title="Themes"
+  description="Six reader-first Dashless themes for writers, journals, magazines, and independent publications."
+>
+  <div class="dl-themes-page" role="region" aria-labelledby="dl-themes-title">
+    <section class="dl-themes-intro">
+      <div class="dl-themes-intro-top">
+        <p class="dl-eyebrow">THEMES FOR WRITERS</p>
+        <span class="dl-theme-count">06 EDITIONS</span>
+      </div>
+      <div class="dl-themes-intro-main">
+        <h1 id="dl-themes-title">Choose your <em>atmosphere.</em></h1>
+        <div class="dl-themes-lede">
+          <p>Six editions, one reader-first foundation.</p>
+          <small>Same thoughtful core. Six different moods for the stories you want to tell.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="dl-theme-showcase" aria-labelledby="dl-theme-showcase-title">
+      <div class="dl-theme-showcase-head">
+        <h2 id="dl-theme-showcase-title">Find the one that feels like you.</h2>
+        <div>
+          <p>Every theme includes the full publication: home, archive, article, search, taxonomy, RSS, and 404.</p>
+          <small>Pick a direction here, then ask ChatGPT to make it yours. Your words always stay in WordPress.</small>
+        </div>
+      </div>
+
+      <div class="dl-theme-showcase-grid">
+        {themes.map((theme) => (
+          <article class={`dl-theme-showcase-card dl-theme-showcase-card--${theme.className}`}>
+            <div class="dl-theme-showcase-copy">
+              <p class="dl-theme-showcase-kicker">{theme.kicker}</p>
+              <h3>{theme.name}</h3>
+              <p>{theme.description}</p>
+              <small>{theme.bestFor}</small>
+              <a class="dl-theme-showcase-link" href="/#account">
+                Choose this direction in your account <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+            <a class="dl-theme-showcase-image" href="/#account" aria-label={`Choose ${theme.name}`}>
+              <span class="dl-theme-window-bar" aria-hidden="true"><i></i><i></i><i></i></span>
+              <img src={theme.image.src} width="1280" height="1000" loading="lazy" decoding="async" alt={`${theme.name} sample publication homepage`} />
+            </a>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="dl-themes-close" aria-label="Theme selection call to action">
+      <p class="dl-eyebrow">SAME STORIES. DIFFERENT ATMOSPHERES.</p>
+      <h2>A calmer internet is<br /><em>a brighter one.</em></h2>
+      <a class="dl-paper-button" href="/#account">See the collection <span aria-hidden="true">↗</span></a>
+    </section>
+  </div>
+</Layout>

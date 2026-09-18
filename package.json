@@ -17,7 +17,7 @@
     "test:wordpress:playground": "npx --yes @wp-playground/cli@3.1.48 run-blueprint --mount=./wordpress:/wordpress/wp-content/plugins/dashless --blueprint=./tests/fixtures/playground-compatibility.json --verbosity=quiet && npx --yes @wp-playground/cli@3.1.48 run-blueprint --mount=./wordpress:/wordpress/wp-content/plugins/dashless --blueprint=./tests/fixtures/playground-current-compatibility.json --verbosity=quiet",
     "package": "node scripts/package.mjs",
     "release": "npm run check && npm run package",
-    "check:hosted": "node hosted/scripts/check.mjs",
+    "check:hosted": "node hosted/scripts/check.mjs && node hosted/scripts/check-hub-frontend.mjs",
     "package:hosted": "npm run check:hosted && node hosted/scripts/package.mjs",
     "test:frontend": "node --test tests/publication-contract.test.mjs && node tests/frontend-browser.mjs",
     "check:frontend:quality": "npm --prefix examples/small-problems run build"
