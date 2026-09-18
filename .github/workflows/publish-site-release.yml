@@ -1,0 +1,56 @@
+name: Publish site release
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wordpress/**'
+      - 'hosted/runtime/**'
+      - 'hosted/scripts/make-release-manifest.mjs'
+      - 'templates/astro/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: dashless-site-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.2'
+      - run: npm ci --prefix hosted/runtime
+      - run: node hosted/runtime/package.mjs
+      - run: node hosted/scripts/make-release-manifest.mjs
+        env:
+          DASHLESS_RELEASE_ORIGIN: ${{ vars.DASHLESS_RELEASE_ORIGIN || 'https://dashless.blog' }}
+      - name: Install SSH key
+        env:
+          SSH_KEY: ${{ secrets.WPCLOUD_SSH_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.WPCLOUD_SSH_PORT || 22 }}" "${{ secrets.WPCLOUD_SSH_HOST }}" >> ~/.ssh/known_hosts
+      - name: Upload immutable packages and atomically switch pointer
+        env:
+          SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST }}
+          SSH_USER: ${{ secrets.WPCLOUD_SSH_USER }}
+          SSH_PORT: ${{ secrets.WPCLOUD_SSH_PORT || 22 }}
+          HTDOCS_PATH: ${{ secrets.WPCLOUD_HTDOCS_PATH }}
+        run: |
+          set -euo pipefail
+          remote_dir="$HTDOCS_PATH/wp-content/dashless-packages"
+          site_file="$(node -p "require('./hosted/dist/site-packages.json').site.filename")"
+          runtime_file="$(node -p "require('./hosted/dist/site-packages.json').runtime.filename")"
+          scp -P "$SSH_PORT" "hosted/dist/$site_file" "hosted/dist/$runtime_file" hosted/dist/current.json "$SSH_USER@$SSH_HOST:/tmp/"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "mkdir -p '$remote_dir' && mv '/tmp/$site_file' '$remote_dir/$site_file' && mv '/tmp/$runtime_file' '$remote_dir/$runtime_file' && mv /tmp/current.json '$remote_dir/current.json'"
+      - name: Verify published pointer
+        env:
+          RELEASE_ORIGIN: ${{ vars.DASHLESS_RELEASE_ORIGIN || 'https://dashless.blog' }}
+        run: |
+          curl --fail --silent --show-error "$RELEASE_ORIGIN/wp-content/dashless-packages/current.json" | tee /tmp/current.json
+          node -e "const m=require('/tmp/current.json'); if(!/^[a-f0-9]{64}$/.test(m.site_package_sha256)) process.exit(1)"

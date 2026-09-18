@@ -1,0 +1,30 @@
+name: Reconcile Dashless Hub
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Dispatch one bounded reconciliation pass
+        env:
+          API_KEY: ${{ secrets.WPCLOUD_API_KEY }}
+          CLIENT: ${{ secrets.WPCLOUD_CLIENT }}
+          HUB_SITE_ID: ${{ secrets.WPCLOUD_HUB_SITE_ID }}
+        run: |
+          set -euo pipefail
+          response="$(curl --fail --silent --show-error --request POST \
+            --header "Authorization: Bearer $API_KEY" \
+            --data-urlencode 'args[0]=dashless-hub' \
+            --data-urlencode 'args[1]=reconcile' \
+            --data-urlencode 'args[2]=--once' \
+            --data-urlencode "site_run_list[0]=$HUB_SITE_ID" \
+            --data-urlencode 'site_count_limit=1' \
+            --data-urlencode 'cli_mode=full' \
+            --data-urlencode 'send_webhook_for=none' \
+            "https://atomic-api.wordpress.com/api/v1.0/task-create/$CLIENT/run-wp-cli-command")"
+          echo "$response" | grep -Eq '"task_id"|"id"'
