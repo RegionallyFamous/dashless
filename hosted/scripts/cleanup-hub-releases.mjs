@@ -67,6 +67,7 @@ export function cleanupBatch({ listing, activeReleaseId, remoteRoot, manifestsDi
       const entries = manifestEntries(manifestsDir, id);
       return [
       ...entries.files.map((file) => `rm ${root}/${id}/${file}`),
+      `rm ${root}/${id}/dashless-release.json`,
       ...entries.directories.map((directory) => `rmdir ${root}/${id}/${directory}`),
       `rmdir ${root}/${id}`,
       ];
