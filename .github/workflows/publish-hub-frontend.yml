@@ -86,14 +86,21 @@ jobs:
           cleanup_file="$(mktemp)"
           trap 'rm -rf "$listing_file" "$manifests_dir" "$ids_file" "$cleanup_file"' EXIT
           printf 'ls -1 %s\n' "$release_root" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" > "$listing_file"
-          node --input-type=module -e 'import fs from "node:fs"; import { releaseIdsFromListing } from "./hosted/scripts/cleanup-hub-releases.mjs"; const listing=fs.readFileSync(process.argv[1], "utf8"); const root=process.argv[2].replace(/\\\/+$/, ""); const active=process.argv[3]; const ids=releaseIdsFromListing(listing, root); if (!ids.includes(active)) throw new Error(`Active release ${active} missing from listing`); for (const id of ids.filter((value) => value !== active)) console.log(id);' "$listing_file" "$release_root" "$release_id" > "$ids_file"
+          node --input-type=module -e 'import fs from "node:fs"; import { releaseIdsFromListing } from "./hosted/scripts/cleanup-hub-releases.mjs"; const listing=fs.readFileSync(process.argv[1], "utf8"); const root=process.argv[2].replace(/\/+$/, ""); const active=process.argv[3]; const ids=releaseIdsFromListing(listing, root); if (!ids.includes(active)) throw new Error(`Active release ${active} missing from listing`); for (const id of ids.filter((value) => value !== active)) console.log(id);' "$listing_file" "$release_root" "$release_id" > "$ids_file"
           while IFS= read -r old_release_id; do
             [ -z "$old_release_id" ] && continue
             printf 'get %s/%s/dashless-release.json %s/%s.json\n' "$release_root" "$old_release_id" "$manifests_dir" "$old_release_id"
           done < "$ids_file" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
           node hosted/scripts/cleanup-hub-releases.mjs --active "$release_id" --remote-root "$release_root" --manifests-dir "$manifests_dir" < "$listing_file" > "$cleanup_file"
           if [ -s "$cleanup_file" ]; then
-            sftp -b "$cleanup_file" -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+            # File removal is idempotent so a retry can recover from a partial
+            # cleanup. Empty-directory removal is best effort because a prior
+            # run may already have removed that directory.
+            sed -n 's/^rm /rm -f /p' "$cleanup_file" | sftp -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
+            while IFS= read -r command; do
+              [ -z "$command" ] && continue
+              printf '%s\n' "$command" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" || true
+            done < <(sed -n '/^rmdir /p' "$cleanup_file")
           else
             echo "No superseded Hub release artifacts to remove."
           fi
