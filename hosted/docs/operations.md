@@ -21,6 +21,27 @@ Verify duplicate/out-of-order delivery, initial payment failure, renewal failure
 
 `wp dashless-hub reconcile` runs a bounded native drain (internal 240-second window), releasing its durable lease before any continuation. `--once` performs one reconciliation pass. Normal webhooks/user actions request immediate native dispatch. Configure an **hourly WP Cloud cron command** for `wp dashless-hub reconcile --once`; the registered hourly WP-Cron hook is a fallback, not proof of reliable external scheduling. All Hub task dispatch must target `DASHLESS_HUB_SITE_ID` alone.
 
+## Customer plugin rollouts
+
+Customer site-plugin updates are fleet operations, not WordPress admin actions. The Hub stores an immutable package URL, SHA-256, version, target site IDs, task IDs, attempts, and health results in its durable table. WP Cloud receives one explicitly scoped site task at a time because the provider serializes these operations.
+
+Create a rollout for every active ready site, using a small cohort size while proving a release:
+
+```sh
+wp dashless-hub rollout-create --all --cohort=25
+wp dashless-hub reconcile
+```
+
+The first target is the canary. Each target is installed, checked through `/capabilities`, and only then does the queue advance. Transient dispatch or health failures retry with backoff up to three times. Uncertain dispatches and a failure rate above the rollout threshold pause the rollout; they never submit a blind duplicate task. Inspect or control a rollout with:
+
+```sh
+wp dashless-hub rollout-status <rollout-id>
+wp dashless-hub rollout-pause <rollout-id>
+wp dashless-hub rollout-resume <rollout-id>
+```
+
+The existing hourly reconciliation hook drains active rollouts automatically. GitHub builds and publishes the immutable package; it is not contacted by customer sites and no customer needs to log in.
+
 Customer builds use `wp dashless build-job <uuid>` on exactly one site. A running or uncertain task blocks later builds. Job polling reconciles completion and releases the next queued build. Site/plugin must implement the internal runtime deadline, local snapshot and child-process resource measurement. Native task results are authoritative; callback payloads only wake reconciliation and must carry the configured callback secret. Keep callbacks disabled until their delivery/authentication configuration is verified.
 
 ## Recovery and operational controls

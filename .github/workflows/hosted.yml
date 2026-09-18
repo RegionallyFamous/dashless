@@ -51,6 +51,7 @@ jobs:
           wp config set DISABLE_WP_CRON true --raw --path=/tmp/dashless-wp-test
           wp core install --path=/tmp/dashless-wp-test --url=http://localhost:8874 --title=Fixture --admin_user=operator --admin_password=fixture-only-password --admin_email=operator@example.test --skip-email
           ln -s "$GITHUB_WORKSPACE/hosted/hub" /tmp/dashless-wp-test/wp-content/plugins/dashless-hub
+          ln -s "$GITHUB_WORKSPACE/hosted/chatgpt" /tmp/dashless-wp-test/wp-content/plugins/dashless-hub/chatgpt
           wp plugin activate dashless-hub --path=/tmp/dashless-wp-test
       - name: Real WordPress and OAuth integration with external service fixtures
         run: |

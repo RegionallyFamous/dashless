@@ -1,7 +1,7 @@
 <?php
 namespace Dashless\Hub;
 final class App {
-    public Store $store; public Identity $identity; public Billing $billing; public Cloud $cloud; public Agent $agent; public Provisioner $provisioner; public Domains $domains; public Jobs $jobs; public OAuth $oauth; public Mcp $mcp; public Maintenance $maintenance;
+    public Store $store; public Identity $identity; public Billing $billing; public Cloud $cloud; public Agent $agent; public Provisioner $provisioner; public Domains $domains; public Jobs $jobs; public Rollouts $rollouts; public OAuth $oauth; public Mcp $mcp; public Maintenance $maintenance;
     private static ?self $instance=null;
     public static function instance(): self { return self::$instance??=new self(); }
     public function __construct() {
@@ -9,9 +9,9 @@ final class App {
         $this->billing=new Billing($this->store,$this->identity,new StripeGateway());
         $this->provisioner=new Provisioner($this->store,$this->identity,$this->cloud,$this->agent);
         $this->domains=new Domains($this->store,$this->identity,$this->cloud,$this->agent);
-        $this->jobs=new Jobs($this->store,$this->identity,$this->cloud,$this->agent);
+        $this->jobs=new Jobs($this->store,$this->identity,$this->cloud,$this->agent);$this->rollouts=new Rollouts($this);
         $this->oauth=new OAuth($this->store);$this->mcp=new Mcp($this->store,$this->identity,$this->agent,$this->jobs);
-        $this->maintenance=new Maintenance($this->store,$this->identity,$this->billing,$this->provisioner,$this->jobs,$this->cloud,$this->agent);
+        $this->maintenance=new Maintenance($this->store,$this->identity,$this->billing,$this->provisioner,$this->jobs,$this->cloud,$this->agent,$this->rollouts);
     }
     public function register(): void {
         // Local operator recovery remains available; customer sign-in belongs to Auth0.
@@ -50,6 +50,15 @@ final class App {
                 \WP_CLI::log(wp_json_encode(array_map(fn($r)=>['user'=>$r['owner'],'subject'=>$r['data']['subject'],'expires'=>$r['expires']],$rows)));
             });
             \WP_CLI::add_command('dashless-hub install-pages',fn()=> Screens::installPages());
+            \WP_CLI::add_command('dashless-hub rollout-create',function($args,$assoc){
+                $cohort=max(1,absint($assoc['cohort']??25));
+                $id=isset($assoc['all'])?$this->rollouts->createAll($cohort):$this->rollouts->create(array_map('absint',preg_split('/[\s,]+/',trim((string)($assoc['owners']??'')))),$cohort);
+                \WP_CLI::success($id);
+            });
+            \WP_CLI::add_command('dashless-hub rollout-drain',function(){\WP_CLI::log(wp_json_encode($this->rollouts->drain()));});
+            \WP_CLI::add_command('dashless-hub rollout-status',function($args){\WP_CLI::log(wp_json_encode($this->rollouts->summary((string)($args[0]??''))));});
+            \WP_CLI::add_command('dashless-hub rollout-resume',function($args){$this->rollouts->resume((string)($args[0]??''));\WP_CLI::success('Rollout resumed.');});
+            \WP_CLI::add_command('dashless-hub rollout-pause',function($args){$this->rollouts->pause((string)($args[0]??''));\WP_CLI::success('Rollout paused.');});
             \WP_CLI::add_command('dashless-hub health',function(){\WP_CLI::log(wp_json_encode(['version'=>'0.1.0','checkout_enabled'=>Config::checkoutAllowed(),'blockers'=>Config::blockers()]));});
         }
     }

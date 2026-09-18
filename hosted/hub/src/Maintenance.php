@@ -1,16 +1,18 @@
 <?php
 namespace Dashless\Hub;
 final class Maintenance {
-    public function __construct(private Store $store,private Identity $identity,private Billing $billing,private Provisioner $provisioner,private Jobs $jobs,private Cloud $cloud,private Agent $agent) {}
+    public function __construct(private Store $store,private Identity $identity,private Billing $billing,private Provisioner $provisioner,private Jobs $jobs,private Cloud $cloud,private Agent $agent,private Rollouts $rollouts) {}
     public function pending(): bool {
         // Drain newly paid setups and normal builds within bounded native tasks. Failed/uncertain operations wait for review/hourly recovery.
         foreach(['provisioning'] as $state)if($this->store->rows('account',null,1,0,$state))return true;
         if($this->store->rows('stripe_event',null,1,0,'pending'))return true;
+        if($this->store->rows('rollout',null,1,0,'active'))return true;
         foreach($this->store->rows('job',null,500,0,'running') as $r)if(empty($r['data']['needs_reconciliation']))return true;
         return false;
     }
     public function run(): array {
-        $counts=['events'=>0,'accounts'=>0,'errors'=>0];$deadline=microtime(true)+30;
+        $counts=['events'=>0,'accounts'=>0,'rollouts'=>0,'errors'=>0];$deadline=microtime(true)+30;
+        if(microtime(true)<$deadline){$rollout=$this->rollouts->drain();if(!empty($rollout['rollout_id']))$counts['rollouts']=1;}
         foreach($this->store->rows('stripe_event',null,100,0,'pending') as $r) {
             if(microtime(true)>$deadline)break;
             if($r['status']!=='pending')continue;

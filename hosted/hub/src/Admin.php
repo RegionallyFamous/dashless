@@ -21,7 +21,7 @@ final class Admin {
                 foreach(Config::GATES as $gate){$evidence=sanitize_textarea_field(wp_unslash($_POST['evidence'][$gate]??''));$gates[$gate]=['passed'=>!empty($_POST['passed'][$gate])&&$evidence!=='','evidence'=>$evidence,'by'=>get_current_user_id(),'at'=>time()];}
                 update_option('dashless_hub_gates',$gates,false);
             } elseif($action==='rollout_create') {
-                (new Rollouts($this->app))->create(preg_split('/[\s,]+/',trim((string)wp_unslash($_POST['owners']??''))));
+                (new Rollouts($this->app))->create(preg_split('/[\s,]+/',trim((string)wp_unslash($_POST['owners']??''))));$this->app->kick();
             } elseif($action==='rollout_advance') {
                 (new Rollouts($this->app))->advance(sanitize_text_field(wp_unslash($_POST['rollout_id']??'')));
             } elseif($action==='retry_event') {
@@ -65,7 +65,7 @@ final class Admin {
             echo '</td></tr>';}
         echo '</tbody></table><p><a href="'.esc_url(admin_url('admin.php?page=dashless-hub&offset='.($offset+50))).'">Next accounts →</a></p><h2>Jobs</h2><table class="widefat"><tr><th>Owner</th><th>Job</th><th>Status</th></tr>';
         foreach($this->app->store->rows('job',null,50) as $r)echo '<tr><td>'.(int)$r['owner'].'</td><td>'.esc_html($r['data']['job_id']).'</td><td>'.esc_html($r['status']).'</td></tr>';
-        echo '</table><h2>Plugin rollouts</h2><p>Uses the configured, pinned package. First account is the canary. Advance verifies it before touching the next account. All steps are manual and stop on error.</p>';
+        echo '</table><h2>Plugin rollouts</h2><p>Uses the configured, pinned package. The first account is the canary; maintenance drains active rollouts automatically, pauses on uncertainty or failure, and keeps the prior package available for recovery.</p>';
         $this->formStart('rollout_create');echo '<label>Account IDs (first is canary) <input name="owners" required placeholder="12, 15, 19"></label>';submit_button('Stage rollout','secondary');echo '</form>';
         foreach($this->app->store->rows('rollout',null,20) as $row){echo '<p>'.esc_html($row['data']['rollout_id'].' · '.$row['data']['version'].' · '.$row['status']).'</p>';$this->formStart('rollout_advance');echo '<input type="hidden" name="rollout_id" value="'.esc_attr($row['data']['rollout_id']).'">';submit_button('Advance / verify one site','secondary','submit',false);echo '</form>';}
         echo '<h2>Billing reconciliation failures</h2>';
