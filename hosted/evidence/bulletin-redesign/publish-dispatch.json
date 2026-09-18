@@ -1,0 +1,26 @@
+{
+  "data": {
+    "initial_task_manager_id": 177028048,
+    "meta": {
+      "_job_retries": 1,
+      "args": [
+        "dashless",
+        "maintenance-theme-rebuild-publish"
+      ],
+      "cli_mode": "full",
+      "concurrency": 20,
+      "failure_count": 0,
+      "priority": -15,
+      "send_webhook_for": "none",
+      "site_count_limit": 1,
+      "site_list": "",
+      "site_run_list": "152161766",
+      "success_count": 0,
+      "took": 0,
+      "took_failure": 0,
+      "took_success": 0
+    },
+    "task_id": 759879
+  },
+  "message": "OK"
+}

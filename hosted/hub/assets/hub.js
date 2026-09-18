@@ -43,10 +43,37 @@
   }
   document.querySelectorAll('[data-dl-form]').forEach(form => form.addEventListener('submit', event => {
     event.preventDefault();
+    if (form.dataset.dlForm === 'domain') return connectDomain(form);
     run(form.dataset.dlForm, Object.fromEntries(new FormData(form)), form.querySelector('button'), form.querySelector('[role=status]'));
   }));
-  document.querySelectorAll('[data-dl-action]').forEach(button => button.addEventListener('click', () => run(button.dataset.dlAction, {}, button, document.querySelector('[data-dl-global-status]'))));
+  document.querySelectorAll('[data-dl-action]').forEach(button => button.addEventListener('click', () => {
+    if (button.dataset.dlConfirm && !window.confirm(button.dataset.dlConfirm)) return;
+    run(button.dataset.dlAction, {}, button, document.querySelector('[data-dl-global-status]'));
+  }));
   const account = document.querySelector('[data-dl-account]');
+  async function verifyDomain(output, verify) {
+    verify.disabled=true; output.textContent='Verifying DNS and HTTPS…';
+    try {
+      const done=await request('domain/verify');
+      output.textContent=done.status==='ready'?'Your custom domain is live.':(done.status==='pending_https'?'DNS is verified. HTTPS is still provisioning; try again shortly.':'Keep the TXT record in place and try again.');
+      if(done.status==='ready')location.reload();
+    } catch(error) { output.textContent=error.message; }
+    finally { verify.disabled=false; }
+  }
+  document.querySelectorAll('[data-dl-domain-verify]').forEach(button => button.addEventListener('click', () => verifyDomain(button.parentElement.querySelector('[data-dl-domain-status]'), button)));
+  async function connectDomain(form) {
+    const button=form.querySelector('button'), output=form.querySelector('[role=status]') || form.parentElement?.querySelector('[data-dl-domain-status]');
+    if (!button || !output) return;
+    button.disabled=true; output.textContent='Checking your domain…';
+    try {
+      const result=await request('domain',Object.fromEntries(new FormData(form)));
+      const routing=(result.routing?.values||[]).join(', ');
+      output.textContent='Add the TXT record '+result.verification.name+' with value '+result.verification.value+'. Point the domain to '+(routing||'the WP Cloud routing address shown in your setup')+'. Then click verify.';
+      const verify=document.createElement('button'); verify.type='button'; verify.className='dl-button dl-secondary'; verify.textContent='Verify DNS and connect';
+      verify.addEventListener('click',()=>verifyDomain(output,verify)); output.append(' ',verify);
+    } catch(error) { output.textContent=error.message; }
+    finally { button.disabled=false; }
+  }
   if (account && ['provisioning','provision_error','checkout'].includes(account.dataset.state)) {
     let polls = 0;
     const timer = setInterval(async () => {

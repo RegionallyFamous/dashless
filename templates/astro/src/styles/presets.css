@@ -1,3 +1,4 @@
+@layer dashless.presets {
 /* Hosted presets only override presentation; all routes use the same components. */
 html[data-palette="paper"]:not([data-theme="dark"]) { --canvas:#f2ead6; --paper:#fffaf0; --panel:#eee6d6; --ink:#221c2b; --muted:#625968; --blue:#51402d; --pink:#ed9ab7; --acid:#d9e6ac; }
 html[data-palette="lilac"]:not([data-theme="dark"]) { --canvas:#e7dcef; --paper:#fcf7ff; --panel:#f0e6f6; --ink:#30243e; --muted:#65516f; --blue:#603983; --pink:#e7a4cb; --acid:#d7ecb7; }
@@ -14,3 +15,4 @@ html[data-layout="magazine"] .story-grid { grid-template-columns:repeat(2,minmax
 @media(max-width:640px) { html[data-layout] .story-grid { grid-template-columns:1fr; } }
 
 html[data-theme="dark"] .window-bar { color:#17151f; }
+}

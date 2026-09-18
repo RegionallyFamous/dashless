@@ -1,9 +1,10 @@
-import {cp,mkdir,mkdtemp,readFile,readdir,rm,writeFile} from 'node:fs/promises';
+import {cp,mkdir,mkdtemp,readFile,readdir,rm,utimes,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import path from 'node:path';
 const root=path.resolve('hosted'),out=path.join(root,'dist'),stage=await mkdtemp(path.join(tmpdir(),'dashless-release-'));
+const normalize=async dir=>{for(const e of await readdir(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory())await normalize(p);else await utimes(p,new Date('2026-01-01T00:00:00Z'),new Date('2026-01-01T00:00:00Z'));}await utimes(dir,new Date('2026-01-01T00:00:00Z'),new Date('2026-01-01T00:00:00Z'));};
 await mkdir(out,{recursive:true});
 const chatgptPackage=spawnSync(process.execPath,[path.join(root,'chatgpt/scripts/package.mjs')],{encoding:'utf8'});
 if(chatgptPackage.status!==0)throw new Error(chatgptPackage.stderr || chatgptPackage.stdout);
@@ -16,6 +17,7 @@ try {
    if(unpack.status!==0)throw new Error(unpack.stderr);
   } else await cp(path.join(root,source),path.join(stage,slug),{recursive:true,filter:file=>!['.git','.env','auth.json'].includes(path.basename(file))});
   if(source==='hub')await readFile(path.join(stage,slug,'vendor/autoload.php'));
+  await normalize(path.join(stage,slug));
   const name=`${slug}-0.1.0.zip`,target=path.join(out,name);await rm(target,{force:true});
   const r=spawnSync('/usr/bin/zip',['-qr',target,slug],{cwd:stage,encoding:'utf8'});if(r.status!==0)throw new Error(r.stderr);
   const bytes=await readFile(target);manifest.packages[name]={sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length};

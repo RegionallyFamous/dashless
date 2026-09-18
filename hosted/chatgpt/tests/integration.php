@@ -1,8 +1,8 @@
 <?php
-/** Disposable WordPress + real League OAuth + synthetic site runtime; never production acceptance. */
+/** Disposable WordPress + real JWT verification with an Auth0 fixture + synthetic site runtime; never production acceptance. */
 require dirname(__DIR__,2).'/tests/integration.php';
 use Dashless\Hub\{App,Agent,Chatgpt,ChatgptUploads,Config,Crypto,Failure,Jobs,Mcp,OAuth,Previews,Routes};
-$baseline=$passed;$oauthQuery=$query;
+$baseline=$passed;
 // Existing suite's network deny hook stays in place, with a narrow deterministic file fixture override.
 $image=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jM1sAAAAASUVORK5CYII=');
 class ChatgptSiteFixture extends Agent {
@@ -55,10 +55,8 @@ $invoke=function($owner,$name,$args=[],$scopes=null)use($mcp,$oauth,&$authByOwne
 $accounts=[];
 foreach(['chatgpt-a','chatgpt-b'] as $n){
  $user=get_user_by('login',$n);$id=$user?$user->ID:wp_insert_user(['user_login'=>$n,'user_pass'=>wp_generate_password(40),'user_email'=>$n.'@example.test','role'=>'subscriber']);
- update_user_meta($id,'dashless_email_verified',true);update_user_meta($id,'dashless_wpcom_id','fixture-'.$id);$a=['user_id'=>(int)$id,'state'=>'ready','entitlement'=>'active','site_id'=>9000+(int)$id,'slug'=>$n,'domain'=>$n.'.dashless.blog','site_secret'=>Crypto::seal('fixture-site-secret')];$identity->save($a);$accounts[]=$a;
- $location=$oauth->approve($oauthQuery,(int)$id,true)->getHeaderLine('Location');parse_str(parse_url($location,PHP_URL_QUERY),$authResponse);
- $issued=json_decode((string)$oauth->token(['grant_type'=>'authorization_code','client_id'=>'chatgpt-fixture','code'=>$authResponse['code'],'redirect_uri'=>$oauthQuery['redirect_uri'],'code_verifier'=>$verifier,'resource'=>Config::resource()])->getBody(),true);
- $authByOwner[$id]=$issued['access_token'];check($oauth->authenticate('Bearer '.$issued['access_token'])['owner']===(int)$id,'subscriber connects through real local OAuth PKCE');
+ Auth0Fixture::bind((int)$id,'auth0|fixture-'.$id);$a=['user_id'=>(int)$id,'state'=>'ready','entitlement'=>'active','site_id'=>9000+(int)$id,'slug'=>$n,'domain'=>$n.'.dashless.blog','site_secret'=>Crypto::seal('fixture-site-secret')];$identity->save($a);$accounts[]=$a;
+ $authByOwner[$id]=Auth0Fixture::access((int)$id);check($oauth->authenticate('Bearer '.$authByOwner[$id])['owner']===(int)$id,'subscriber connects through RSA-verified Auth0 fixture token');
 }
 [$aa,$bb]=$accounts;
 foreach(Chatgpt::PROTOCOLS as $version){$r=$mcp->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'initialize','params'=>['protocolVersion'=>$version]],[]);check($r['result']['protocolVersion']===$version,'protocol negotiation '.$version);}
@@ -68,6 +66,8 @@ $r=$mcp->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'resources/read','params'=>[
 $r=$mcp->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'resources/read','params'=>['uri'=>Chatgpt::URI]],[]);check(!empty($r['result']['contents'][0]['text']) && $r['result']['contents'][0]['text']===file_get_contents(Chatgpt::root().'/dist/workflow.html'),'packaged component served as resource');
 $r=$mcp->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list'],[]);check(count($r['result']['tools'])===28,'25 site tools plus three additive Hub tools');
 foreach($r['result']['tools'] as $tool)check(isset($tool['securitySchemes'],$tool['outputSchema'],$tool['_meta']['ui']['visibility']),'descriptor auth/schema/visibility '.$tool['name']);
+$themes=$invoke($aa['user_id'],'list_themes',[]);check(array_column($themes['result']['structuredContent']['themes'],'id')===array_column(\Dashless\Hub\Themes::catalog(),'id'),'theme catalog is discoverable through authenticated MCP');
+$theme=$invoke($aa['user_id'],'get_theme',['theme_id'=>'field-notes']);check($theme['result']['structuredContent']['id']==='field-notes','named theme metadata is returned');
 $r=$invoke($aa['user_id'],'create_draft',[],['blog:read']);check($r['result']['isError'] && isset($r['result']['_meta']['mcp/www_authenticate']),'insufficient scope prompts reauthorization');
 $r=$invoke($aa['user_id'],'get_status',['account_id'=>$bb['user_id']]);check(isset($r['error']),'model cannot choose account');
 $r=$invoke($aa['user_id'],'publish_previewed',['preview_id'=>wp_generate_uuid4(),'approval_id'=>'forged','client_key'=>'forged-key']);check($r['result']['isError'],'arbitrary approval ID cannot publish');
@@ -80,8 +80,9 @@ rejects(fn()=>ChatgptUploads::inspect('<svg><script/></svg>'),'SVG/executable up
 rejects(fn()=>ChatgptUploads::inspect(str_repeat('x',ChatgptUploads::MAX_BYTES+1)),'oversized upload rejected');
 rejects(fn()=>ChatgptUploads::inspect($image,'image/jpeg'),'mismatched declared MIME rejected');
 // Replace the previous suite's deny-only filter; all nonfixture network calls still fail.
-remove_all_filters('pre_http_request');
+remove_all_filters('pre_http_request');Auth0Fixture::hook();
 add_filter('pre_http_request',function($pre,$args,$url)use($image,$accounts,$site){
+ if($pre!==false)return $pre;
  foreach($accounts as $a)if(str_starts_with($url,'https://'.$a['domain'].'/wp-json/dashless-hosted/v1/uploads/')){
    check($args['method']==='PUT' && $args['redirection']===0 && $args['headers']['X-Dashless-Account-Id']===(string)$a['user_id'],'binary relay derives site and account from authenticated identity');
    $route=str_replace('https://'.$a['domain'].'/wp-json/dashless-hosted/v1','',$url);$route=str_replace('/content','/complete',$route);
@@ -131,8 +132,8 @@ $_COOKIE[LOGGED_IN_COOKIE]=wp_generate_auth_cookie($bb['user_id'],time()+600,'lo
 check($routes->browserPermission($request),'verified owner cookie plus REST nonce accepted');
 $request->set_header('Origin','https://evil.test');check(!$routes->browserPermission($request),'cross-origin human callback rejected');
 $request->set_header('Origin',Config::origin());$request->set_header('X-WP-Nonce','forged');check(!$routes->browserPermission($request),'forged nonce rejected');
-rejects(fn()=>$oauth->authorization(array_merge($oauthQuery,['redirect_uri'=>'https://evil.test'])),'wrong OAuth redirect rejected');
-rejects(fn()=>$oauth->authorization(array_merge($oauthQuery,['scope'=>'fleet:admin'])),'unknown OAuth scope rejected');
+authRejects(fn()=>$oauth->authenticate('Bearer '.Auth0Fixture::access($bb['user_id'],['aud'=>'https://evil.test'])),'wrong Auth0 token audience rejected');
+authRejects(fn()=>$oauth->authenticate('Bearer '.Auth0Fixture::access($bb['user_id'],['scope'=>'fleet:admin'])),'unknown-only Auth0 token scope rejected');
 $owner=$bb['user_id'];$upload=['file'=>['download_url'=>'https://files.oaiusercontent.com/fixture.png','file_id'=>'file-expired','mime_type'=>'image/png','file_name'=>'fixture.png'],'alt_text'=>'Expired fixture','client_key'=>'expired-upload-key'];
 $binding=hash('sha256',wp_json_encode([$bb['site_id'],'file-expired','fixture.png','image/png','Expired fixture']));
 $store->put('consent','upload:'.$owner.':expired-upload-key',['binding'=>$binding,'epoch'=>Chatgpt::epoch($store,$owner)],$owner,'pending',time()-1);

@@ -11,7 +11,7 @@ const snapshot = await loadSnapshot(process.env.DASHLESS_SNAPSHOT);
 export const config = {
   language: "en",
   logo: /** @type {string | null} */ (null),
-  design: /** @type {{palette?: string, typography?: string, layout?: string} | null} */ (null),
+  design: /** @type {{theme_id?: string, theme_version?: number, palette?: string, typography?: string, layout?: string} | null} */ (null),
   navigation: /** @type {{page_id:number, label:string}[] | null} */ (null),
   topicsPath: "topics",
   tagsPath: "tags",
@@ -216,8 +216,9 @@ async function normalize(post, postType, termMaps = {}) {
   const socialImage = postType === "post" ? await generateSocialCard({
     publicDir: path.join(process.cwd(), "public"),
     distDir: path.join(process.cwd(), "dist"),
-    fileName: `post-${canonical.id}-${digest.slice(0, 12)}.png`,
+    fileName: `post-${canonical.id}-${digest.slice(0, 12)}-${createHash("sha256").update(JSON.stringify([config.siteName, config.design])).digest("hex").slice(0, 8)}.png`,
     releasePrefix,
+    design: config.design,
     siteName: config.siteName,
     displayHost: new URL(config.publicUrl).hostname,
     title: plainText(canonical.title),
@@ -303,6 +304,14 @@ export function plainText(html) {
     .replace(/&#039;/g, "'")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// Format publication dates in UTC so a build is reproducible regardless of
+// the machine's local timezone (and so a date cannot shift at midnight).
+export function formatDate(value, options = {}) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en-US", { timeZone: "UTC", ...options }).format(date);
 }
 
 export function archivePages(items, perPage = config.postsPerPage) {

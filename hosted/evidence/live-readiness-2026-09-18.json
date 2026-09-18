@@ -1,0 +1,67 @@
+{
+  "checked_at": "2026-09-18T14:59:37.434Z",
+  "origin": "https://dashless.blog",
+  "public_transport_passed": true,
+  "tool_count": 28,
+  "theme_discovery": true,
+  "theme_images": [
+    {
+      "id": "hypertext-diary",
+      "url": "https://dashless.blog/wp-content/plugins/dashless-hub/assets/theme-previews/hypertext-diary.png",
+      "accessible": true
+    },
+    {
+      "id": "field-notes",
+      "url": "https://dashless.blog/wp-content/plugins/dashless-hub/assets/theme-previews/field-notes.png",
+      "accessible": true
+    },
+    {
+      "id": "after-hours",
+      "url": "https://dashless.blog/wp-content/plugins/dashless-hub/assets/theme-previews/after-hours.png",
+      "accessible": true
+    }
+  ],
+  "oauth": {
+    "pkce_s256": true,
+    "scopes": [
+      "openid",
+      "profile",
+      "email",
+      "blog:read",
+      "blog:write",
+      "blog:publish"
+    ],
+    "userinfo_advertised": true
+  },
+  "pages": {
+    "/": {
+      "status": 200,
+      "contains_release_draft": false,
+      "has_contact_link": true,
+      "contains_retired_provider": false
+    },
+    "/support/": {
+      "status": 200,
+      "contains_release_draft": false,
+      "has_contact_link": true,
+      "contains_retired_provider": false
+    },
+    "/privacy/": {
+      "status": 200,
+      "contains_release_draft": false,
+      "has_contact_link": true,
+      "contains_retired_provider": false
+    },
+    "/terms/": {
+      "status": 200,
+      "contains_release_draft": false,
+      "has_contact_link": true,
+      "contains_retired_provider": false
+    }
+  },
+  "domain_challenge_status": 200,
+  "limitations": [
+    "No OAuth login or actual ChatGPT conversation is exercised by this read-only check.",
+    "A domain challenge HTTP response does not prove portal ownership verification."
+  ]
+}

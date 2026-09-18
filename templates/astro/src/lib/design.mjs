@@ -1,10 +1,15 @@
+import { themes } from './theme-registry.mjs';
+export { themes };
 export const DESIGN_SCHEMA_VERSION = 1;
 export const presets = Object.freeze({ palette: ['paper', 'night', 'lilac'], typography: ['editorial', 'modern', 'classic'], layout: ['journal', 'magazine', 'minimal'] });
 export function validateDesign(value) {
-  const fields = new Set(['version', 'schema_version', 'palette', 'typography', 'layout', 'site_title', 'description', 'logo_media_id', 'navigation']);
+  const fields = new Set(['version', 'schema_version', 'palette', 'typography', 'layout', 'site_title', 'description', 'logo_media_id', 'navigation', 'theme_id', 'theme_version']);
   if (value && Object.keys(value).some(key => !fields.has(key))) throw new Error('Unknown design setting');
   if (!value || !Number.isInteger(value.version) || value.version < 0) throw new Error('Design requires a nonnegative revision');
   if (value.schema_version !== undefined && value.schema_version !== DESIGN_SCHEMA_VERSION) throw new Error('Unsupported design schema');
+  if (value.theme_id !== undefined || value.theme_version !== undefined) {
+    if (!themes.some(theme => theme.id === value.theme_id && theme.version === value.theme_version)) throw new Error('Unsupported theme or theme version');
+  }
   for (const [key, allowed] of Object.entries(presets)) if (!allowed.includes(value[key])) throw new Error(`Unsupported design ${key}`);
   for (const [key, max] of [['site_title', 120], ['description', 300]]) if (typeof value[key] !== 'string' || value[key].length > max) throw new Error(`Invalid design ${key}`);
   if (!Number.isInteger(value.logo_media_id) || value.logo_media_id < 0) throw new Error('Invalid logo');

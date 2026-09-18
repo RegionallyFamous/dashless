@@ -6,7 +6,7 @@ Local and hosted Dashless use `templates/astro` as the source of publication beh
 
 1. **Content adapters:** `src/lib/dashless.mjs` obtains WordPress REST data locally. `src/lib/snapshot.mjs` provides the same build-time data interface from a sealed hosted snapshot. Both flow through the same normalization, route planning, search indexing, media handling, and share-card generation.
 2. **Publication components:** `SiteLayout`, `Archive`, `StoryCard`, `Pagination`, and shared Astro routes own all reader behavior. Static HTML provides reading/navigation; small scripts add search, theme preference, and media fallback. No client UI framework is needed.
-3. **Design configuration:** `src/lib/design.mjs` validates schema version 1 separately from the saved design revision. `presets.css` supplies paper/night/lilac palettes, editorial/modern/classic typography, and journal/magazine/minimal layouts. These change presentation without replacing routes. Identity, logo, and page navigation remain data. Arbitrary executable customer code/packages are outside hosted v1.
+3. **Design configuration:** `src/lib/design.mjs` validates schema version 1 separately from the saved design revision. `presets.css` supplies paper/night/lilac palettes, editorial/modern/classic typography, and journal/magazine/minimal layouts. These change presentation without replacing routes. The [theme catalog](theme-catalog.md) adds versioned Hypertext Diary, Field Notes, and After Hours designs with catalog discovery and sample previews. Identity, logo, and page navigation remain data. Arbitrary executable customer code/packages are outside hosted v1.
 
 WordPress remains the editorial source. Preview approval, account authorization, activation, and rollback remain backend responsibilities. A successful frontend test is not evidence that native WP Cloud execution passed.
 
@@ -28,6 +28,8 @@ WordPress remains the editorial source. Preview approval, account authorization,
 | Social cards, canonical, Open Graph, structured metadata | Required | Social-card generator, SiteLayout | Build gate validates PNG dimensions, metadata and canonicals |
 | RSS, sitemap, robots, favicon, 404 | Required | Shared static endpoints | Strict audit and route/discovery checks |
 | Light/dark preference, reduced motion, focus/reflow | Required | SiteLayout/styles | Browser checks at 390/768/1280/320; theme persistence, skip link |
+| Fast client navigation with a safe full-page fallback | Required | Astro `ClientRouter`, built-in prefetch, idempotent page-load wiring | Browser navigation/back check under the same-origin CSP fixture |
+| Baseline browser hardening | Required | Same-origin CSP for hosted runtime; `nosniff`, referrer, and permissions headers on WP Cloud file responses | Hosted syntax gate and protected preview/public response checks |
 | Protected preview links and assets | Required for hosted | Runtime rebasing and authenticated site routes | Local protected-prefix/CSP simulation; native host acceptance separately |
 | Immutable release and rollback | Required backend | Existing release service | Existing backend tests; not replaced by frontend gate |
 | Private notes, notifications, reactions, Webmentions | Optional; no new reader controls in this change | Backend capability-specific integration | Hide controls until endpoint, moderation/privacy, and browser tests exist |

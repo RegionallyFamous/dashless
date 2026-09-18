@@ -76,7 +76,7 @@ export async function createBuilder({ root, master, runtime = path.resolve('host
       result.archive = { bytes: archive.length, sha256: digest(archive) };
       await atomic(path.join(work, 'build-result.json'), JSON.stringify(result));
       j.status = 'succeeded';
-    } catch { j.status = 'failed'; j.error = 'build_failed'; }
+    } catch (error) { console.error(`Dashless build failed for ${j.site}/${j.id}: ${error instanceof Error ? error.message : String(error)}`); j.status = 'failed'; j.error = 'build_failed'; }
     finally { j.finished = Date.now(); await save(j); running = null; setImmediate(() => pump().catch(() => {})); }
   }
   async function body(req, limit) {
@@ -107,7 +107,7 @@ export async function createBuilder({ root, master, runtime = path.resolve('host
           if (Object.keys(snapshot.assets).length > 10000 || total > 1024*1024*1024) fail(413, 'snapshot_too_large');
           const hash = digest(raw);
           if (j) { if (j.input_sha256 !== hash) fail(409, 'input_changed'); return json(200, view(j)); }
-          if (jobs.size >= 100 || [...jobs.values()].filter(x => x.site === site && !['failed','succeeded'].includes(x.status)).length >= 2) fail(429, 'queue_full');
+          if (jobs.size >= 100 || [...jobs.values()].filter(x => x.site === site && !['failed','succeeded'].includes(x.status)).length >= 2) { res.setHeader('Retry-After', '30'); fail(429, 'capacity_limited'); }
           await fs.mkdir(path.join(work, 'media'), { recursive: true, mode: 0o700 }); await atomic(path.join(work, 'snapshot.json'), raw);
           j = { key, id, site, input_sha256: hash, status: 'uploading', created: Date.now() }; await save(j); jobs.set(key, j); return json(202, view(j));
         }

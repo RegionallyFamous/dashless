@@ -1,6 +1,6 @@
 ---
 name: design-dashless-astro-sites
-description: Design, build, restyle, audit, or polish distinctive Astro publication sites backed by WordPress and Dashless. Use for Astro theme direction, homepage and article layouts, content mapping, responsive behavior, day/night themes, accessible interactions, missing-media resilience, SEO and social metadata, populated local previews, visual QA, or best-practices reviews of a Dashless-generated frontend or its default template.
+description: Design, build, restyle, audit, or polish distinctive Astro publication sites backed by WordPress and Dashless. Use for Astro theme direction, Imagegen-led page comps, homepage and article layouts, content mapping, responsive behavior, day/night themes, accessible interactions, missing-media resilience, SEO and social metadata, populated local previews, visual QA, or best-practices reviews of a Dashless-generated frontend or its default template.
 ---
 
 # Design Dashless Astro Sites
@@ -28,6 +28,119 @@ Build a memorable reader-facing publication without weakening Dashless's editori
 3. Choose one signature visual move and repeat it with restraint. Avoid generic component-library styling, arbitrary gradients, excessive rounded cards, and decorative effects with no relationship to the concept.
 4. Map WordPress content to reader needs before decorating it. Posts, Pages, terms, media, archives, search, RSS, and errors must all have deliberate states.
 5. Use system assets by default. Add dependencies only when they materially improve the result and remain compatible with static deployment.
+
+## Create the visual reference before major theme work
+
+For a new theme, a substantial redesign, or a request to make the theme system
+meaningfully better, use the built-in Imagegen tool before implementing the
+visual layer. Load the `imagegen` skill and generate one art-direction board for
+each theme being changed. Each board should show the same core reader states:
+
+- homepage;
+- story archive and taxonomy listing;
+- article or Page;
+- search results; and
+- 404 / empty state.
+
+Use the board to establish composition, hierarchy, type roles, surfaces, color,
+spacing, image treatment, and the theme's signature visual move. Keep generated
+copy short and schematic; the board is a visual reference, not production
+content. Inspect every generated board, iterate targeted defects when useful,
+and save project-bound references under `docs/design/theme-boards/` (or the
+equivalent design-reference directory for a generated site).
+
+Implement the board's visual decisions in shared Astro components, semantic
+classes, design tokens, and scoped theme styles. Do not turn the generated
+bitmap into a page background, bake text into production UI, or fork the route
+and content architecture merely to match a comp. The implementation should
+match the board's visual system while retaining real WordPress content,
+responsive reflow, accessible controls, and progressive enhancement.
+
+For a small bug fix or a purely mechanical accessibility/compatibility change,
+reuse the existing board and skip regeneration unless the visual direction
+itself changes.
+
+## Close the gap between the comp and the implementation
+
+Imagegen is an art-direction reference, not a pixel-perfect renderer. For
+high-fidelity theme work, use a deterministic screenshot loop after the visual
+board is approved:
+
+1. Generate page-specific references for each changed theme and core state
+   rather than relying only on a multi-page contact sheet. Cover the homepage,
+   archive/taxonomy, article/Page, search, and 404/empty state. Use fixed target
+   viewports such as 1440×1024 and 390×844.
+2. Translate each reference into a compact implementation spec before styling:
+   canvas and surface colors, ink and accent colors, content width, reading
+   width, type roles, spacing scale, borders, radii, shadows, image ratios, and
+   breakpoints. Keep this as tokens or a nearby design reference, not as
+   undocumented visual guesswork.
+3. Match geometry before decoration: page width, header height, hero size,
+   column proportions, reading measure, image crops, card heights, and vertical
+   rhythm. Then tune typography, surfaces, borders, shadows, and decorative
+   marks.
+4. Map every reference element to shared Astro markup and semantic classes.
+   Keep content and route architecture shared; use theme tokens and variants
+   instead of duplicating route implementations or baking copy into images.
+5. Capture the real Astro output at the reference viewports. Produce a
+   side-by-side image, transparent overlay, and difference image for each
+   route/theme pair. Ignore only small antialiasing differences; treat layout
+   drift, overflow, or inaccessible controls as failures. Use the project's
+   existing image tooling where possible instead of adding a framework.
+6. Iterate in order: structure, typography, then surface. Rebuild and recapture
+   after each pass, fixing the highest-impact diff before adding detail.
+
+Use representative local QA fixtures during comparison: long and short titles,
+stories with and without media, failed media, multiple terms, long excerpts,
+and article paragraphs, lists, quotes, code, tables, embeds, and long URLs.
+Fixtures remain local and never become WordPress content or deployable fallback
+content.
+
+A theme is visually ready only when every changed page state has desktop and
+mobile references, the reviewed screenshot diffs are acceptably close, and the
+same output passes narrow reflow, 200% zoom, keyboard focus, dark mode, reduced
+motion, forced colors, missing-media, and no-JavaScript checks. Imagegen may
+inspire the bitmap reference, but deterministic browser screenshots and the
+reviewed diffs are the fidelity gate.
+
+### Non-superficial redesign gate
+
+Do not describe a redesign as complete when the result is only a palette,
+font, border, or shadow change on the old composition. Before implementation,
+write a short acceptance matrix for every changed theme and route state. It
+must name the structural differences that make the theme recognizable: header
+system, hero geometry, content ordering, card/list treatment, reading column,
+archive/search composition, and mobile transformation. At least one visible
+structural change must be implemented for each item; a token-only change does
+not satisfy the matrix.
+
+When several themes share markup, prove that the shared semantic structure can
+express the approved references. If it cannot, add explicit theme variants or
+theme-specific components before styling. Do not hide this mismatch behind a
+large stylesheet. Inspect the rendered page, not just the source diff, and
+reject the pass if two supposedly distinct themes still have the same major
+regions, geometry, and hierarchy.
+
+Use a three-state completion record for every change:
+
+1. `local`: source, Astro build, route audit, and screenshot comparisons pass;
+2. `builder`: the actual Railway/build-server artifact passes the same checks;
+3. `live`: WP Cloud has activated that artifact and a fresh uncached request
+   proves its release identifier, expected DOM fingerprint, and selected theme.
+
+Never collapse these states into “done.” Never report a live redesign from a
+successful local build or a successful Railway deployment alone. If the live
+fingerprint or release header is unchanged, say the old release is still live
+and continue debugging or stop with that blocker. A failed preview or builder
+job must preserve the previous public release and must be surfaced as a
+deployment failure, not worked around with a claim of completion.
+
+For a theme-switcher demo, verify at least two visibly different styles in a
+fresh browser context and verify that the selected style survives navigation,
+does not leak into the publication's utility-free masthead, and is not a stale
+cached HTML response. Add a small machine-checkable fingerprint for the
+redesigned shell when practical, so a live check can distinguish the new
+composition from the prior one without relying on visual memory.
 
 ## Implement safely
 
@@ -83,5 +196,10 @@ The audit supplements visual review; it does not replace browser testing, keyboa
 3. Verify representative pages, search, theme switching, internal links, missing media, and console output in the browser.
 4. Repackage the plugin when the bundled template or this skill changes.
 5. Report what changed, what was tested, any remaining limitations, and the preview or package path.
+
+For production theme work, also report the three completion states (`local`,
+`builder`, `live`) and include the live release/fingerprint evidence. If any
+state is incomplete, the task is not complete and the response must say so
+plainly.
 
 Do not claim universal compliance. State the standards and test surfaces actually checked.

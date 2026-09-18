@@ -1,5 +1,11 @@
 # Verification — 2026-09-16
 
+> Authentication results below are historical. The September 17 Auth0 migration supersedes the local OAuth issuer; see [current setup and cutover checklist](auth0.md). Fresh local authentication results are recorded in [Auth0 verification](auth0-verification-2026-09-17.md). Live login remains a separate acceptance step.
+
+## Current public transport check — 2026-09-18
+
+The read-only checks in [live-readiness evidence](../evidence/live-readiness-2026-09-18.json) passed against `https://dashless.blog`: MCP discovery and the 28-tool catalog, theme discovery and preview assets, Auth0 protected-resource metadata, PKCE/S256 discovery, public policy routes, and retirement of the old identity endpoints. This is availability and contract evidence only; it does not certify email delivery, a real sign-in, billing, provisioning, restore, or an end-to-end ChatGPT session.
+
 ## Passed locally
 
 - `npm run check`: **42 existing local workflow tests passed**, including the WordPress bridge and Astro tests. No existing local source file changed.

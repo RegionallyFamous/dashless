@@ -3,13 +3,11 @@
 ob_start();
 $root=$argv[1]??'';
 if(!is_file($root.'/wp-load.php'))throw new RuntimeException('Pass a disposable WordPress installation.');
-putenv('DASHLESS_TEST_CHECKOUT=1');putenv('DASHLESS_STRIPE_SECRET_KEY=sk_test_fixture');putenv('DASHLESS_STRIPE_PRICE_ID=price_fixture');putenv('DASHLESS_OAUTH_CLIENT_ID=chatgpt-fixture');putenv('DASHLESS_OAUTH_REDIRECT_URI=https://chatgpt.com/connector_platform_oauth_redirect');putenv('DASHLESS_ENCRYPTION_KEY='.base64_encode(random_bytes(32)));
-$key=openssl_pkey_new(['private_key_bits'=>2048]);openssl_pkey_export($key,$private);$public=openssl_pkey_get_details($key)['key'];
-putenv('DASHLESS_OAUTH_PRIVATE_KEY='.$private);putenv('DASHLESS_OAUTH_PUBLIC_KEY='.$public);
+putenv('DASHLESS_TEST_CHECKOUT=1');putenv('DASHLESS_STRIPE_SECRET_KEY=sk_test_fixture');putenv('DASHLESS_STRIPE_PRICE_ID=price_fixture');putenv('DASHLESS_ENCRYPTION_KEY='.base64_encode(random_bytes(32)));
 require $root.'/wp-load.php';
 if(wp_get_environment_type()!=='local')throw new RuntimeException('Local environment required.');
 error_reporting(E_ALL & ~E_DEPRECATED);
-use Dashless\Hub\{Store,Identity,Crypto,Config,OAuth,Billing,StripeGateway,Cloud,Agent,Jobs,Mcp,Failure,Provisioner};
+use Dashless\Hub\{Store,Identity,Crypto,Config,OAuth,Billing,StripeGateway,Cloud,Agent,Jobs,Mcp,Failure,Provisioner,Domains,Screens};
 $store=new Store();$store->install();global $wpdb;$wpdb->query('DELETE FROM '.$store->table());
 $passed=0;
 function check($yes,$description){global $passed;if(!$yes)throw new RuntimeException('FAIL: '.$description);$passed++;echo "PASS $description\n";}
@@ -17,55 +15,58 @@ function rejects(callable $fn,$description){try{$fn();}catch(Throwable $e){check
 $_SERVER['REQUEST_METHOD']='GET';
 $identity=new Identity($store);$mail=[];
 add_filter('pre_wp_mail',function($return,$args)use(&$mail){$mail[]=$args;return true;},10,2);
-putenv('DASHLESS_WPCOM_CLIENT_ID=fixture-client');putenv('DASHLESS_WPCOM_CLIENT_SECRET=fixture-secret');
-$provider=['ID'=>880001,'email'=>'wpcom-alice@example.test','email_verified'=>true,'display_name'=>'Alice'];
-$providerHook=function($pre,$args,$url)use(&$provider){
- if($url==='https://public-api.wordpress.com/oauth2/token')return ['response'=>['code'=>200],'body'=>json_encode(['access_token'=>'fixture-token']),'headers'=>[]];
- if($url==='https://public-api.wordpress.com/rest/v1.1/me')return ['response'=>['code'=>200],'body'=>json_encode($provider),'headers'=>[]];
- return $pre;
-};add_filter('pre_http_request',$providerHook,10,3);
-// Recover only these isolated fixture users when the Hub document table is reset.
-foreach([880001,880002] as $external){$fixture=get_user_by('login','dl_wpcom_'.$external);if($fixture){update_user_meta($fixture->ID,'dashless_wpcom_id',(string)$external);$store->add('wpcom_identity',(string)$external,['provider'=>'wordpress.com'],$fixture->ID,'linked');}}
+require __DIR__.'/auth0-fixture.php';Auth0Fixture::install();
+foreach(['alice','bob'] as $name){$fixture=get_user_by('email','auth0-'.$name.'@example.test');if($fixture)Auth0Fixture::bind((int)$fixture->ID,'auth0|'.$name);}
 $browser=bin2hex(random_bytes(32));
-$start=function($return='/account/')use($identity,$browser){parse_str(parse_url($identity->begin($return,$browser),PHP_URL_QUERY),$q);return $q;};
-$q=$start('/oauth/authorize?state=returntest');check($q['scope']==='auth' && $q['redirect_uri']===Identity::callback(),'WordPress.com identity-only scope and fixed callback');
-rejects(fn()=>$identity->complete($q['state'],str_repeat('f',64),'fixture-code'),'wrong browser cannot redeem login');
-$result=$identity->complete($q['state'],$browser,'fixture-code');$alice=$result['user_id'];check($result['return']==='/oauth/authorize?state=returntest','login preserves ChatGPT continuation');
-rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'WordPress.com state cannot replay');
+$start=function($return='/account/')use($identity,$browser){parse_str(parse_url($identity->begin($return,$browser),PHP_URL_QUERY),$q);Auth0Fixture::$query=$q;return $q;};
+function authRejects(callable $fn,string $description):void {try{$fn();}catch(Failure $e){check(true,$description);return;}check(false,$description);}
+$q=$start('/preview/?preview=fixture&handoff=private');
+check($q['scope']==='openid profile email' && $q['redirect_uri']===Identity::callback() && $q['code_challenge_method']==='S256' && !empty($q['nonce']),'Auth0 login uses OIDC, fixed callback, nonce and S256 PKCE');
+authRejects(fn()=>$identity->complete($q['state'],str_repeat('f',64),'fixture-code'),'wrong browser cannot redeem login');
+$result=$identity->complete($q['state'],$browser,'fixture-code');$alice=$result['user_id'];check($result['return']==='/preview/?preview=fixture&handoff=private','login preserves private review handoff');
+authRejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'Auth0 state cannot replay');
 $q=$start('https://attacker.test');check($identity->complete($q['state'],$browser,'fixture-code')['return']==='/#account','external return URL rejected');
-$provider=['ID'=>880002,'email'=>'wpcom-bob@example.test','email_verified'=>true];$q=$start();$bob=$identity->complete($q['state'],$browser,'fixture-code')['user_id'];
-$q=$start();$row=$store->get('wpcom_state',hash('sha256',$q['state']));$store->put('wpcom_state',hash('sha256',$q['state']),$row['data'],0,'unused',time()-1);rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'expired provider state rejected');
-$provider['email_verified']=false;$q=$start();rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'unverified WordPress.com email rejected');$provider['email_verified']=true;
-$provider['ID']=880003;$q=$start();rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'matching email cannot take over another provider identity');
-$provider=['ID'=>880004,'email'=>'wpcom-paused@example.test','email_verified'=>true];update_option('dashless_hub_signup_paused',true);$q=$start();rejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'signup pause blocks new provider identity');
-$provider=['ID'=>880002,'email'=>'wpcom-bob@example.test','email_verified'=>true];$q=$start();check($identity->complete($q['state'],$browser,'fixture-code')['user_id']===$bob,'signup pause allows existing provider identity');delete_option('dashless_hub_signup_paused');
-$q=$start();rejects(fn()=>$identity->complete($q['state'],$browser,'','access_denied'),'provider denial cannot sign in');
-check(Identity::verified($alice) && Identity::verified($bob) && $alice!==$bob,'separate WordPress.com identities created');
-check(!method_exists($identity,'request') && !method_exists($identity,'consume') && !$mail,'email-link login removed');
-check(is_wp_error(wp_authenticate(get_userdata($alice)->user_login,'wrong-password')),'customer local password login denied');
-$linkUser=get_user_by('login','wpcom-link-fixture');$linkOwner=$linkUser?(int)$linkUser->ID:wp_insert_user(['user_login'=>'wpcom-link-fixture','user_email'=>'wpcom-link@example.test','user_pass'=>wp_generate_password(40),'role'=>'subscriber']);delete_user_meta($linkOwner,'dashless_wpcom_id');
-$store->add('wpcom_pending','880005',['email'=>'wpcom-link@example.test','wpcom_id'=>'880005'],$linkOwner,'pending',time()+600);
-rejects(fn()=>$identity->linkExisting($alice,'880005'),'operator link rejects wrong existing owner');
-$identity->linkExisting($linkOwner,'880005');check((string)get_user_meta($linkOwner,'dashless_wpcom_id',true)==='880005' && !user_can($linkOwner,'manage_options'),'explicit migration links verified identity without changing roles');
-rejects(fn()=>$identity->linkExisting($linkOwner,'880005'),'operator link cannot replay or reassign');
-remove_filter('pre_http_request',$providerHook,10);
+Auth0Fixture::$profile=['sub'=>'auth0|bob','email'=>'auth0-bob@example.test','email_verified'=>true];$q=$start();$bob=$identity->complete($q['state'],$browser,'fixture-code')['user_id'];
+$q=$start();$row=$store->get('auth0_state',hash('sha256',$q['state']));$store->put('auth0_state',hash('sha256',$q['state']),$row['data'],0,'unused',time()-1);authRejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'expired provider state rejected');
+foreach([false,'true',1,null] as $unverified){Auth0Fixture::$profile['email_verified']=$unverified;$q=$start();authRejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'email verification must be boolean true');}
+Auth0Fixture::$profile['email_verified']=true;Auth0Fixture::$profile['sub']='auth0|different';$q=$start();authRejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'matching email cannot take over another identity');
+Auth0Fixture::$profile=['sub'=>'auth0|paused','email'=>'auth0-paused@example.test','email_verified'=>true];update_option('dashless_hub_signup_paused',true);$q=$start();authRejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'signup pause blocks new identity');
+Auth0Fixture::$profile=['sub'=>'auth0|bob','email'=>'auth0-bob@example.test','email_verified'=>true];$q=$start();check($identity->complete($q['state'],$browser,'fixture-code')['user_id']===$bob,'signup pause allows existing identity');delete_option('dashless_hub_signup_paused');
+$q=$start();authRejects(fn()=>$identity->complete($q['state'],$browser,'','access_denied'),'provider denial cannot sign in');
+Auth0Fixture::$overrides=['nonce'=>'wrong'];$q=$start();authRejects(fn()=>$identity->complete($q['state'],$browser,'fixture-code'),'ID token nonce mismatch rejected');Auth0Fixture::$overrides=[];
+check(Identity::verified($alice) && Identity::verified($bob) && $alice!==$bob,'separate Auth0 identities created');
+check(!$mail,'Dashless does not send or mint login links');
+wp_set_password('fixture-known-local-password',$alice);check(is_wp_error(wp_authenticate(get_userdata($alice)->user_login,'fixture-known-local-password')),'even valid customer local passwords are denied');
+$linkUser=get_user_by('login','auth0-link-fixture');$linkOwner=$linkUser?(int)$linkUser->ID:wp_insert_user(['user_login'=>'auth0-link-fixture','user_email'=>'auth0-link@example.test','user_pass'=>wp_generate_password(40),'role'=>'subscriber']);delete_user_meta($linkOwner,'dashless_auth0_sub');delete_user_meta($linkOwner,'dashless_auth0_issuer');
+$identity->save(['user_id'=>$linkOwner,'state'=>'ready','site_id'=>789,'stripe_customer'=>'cus_preserved']);
+authRejects(fn()=>$identity->connectAuth0('auth0|link','auth0-link@example.test',true),'existing account requires verified operator migration');
+authRejects(fn()=>$identity->linkExisting($alice,'auth0|link'),'operator link rejects wrong existing owner');
+$identity->linkExisting($linkOwner,'auth0|link');check(Identity::verified($linkOwner) && !user_can($linkOwner,'manage_options') && $identity->account($linkOwner)['stripe_customer']==='cus_preserved' && $identity->account($linkOwner)['site_id']===789,'explicit migration preserves blog, billing and role');
+authRejects(fn()=>$identity->linkExisting($linkOwner,'auth0|link'),'operator link cannot replay or reassign');
 rejects(fn()=>Identity::slug('support'),'platform names reserved');
+check(Domains::normalize('https://Example.com/')==='example.com','customer domains normalize to a hostname');
+authRejects(fn()=>Domains::normalize('not a domain'),'customer domains reject invalid hostnames');
 check(Crypto::open(Crypto::seal('fixture-secret'))==='fixture-secret','encrypted credential roundtrip');
 $lock=$store->lock('race');check($lock && !$store->lock('race'),'database lease excludes concurrent operation');$store->unlock('race','wrong');check(!$store->lock('race'),'wrong lease cannot unlock');$store->unlock('race',$lock);
 
-$oauth=new OAuth($store);$verifier=rtrim(strtr(base64_encode(random_bytes(32)),'+/','-_'),'=');$challenge=rtrim(strtr(base64_encode(hash('sha256',$verifier,true)),'+/','-_'),'=');
-$query=['response_type'=>'code','client_id'=>'chatgpt-fixture','redirect_uri'=>getenv('DASHLESS_OAUTH_REDIRECT_URI'),'scope'=>'blog:read blog:write blog:publish','state'=>'test-state','resource'=>Config::resource(),'code_challenge'=>$challenge,'code_challenge_method'=>'S256'];
-rejects(fn()=>$oauth->authorization(array_merge($query,['resource'=>'https://attacker.test/mcp'])),'OAuth wrong resource rejected');
-rejects(fn()=>$oauth->authorization(array_merge($query,['code_challenge_method'=>'plain'])),'OAuth plain PKCE rejected');
-$location=$oauth->approve($query,$alice,true)->getHeaderLine('Location');parse_str(parse_url($location,PHP_URL_QUERY),$redirect);
-check($redirect['iss']===Config::origin() && $redirect['state']==='test-state','OAuth issuer and state returned');
-$body=['grant_type'=>'authorization_code','client_id'=>'chatgpt-fixture','code'=>$redirect['code'],'redirect_uri'=>$query['redirect_uri'],'code_verifier'=>$verifier,'resource'=>Config::resource()];
-$tokens=json_decode((string)$oauth->token($body)->getBody(),true);$auth=$oauth->authenticate('Bearer '.$tokens['access_token']);check($auth['owner']===$alice,'signed access token resolves account');
-rejects(fn()=>$oauth->token($body),'authorization code replay rejected');
-$refresh=['grant_type'=>'refresh_token','client_id'=>'chatgpt-fixture','refresh_token'=>$tokens['refresh_token'],'resource'=>Config::resource()];
-$new=json_decode((string)$oauth->token($refresh)->getBody(),true);check(isset($new['access_token']),'refresh rotates token');rejects(fn()=>$oauth->token($refresh),'refresh token replay rejected');
-$oauth->revoke(['client_id'=>'chatgpt-fixture','token'=>$new['refresh_token']]);rejects(fn()=>$oauth->authenticate('Bearer '.$new['access_token']),'revocation invalidates access chain');
-$denied=$oauth->approve($query,$alice,false)->getHeaderLine('Location');parse_str(parse_url($denied,PHP_URL_QUERY),$deny);check(($deny['error']??'')==='access_denied' && ($deny['iss']??'')===Config::origin(),'OAuth denial includes issuer');
+$oauth=new OAuth($store);$metadata=$oauth->metadata();
+check($metadata['issuer']===Config::auth0Issuer().'/' && $metadata['token_endpoint']===Config::auth0Issuer().'/oauth/token','discovery uses actual provider issuer and token endpoint');
+check($oauth->protectedMetadata()['authorization_servers']===[Config::auth0Issuer().'/'] && $oauth->protectedMetadata()['resource']===Config::resource(),'resource metadata separates Auth0 authority from Hub audience');
+check(!method_exists($oauth,'approve') && !method_exists($oauth,'token') && !class_exists('League\OAuth2\Server\AuthorizationServer'),'local token issuer and its dependency are removed');
+$token=Auth0Fixture::access($alice);check($oauth->authenticate('Bearer '.$token)['owner']===$alice,'real RSA-signed access token resolves exact account');
+foreach([['iss'=>'https://wrong.auth0.com/'],['aud'=>'https://wrong.test/mcp'],['aud'=>'browser-fixture'],['exp'=>time()-10],['iat'=>time()+600],['nbf'=>time()+600],['sub'=>'machine@clients'],['gty'=>'client-credentials'],['scope'=>'fleet:admin'],['scope'=>['blog:read']],['sub'=>''],['exp'=>null],['iat'=>null]] as $bad)authRejects(fn()=>$oauth->authenticate('Bearer '.Auth0Fixture::access($alice,$bad)),'invalid access claim rejected: '.array_key_first($bad));
+$parts=explode('.',$token);$parts[1]=Firebase\JWT\JWT::urlsafeB64Encode(json_encode(['sub'=>'attacker']));authRejects(fn()=>$oauth->authenticate('Bearer '.implode('.',$parts)),'tampered signature rejected');
+$wrongKey=openssl_pkey_new(['private_key_bits'=>2048]);openssl_pkey_export($wrongKey,$wrongPrivate);
+$forged=Firebase\JWT\JWT::encode(['iss'=>Config::auth0Issuer().'/','sub'=>'auth0|alice','aud'=>Config::resource(),'iat'=>time()-1,'exp'=>time()+600],$wrongPrivate,'RS256',Auth0Fixture::$jwk['kid']);authRejects(fn()=>$oauth->authenticate('Bearer '.$forged),'untrusted signing key rejected');
+check($oauth->authenticate('Bearer '.Auth0Fixture::access($alice,['scope'=>'openid blog:read fleet:admin']))['scopes']===['blog:read'],'only explicitly granted blog scopes survive');
+$subject=(string)get_user_meta($alice,'dashless_auth0_sub',true);
+Auth0Fixture::$grants=[['id'=>'own','user_id'=>$subject,'audience'=>Config::resource()],['id'=>'other-user','user_id'=>'auth0|someone','audience'=>Config::resource()],['id'=>'other-api','user_id'=>$subject,'audience'=>'https://other.test']];
+Auth0Fixture::$revokeFails=true;authRejects(fn()=>$oauth->disconnect($alice),'provider outage is reported during disconnect');authRejects(fn()=>$oauth->authenticate('Bearer '.$token),'disconnect blocks access immediately despite provider outage');
+Auth0Fixture::$revokeFails=false;$oauth->disconnect($alice);check(Auth0Fixture::$deleted===['own'],'disconnect deletes only owner grants for this API');authRejects(fn()=>$oauth->authenticate('Bearer '.$token),'successful disconnect rejects previously issued access tokens');
+check(!$store->get('oauth_epoch',(string)$alice)['data']['blocked'],'successful grant revocation permits a new authorization');
+Auth0Fixture::$grants=[];
+$store->remove('oauth_epoch',(string)$alice);
+delete_user_meta($bob,'dashless_auth0_issuer');check(!Identity::verified($bob),'old provider-only session does not authorize a customer');Auth0Fixture::bind($bob,'auth0|bob');
 
 putenv('DASHLESS_STRIPE_WEBHOOK_SECRET=whsec_fixture');$wire=json_encode(['id'=>'evt_signed','object'=>'event','type'=>'invoice.paid','created'=>time(),'data'=>['object'=>['id'=>'in_fixture']]]);$now=time();$signature='t='.$now.',v1='.hash_hmac('sha256',$now.'.'.$wire,'whsec_fixture');
 $gateway=new StripeGateway();check($gateway->event($wire,$signature)['id']==='evt_signed','Stripe SDK validates real signed webhook payload');
@@ -92,7 +93,8 @@ $sub=['id'=>'sub_alice','customer'=>$a['stripe_customer'],'metadata'=>['dashless
 $stripe->subs[$sub['id']]=$sub;
 $event=['id'=>'evt_paid','type'=>'invoice.paid','created'=>time(),'data'=>['object'=>['subscription'=>$sub['id']]]];$billing->receive(json_encode($event),'test');$billing->receive(json_encode($event),'test');$billing->process('evt_paid');$billing->process('evt_paid');
 check(count($store->rows('stripe_event'))===1 && $identity->account($alice)['state']==='provisioning','webhook replay provisions once from fresh Stripe state');
-$a=$identity->account($alice);$a['state']='ready';$a['site_id']=123;$identity->save($a);
+$a=$identity->account($alice);$a['state']='ready';$a['site_id']=123;$a['release_id']='release_fixture';$a['ready_at']=1700000000;$a['public_domain']='alice.dashless.blog';$a['phase_state']=['verify'=>['remote'=>['content_generation'=>12]]];$identity->save($a);
+$public=Screens::publicAccount($a);check($public['site_url']==='https://alice.dashless.blog' && $public['release']['verified']===true && $public['release']['content_generation']===12,'account summary exposes verified release health without private credentials');
 $sub['cancel_at_period_end']=true;$billing->reconcile($sub);check($identity->account($alice)['entitlement']==='active','scheduled cancellation retains paid access');
 $sub['status']='past_due';$a=$identity->account($alice);$a['paid_through']=time()-DAY_IN_SECONDS;$identity->save($a);$billing->reconcile($sub);check($identity->account($alice)['entitlement']==='grace','failed renewal gets seven-day grace');
 $a=$identity->account($alice);$a['past_due_since']=time()-8*DAY_IN_SECONDS;$identity->save($a);$billing->reconcile($sub);check($identity->account($alice)['entitlement']==='expired','expired grace suspends entitlement');
@@ -110,7 +112,7 @@ $mcp=new Mcp($store,$identity,$agent,$jobs);$result=$mcp->handle(['jsonrpc'=>'2.
 putenv('DASHLESS_TEST_CHECKOUT=0');check(!Config::checkoutAllowed(),'live checkout disabled without acceptance gates');
 // Provisioning crash recovery: a timed-out create is recovered by hostname + operation, never repeated.
 putenv('DASHLESS_SITE_PACKAGE_URL=https://localhost:8874/site-fixture.zip');putenv('DASHLESS_SITE_PACKAGE_SHA256='.hash('sha256','fixture-package'));
-add_filter('pre_http_request',function($pre,$args,$url){if($url==='https://localhost:8874/site-fixture.zip')return ['headers'=>[],'body'=>'fixture-package','response'=>['code'=>200,'message'=>'OK'],'cookies'=>[]];throw new RuntimeException('Unexpected external HTTP in fixture test: '.$url);},10,3);
+add_filter('pre_http_request',function($pre,$args,$url){if($pre!==false)return $pre;if($url==='https://localhost:8874/site-fixture.zip')return ['headers'=>[],'body'=>'fixture-package','response'=>['code'=>200,'message'=>'OK'],'cookies'=>[]];throw new RuntimeException('Unexpected external HTTP in fixture test: '.$url);},10,3);
 class ProvisionCloud extends TestCloud {
     public int $creates=0;public ?array $site=null;public array $proof=[];
     public function find(string $domain):?array{return $this->site;}

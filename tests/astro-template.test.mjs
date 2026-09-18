@@ -56,7 +56,7 @@ test("the generated Astro frontend installs and produces digest-marked static pa
   const globalCss = await readFile(path.join(project, "src", "styles", "global.css"), "utf8");
   const socialFiles = await readdir(path.join(build.dist_path, "_dashless", "social"));
   assert.equal(socialFiles.length, 1);
-  assert.match(socialFiles[0], /^post-1-[a-f0-9]{12}\.png$/);
+  assert.match(socialFiles[0], /^post-1-[a-f0-9]{12}-[a-f0-9]{8}\.png$/);
   const socialCard = await readFile(path.join(build.dist_path, "_dashless", "social", socialFiles[0]));
   assert.equal(socialCard.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   assert.equal(socialCard.readUInt32BE(16), 1200);

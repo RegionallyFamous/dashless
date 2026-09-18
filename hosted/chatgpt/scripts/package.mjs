@@ -17,6 +17,8 @@ async function walk(dir){const all=[];for(const d of await readdir(dir,{withFile
 try{
  for(const name of ['src','assets','contracts','vendor','composer.json','composer.lock','dashless-hub.php'])await cp(path.join(hub,name),path.join(target,name),{recursive:true,filter:file=>!/(^|\/)(?:\.env[^/]*|auth\.json|\.git)$/.test(file)});
  await readFile(path.join(target,'vendor/autoload.php'));
+ await cp(path.resolve(root,'../../templates/astro/src/lib/themes.json'),path.join(target,'contracts/themes.v1.json'));
+ await cp(path.resolve(root,'../../wordpress/hosted/theme-previews'),path.join(target,'assets/theme-previews'),{recursive:true});
  const component=path.join(target,'chatgpt');await mkdir(component,{recursive:true});
  for(const name of ['php','tools.json','README.md','LICENSE'])await cp(path.join(root,name),path.join(component,name),{recursive:true});
  await mkdir(path.join(component,'dist'),{recursive:true});

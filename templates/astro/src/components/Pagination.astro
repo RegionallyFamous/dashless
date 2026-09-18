@@ -5,8 +5,8 @@ const pageUrl = (page: number) => page === 1 ? `${base}/` : `${base}/page/${page
 
 {total > 1 && (
   <nav class="pagination" aria-label="Pagination">
-    {current > 1 ? <a rel="prev" href={pageUrl(current - 1)}>← Newer</a> : <span />}
+    {current > 1 ? <a rel="prev" href={pageUrl(current - 1)} data-astro-prefetch>← Newer</a> : <span />}
     <span>Page {current} of {total}</span>
-    {current < total ? <a rel="next" href={pageUrl(current + 1)}>Older →</a> : <span />}
+    {current < total ? <a rel="next" href={pageUrl(current + 1)} data-astro-prefetch>Older →</a> : <span />}
   </nav>
 )}

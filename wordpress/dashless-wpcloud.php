@@ -1236,6 +1236,8 @@ function dashless_wpcloud_send_file( $file, $release_id, $status = 200, $content
 	header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', filemtime( $file ) ) . ' GMT' );
 	header( 'Vary: Host', false );
 	header( 'X-Content-Type-Options: nosniff' );
+	header( 'Referrer-Policy: strict-origin-when-cross-origin' );
+	header( 'Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()' );
 	header( 'X-Dashless-Release: ' . $release_id );
 	if ( null !== $content_generation ) {
 		header( 'X-Dashless-Content-Generation: ' . (string) absint( $content_generation ) );

@@ -1,5 +1,5 @@
 ---
-import { plainText } from "../lib/dashless.mjs";
+import { formatDate, plainText } from "../lib/dashless.mjs";
 const { story, featured = false } = Astro.props;
 const description = plainText(story.excerpt || story.content).slice(0, featured ? 240 : 150);
 const transitionName = (part: string) => `dashless-story-${part}-${story.id}`;
@@ -27,9 +27,9 @@ const transitionName = (part: string) => `dashless-story-${part}-${story.id}`;
     </a>
   )}
   <div class="story-copy">
-    <div class="story-meta"><time datetime={story.date}>{new Date(story.date).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</time>{story.categoryTerms?.[0] && <a href={story.categoryTerms[0].url}>{story.categoryTerms[0].name}</a>}</div>
-    <h2 style={`view-transition-name: ${transitionName("title")};`}><a href={story.url}>{story.title}</a></h2>
+    <div class="story-meta"><time datetime={story.date}>{formatDate(story.date, { month: "short", day: "2-digit", year: "numeric" })}</time>{story.categoryTerms?.[0] && <a href={story.categoryTerms[0].url} data-astro-prefetch>{story.categoryTerms[0].name}</a>}</div>
+    <h2 style={`view-transition-name: ${transitionName("title")};`}><a href={story.url} data-astro-prefetch>{story.title}</a></h2>
     {description && <p class="summary">{description}{description.length >= (featured ? 240 : 150) ? "…" : ""}</p>}
-    <a class="read-more" href={story.url}>READ STORY <span aria-hidden="true">→</span></a>
+    <a class="read-more" href={story.url} data-astro-prefetch>READ STORY <span aria-hidden="true">→</span></a>
   </div>
 </article>

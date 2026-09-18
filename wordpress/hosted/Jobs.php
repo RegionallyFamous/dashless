@@ -17,12 +17,28 @@ final class Jobs {
         return $out;
     }
     public function retry(string $id): array {
-        return $this->app->store->transaction(function()use($id){$j=$this->get($id);if ($j['status']==='failed') { $j['status']='queued';unset($j['error'],$j['remote_build_id']);$this->save($j); }return $this->public($j);});
+        return $this->app->store->transaction(function()use($id){
+            $j=$this->get($id);
+            if ($j['status']==='failed') {
+                $mine=array_values(array_filter($this->app->store->rows('job'),fn($row)=>(int)($row['owner']??0)===(int)$j['owner']));
+                $active=count(array_filter($mine,fn($row)=>($row['job_id']??'')!==$id && in_array($row['status']??'', ['queued','running'],true)));
+                if($active>=Support::QUOTAS['queued_jobs'])throw new Failure('capacity_limited','Your saved work is at its limit. Wait for another request to finish before retrying.',429);
+                if(($j['kind']??'')!=='export' && count(array_filter($mine,fn($row)=>($row['job_id']??'')!==$id && ($row['status']??'')==='running'))>=Support::QUOTAS['active_jobs'])throw new Failure('capacity_limited','Your blog is already preparing a change. Check its progress before retrying.',429);
+                $j['status']='queued';unset($j['error'],$j['remote_build_id']);$this->save($j);
+            }
+            return $this->public($j);
+        });
     }
     public function enqueue(string $kind,array $args,int $owner,?string $id=null): array {
         $id=$id??wp_generate_uuid4();$old=$this->app->store->get('job',$id);
         if ($old) { if ($old['owner']!==$owner || $old['data']['kind']!==$kind || $old['data']['arguments']!==$args) { throw new Failure('job_conflict','This job identifier already belongs to another request.'); }return $this->public($old['data']); }
-        $job=['job_id'=>$id,'site_id'=>$this->app->siteId(),'owner'=>$owner,'kind'=>$kind,'arguments'=>$args,'status'=>'queued','attempts'=>0,'created_at'=>gmdate('c'),'saved'=>false,'preview_ready'=>false,'published_in_wordpress'=>false,'deployed'=>false,'publicly_verified'=>false,'previous_release_preserved'=>true];
+        $rows=$this->app->store->rows('job');$mine=array_values(array_filter($rows,fn($j)=>(int)($j['owner']??0)===$owner));
+        if(count($mine)>=Support::QUOTAS['retained_jobs'])throw new Failure('capacity_limited','Your saved request history is full. Wait for automatic cleanup before starting another.',429);
+        if($kind==='preview' && $this->app->store->count('preview',$owner,true)>=Support::QUOTAS['previews'])throw new Failure('capacity_limited','Your saved previews are full. Let an old preview expire before creating another.',429);
+        $active=count(array_filter($mine,fn($j)=>in_array($j['status']??'', ['queued','running'],true)));
+        if($active>=Support::QUOTAS['queued_jobs'])throw new Failure('capacity_limited','Your saved work is at its limit. Wait for a request to finish before starting another.',429);
+        if($kind!=='export' && count(array_filter($mine,fn($j)=>($j['status']??'')==='running'))>=Support::QUOTAS['active_jobs'])throw new Failure('capacity_limited','Your blog is already preparing a change. Check its progress before starting another.',429);
+        $job=['job_id'=>$id,'site_id'=>$this->app->siteId(),'owner'=>$owner,'kind'=>$kind,'arguments'=>$args,'status'=>'queued','attempts'=>0,'created_at'=>gmdate('c'),'saved'=>false,'preview_ready'=>false,'published_in_wordpress'=>false,'deployed'=>false,'publicly_verified'=>false,'previous_release_preserved'=>true,'quota_contract'=>1];
         if (!$this->app->store->add('job',$id,$job,$owner)) { throw new Failure('job_conflict','Retry the same job request.'); }return $this->public($job);
     }
     private function checkDeadline(float $deadline): void { if (microtime(true)>$deadline) { throw new Failure('build_deadline','The operation exceeded its time limit. Retry after checking the job.'); } }

@@ -18,7 +18,8 @@ final class Store {
             expires bigint NOT NULL DEFAULT 0,
             revision bigint NOT NULL DEFAULT 1,
             PRIMARY KEY  (record_key),
-            KEY kind_owner (kind,owner)
+            KEY kind_owner (kind,owner),
+            KEY kind_expires (kind,expires)
         ) ENGINE=InnoDB $charset;");
         update_option('dashless_hosted_schema',1,false);
     }
@@ -35,6 +36,7 @@ final class Store {
     }
     public function add(string $kind,string $id,array $data,int $owner=0,int $expires=0): bool {
         global $wpdb;
+        if (!$expires && isset($data['expires']) && is_numeric($data['expires'])) $expires=(int)$data['expires'];
         if ($this->get($kind,$id)) { return false; }
         $prior=$wpdb->suppress_errors(true);
         $ok=$wpdb->insert($this->table(),['record_key'=>$this->key($kind,$id),'kind'=>$kind,'owner'=>$owner,'payload'=>wp_json_encode($data),'expires'=>$expires,'revision'=>1]);
@@ -44,6 +46,7 @@ final class Store {
     }
     public function put(string $kind,string $id,array $data,int $owner=0,int $expires=0): void {
         global $wpdb;
+        if (!$expires && isset($data['expires']) && is_numeric($data['expires'])) $expires=(int)$data['expires'];
         if (!$this->get($kind,$id) && $this->add($kind,$id,$data,$owner,$expires)) { return; }
         if ($wpdb->query($wpdb->prepare("UPDATE {$this->table()} SET payload=%s,owner=%d,expires=%d,revision=revision+1 WHERE record_key=%s",wp_json_encode($data),$owner,$expires,$this->key($kind,$id)))===false) { throw new Failure('storage_failed','The operation could not be saved.',503); }
     }
@@ -51,6 +54,21 @@ final class Store {
         global $wpdb;
         return array_map(fn($r)=>json_decode($r['payload'],true),$wpdb->get_results($wpdb->prepare("SELECT payload FROM {$this->table()} WHERE kind=%s ORDER BY record_key",$kind),ARRAY_A));
     }
+    public function count(string $kind,int $owner=0,bool $activeOnly=false): int {
+        global $wpdb;
+        $sql="SELECT COUNT(*) FROM {$this->table()} WHERE kind=%s";$args=[$kind];
+        if($owner>0){$sql.=' AND owner=%d';$args[]=$owner;}
+        if($activeOnly){$sql.=' AND (expires=0 OR expires>%d)';$args[]=time();}
+        return (int)$wpdb->get_var($wpdb->prepare($sql,...$args));
+    }
+    public function expired(string $kind,int $now=0,int $limit=100): array {
+        global $wpdb; $now=$now?:time(); $limit=max(1,min(500,$limit));
+        return array_map(fn($r)=>['id'=>$r['record_key'],'data'=>json_decode($r['payload'],true),'owner'=>(int)$r['owner']],$wpdb->get_results($wpdb->prepare("SELECT record_key,payload,owner FROM {$this->table()} WHERE kind=%s AND expires>0 AND expires<=%d ORDER BY expires ASC LIMIT %d",$kind,$now,$limit),ARRAY_A));
+    }
+    public function deleteKey(string $kind,string $id): void {
+        global $wpdb; $wpdb->delete($this->table(),['record_key'=>$this->key($kind,$id)]);
+    }
+    public function deleteRecord(string $recordKey): void { global $wpdb; $wpdb->delete($this->table(),['record_key'=>$recordKey]); }
     public function lock(string $id,int $ttl): ?string {
         global $wpdb;
         $token=bin2hex(random_bytes(24));$payload=['token'=>$token];$now=time();

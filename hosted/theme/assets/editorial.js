@@ -2,7 +2,7 @@
 (() => {
   document.querySelectorAll('a[href="#start"]').forEach(link => {
     link.addEventListener('click', event => {
-      const control = document.querySelector('.dl-intro .dl-wpcom-login, .dl-intro .dl-button');
+      const control = document.querySelector('.dl-intro .dl-signin-button, .dl-intro .dl-button');
       if (control) {
         event.preventDefault();
         history.replaceState(null, '', '#start');

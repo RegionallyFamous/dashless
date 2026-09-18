@@ -21,8 +21,10 @@ try{
  if(process.argv.includes('--site-only')){runtimePackage=JSON.parse(await fs.readFile(path.join(output,'site-packages.json'),'utf8')).runtime;if(sha(await fs.readFile(path.join(output,runtimePackage.filename)))!==runtimePackage.sha256)throw new Error('Existing runtime checksum mismatch');}
  else {
  for(const rel of ['package.json','package-lock.json','build.mjs','supervise.mjs','sources.lock.json'])await fs.cp(path.join(root,rel),path.join(runtime,rel),{recursive:true});
- await fs.cp(path.join(repo,'templates/astro'),path.join(runtime,'template'),{recursive:true,filter:file=>!['node_modules','dist','.astro','.dashless-cache'].includes(path.basename(file))&&!path.basename(file).startsWith('.env')});
  execFileSync('npm',['ci','--ignore-scripts','--no-audit','--no-fund','--os=linux','--cpu=x64','--libc=glibc'],{cwd:runtime,stdio:'inherit'});
+ // Copy the authoring template after dependency installation so npm cannot
+ // leave a stale generated tree in the immutable runtime archive.
+ await fs.cp(path.join(repo,'templates/astro'),path.join(runtime,'template'),{recursive:true,filter:file=>!['node_modules','dist','.astro','.dashless-cache'].includes(path.basename(file))&&!path.basename(file).startsWith('.env')});
  await fs.rm(path.join(runtime,'node_modules/.bin'),{recursive:true,force:true});
  await download(pins.node,path.join(temp,'node.tar.xz'));
  execFileSync('tar',['-xJf',path.join(temp,'node.tar.xz'),'-C',temp]);
@@ -48,6 +50,7 @@ try{
  for(const rel of ['package.json','package-lock.json','build.mjs','sources.lock.json'])await fs.copyFile(path.join(root,rel),path.join(portable,rel));
  await fs.cp(path.join(repo,'templates/astro'),path.join(portable,'template'),{recursive:true,filter:file=>!['node_modules','dist','.astro','.dashless-cache'].includes(path.basename(file))&&!path.basename(file).startsWith('.env')});
  await fs.copyFile(path.join(repo,'hosted/hub/contracts/tools.v1.json'),path.join(plugin,'hosted/tools.v1.json'));
+ await fs.copyFile(path.join(repo,'templates/astro/src/lib/themes.json'),path.join(plugin,'hosted/themes.json'));
  await fs.writeFile(path.join(plugin,'site-manifest.json'),JSON.stringify({version:pins.version,contract_version:1,runtime:runtimePackage,files:await manifest(plugin)},null,2)+'\n');
  const site=await zip(pluginRoot,'site.zip');
  await fs.writeFile(path.join(output,'site-packages.json'),JSON.stringify({version:pins.version,site,runtime:runtimePackage},null,2)+'\n');

@@ -6,6 +6,10 @@ final class Routes {
         add_action('rest_api_init',function(){
             $public=fn()=>true;$private=fn()=>is_user_logged_in() && Identity::verified(get_current_user_id());
             $this->route('/account','GET',$private,fn()=>Screens::publicAccount($this->app->identity->account(get_current_user_id())));
+            $this->route('/domain','GET',$private,fn()=>$this->app->domains->status(get_current_user_id()));
+            $this->route('/domain','POST',$private,fn($r)=>$this->app->domains->start(get_current_user_id(),(string)$r['domain']));
+            $this->route('/domain/verify','POST',$private,fn()=>$this->app->domains->verify(get_current_user_id()));
+            $this->route('/domain/remove','POST',$private,fn()=>$this->app->domains->remove(get_current_user_id()));
             $this->route('/checkout','POST',$private,fn($r)=>$this->app->billing->checkout(get_current_user_id(),(string)$r['slug']));
             $browser=function($r){return $this->browserPermission($r);};
             $this->route('/preview/approve','POST',$browser,fn($r)=>(new Previews($this->app))->approve(get_current_user_id(),(string)$r['preview_id'],(string)($r['handoff']??'')));
@@ -33,6 +37,8 @@ final class Routes {
                 return $result;
             });
             $this->route('/stripe/webhook','POST',$public,function($r){$id=$this->app->billing->receive($r->get_body(),(string)$r->get_header('stripe-signature'));$this->app->kick();return ['received'=>true];});
+            // Machine-only: the signed, short-lived Auth0 request is validated before wp_mail.
+            $this->route('/auth0/email','POST',$public,fn($r)=>(new AuthMail($this->app->store))->deliver($r->get_body(),(string)$r->get_header('x-dashless-mail-time'),(string)$r->get_header('x-dashless-mail-signature')));
             // Callback contents never authorize state transitions. They only request native-task reconciliation.
             $this->route('/platform/webhook','POST',$public,function($r){
                 $secret=Config::required('platform_webhook_secret');
@@ -69,62 +75,51 @@ final class Routes {
         if($origin && $origin!==Config::origin())throw new Failure('origin_invalid','Request origin not allowed.',403);
     }
     private function json(array $body,int $status=200): never { nocache_headers();header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');wp_send_json($body,$status); }
-    private function emit(\Psr\Http\Message\ResponseInterface $response): never {
-        nocache_headers();status_header($response->getStatusCode());
-        foreach($response->getHeaders() as $name=>$values)foreach($values as $v)header($name.': '.$v,false);
-        header('Cache-Control: no-store');echo $response->getBody();exit;
-    }
     public function native(): void {
         $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH);$method=$_SERVER['REQUEST_METHOD']??'GET';
-        if(in_array($path,['/auth/wordpress/start','/auth/wordpress/callback'],true)) {
+        if(in_array($path,['/auth/wordpress/start','/auth/wordpress/callback'],true))$this->json(['error'=>'signin_retired','error_description'=>'Please use the sign-in button on Dashless.'],410);
+        if(in_array($path,['/auth/login','/auth/callback','/auth/logout'],true)) {
             nocache_headers();header('Cache-Control: private, no-store');header('Referrer-Policy: no-referrer');header('X-Frame-Options: DENY');
             try {
-                if($method!=='GET')throw new Failure('method_not_allowed','Use the WordPress.com sign-in button.',405);
+                if($method!=='GET')throw new Failure('method_not_allowed','Use the sign-in button on Dashless.',405);
+                if($path==='/auth/logout') {
+                    if(!wp_verify_nonce((string)wp_unslash($_GET['_wpnonce']??''),'dashless_logout'))throw new Failure('logout_expired','Please return to your account and try signing out again.',403);
+                    wp_logout();
+                    wp_redirect(Config::auth0Issuer().'/v2/logout?'.http_build_query(['client_id'=>Config::required('auth0_client_id'),'returnTo'=>Config::origin().'/']),303);exit;
+                }
                 $options=['expires'=>time()+600,'path'=>'/','secure'=>is_ssl(),'httponly'=>true,'samesite'=>'Lax'];
-                if($path==='/auth/wordpress/start') {
+                if($path==='/auth/login') {
                     $browser=bin2hex(random_bytes(32));
                     $url=$this->app->identity->begin((string)wp_unslash($_GET['return']??'/account/'),$browser);
-                    setcookie('dashless_wpcom_login',$browser,$options);
+                    setcookie('dashless_auth0_login',$browser,$options);
                     wp_redirect($url,303);exit;
                 }
-                $result=$this->app->identity->complete((string)wp_unslash($_GET['state']??''),(string)($_COOKIE['dashless_wpcom_login']??''),(string)wp_unslash($_GET['code']??''),(string)wp_unslash($_GET['error']??''));
-                $options['expires']=time()-3600;setcookie('dashless_wpcom_login','',$options);
+                $result=$this->app->identity->complete((string)wp_unslash($_GET['state']??''),(string)($_COOKIE['dashless_auth0_login']??''),(string)wp_unslash($_GET['code']??''),(string)wp_unslash($_GET['error']??''));
+                $options['expires']=time()-3600;setcookie('dashless_auth0_login','',$options);
                 wp_safe_redirect(Config::origin().$result['return'],303);exit;
-            } catch(Failure $e) {wp_die(esc_html($e->getMessage()).' <a href="'.esc_url(Config::origin().'/sign-in/').'">Return to sign in</a>','WordPress.com sign-in',['response'=>$e->status]);}
+            } catch(Failure $e) {wp_die(esc_html($e->getMessage()).' <a href="'.esc_url(Config::origin().'/sign-in/').'">Return to sign in</a>','Dashless sign-in',['response'=>$e->status]);}
         }
-        if(!in_array($path,['/.well-known/oauth-protected-resource','/.well-known/oauth-protected-resource/mcp','/.well-known/oauth-authorization-server','/oauth/authorize','/oauth/token','/oauth/revoke','/mcp'],true))return;
+        if(!in_array($path,['/.well-known/oauth-protected-resource','/.well-known/oauth-protected-resource/mcp','/.well-known/oauth-protected-resource/mcp/','/.well-known/oauth-authorization-server','/.well-known/oauth-authorization-server/mcp','/.well-known/oauth-authorization-server/mcp/','/oauth/authorize','/oauth/token','/oauth/revoke','/mcp'],true))return;
         try {
             if(str_starts_with($path,'/.well-known/')) {
                 if($method!=='GET')$this->json(['error'=>'method_not_allowed'],405);
                 $this->json(str_contains($path,'protected-resource')?$this->app->oauth->protectedMetadata():$this->app->oauth->metadata());
             }
-            if($path==='/oauth/authorize') {
-                $query=wp_unslash($_GET);$this->app->oauth->authorization($query);
-                if(!is_user_logged_in() || !Identity::verified(get_current_user_id())) {
-                    wp_safe_redirect(Config::origin().'/sign-in/?return='.rawurlencode('/oauth/authorize?'.http_build_query($query)),303);exit;
-                }
-                if($method==='POST') {
-                    if(!wp_verify_nonce((string)wp_unslash($_POST['_wpnonce']??''),'dashless_consent'))throw new Failure('invalid_consent','Reopen the connection request.',403);
-                    $this->emit($this->app->oauth->approve($query,get_current_user_id(),($_POST['decision']??'')==='allow'));
-                }
-                if($method!=='GET')$this->json(['error'=>'method_not_allowed'],405);
-                Screens::consent($query);exit;
-            }
-            if($path==='/oauth/token') {
-                if($method!=='POST')$this->json(['error'=>'method_not_allowed'],405);
-                $this->app->store->rate('oauth-token:'.($_SERVER['REMOTE_ADDR']??''),60,60);
-                $this->emit($this->app->oauth->token(wp_unslash($_POST)));
-            }
-            if($path==='/oauth/revoke') {
-                if($method!=='POST')$this->json(['error'=>'method_not_allowed'],405);
-                $this->app->store->rate('revoke:'.($_SERVER['REMOTE_ADDR']??''),30,60);$this->app->oauth->revoke(wp_unslash($_POST));$this->json([]);
-            }
+            if(str_starts_with($path,'/oauth/'))$this->json(['error'=>'connection_retired','error_description'=>'Reconnect Dashless in ChatGPT to use the new sign-in.'],410);
             if($path==='/mcp') {
+                // Discovery clients probe GET before a tool call. Authenticate before
+                // rejecting an unsupported stream so they receive the OAuth challenge.
+                if($method==='GET')$this->app->oauth->authenticate($_SERVER['HTTP_AUTHORIZATION']??'');
                 if($method!=='POST'){header('Allow: POST');$this->json(['error'=>'method_not_allowed'],405);}
                 if(!empty($_SERVER['HTTP_ORIGIN']) && $_SERVER['HTTP_ORIGIN']!==Config::origin())throw new Failure('origin_invalid','Request origin not allowed.',403);
+                // OAuth discovery may send an empty octet-stream POST. Challenge
+                // unauthenticated probes before enforcing JSON transport headers.
+                if(empty($_SERVER['HTTP_AUTHORIZATION']) && !str_starts_with(strtolower($_SERVER['CONTENT_TYPE']??''),'application/json'))throw new Failure('authentication_required','Connect your Dashless account.',401);
                 if(!str_starts_with(strtolower($_SERVER['CONTENT_TYPE']??''),'application/json'))$this->json(['error'=>'unsupported_media_type'],415);
+                // Dashless returns JSON for every request. Accept clients that request
+                // JSON alone as well as clients that advertise streaming support.
                 $accept=strtolower($_SERVER['HTTP_ACCEPT']??'');
-                if(!str_contains($accept,'application/json') || !str_contains($accept,'text/event-stream'))$this->json(['error'=>'not_acceptable'],406);
+                if($accept!=='' && !str_contains($accept,'application/json'))$this->json(['error'=>'not_acceptable'],406);
                 $version=$_SERVER['HTTP_MCP_PROTOCOL_VERSION']??'2025-03-26';
                 if(!in_array($version,Chatgpt::PROTOCOLS,true))$this->json(['error'=>'unsupported_protocol_version'],400);
                 $raw=file_get_contents('php://input',false,null,0,1048577);
@@ -133,7 +128,10 @@ final class Routes {
                 if(json_last_error()!==JSON_ERROR_NONE)$this->json(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32700,'message'=>'Invalid JSON request']],400);
                 if(!is_object(json_decode($raw)))$this->json(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32600,'message'=>'Expected one JSON-RPC object']],400);
                 $auth=['owner'=>0,'scopes'=>[]];
-                if(!in_array($message['method']??'',['initialize','ping','tools/list','resources/list','resources/templates/list','resources/read','notifications/initialized'],true) || !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+                // Discovery calls stay public even when a client includes a bearer
+                // token. OpenAI's scanner sends its OAuth token on tools/list, but
+                // listing capabilities must not depend on user scopes.
+                if(!in_array($message['method']??'',['initialize','ping','tools/list','resources/list','resources/templates/list','resources/read','notifications/initialized'],true)) {
                     try {$auth=$this->app->oauth->authenticate($_SERVER['HTTP_AUTHORIZATION']??'');}
                     catch(Failure $e) {
                         $challenge=Chatgpt::challenge();header('WWW-Authenticate: '.$challenge);
@@ -144,8 +142,7 @@ final class Routes {
                 $result=$this->app->mcp->handle($message,$auth);
                 if($result===null){status_header(202);exit;}$this->json($result);
             }
-        }catch(\League\OAuth2\Server\Exception\OAuthServerException $e){$response=$e->generateHttpResponse(new \Nyholm\Psr7\Response());$this->emit($path==='/oauth/authorize'?$this->app->oauth->withIssuer($response):$response);}
-        catch(Failure $e){if($e->status===401)header('WWW-Authenticate: Bearer resource_metadata="'.Config::origin().'/.well-known/oauth-protected-resource"');$this->json(['error'=>$e->slug,'error_description'=>$e->getMessage()],$e->status);}
+        }catch(Failure $e){if($e->status===401)header('WWW-Authenticate: '.Chatgpt::challenge());$this->json(['error'=>$e->slug,'error_description'=>$e->getMessage()],$e->status);}
         catch(\Throwable $e){$this->json(['error'=>'service_unavailable','error_description'=>'This connection is not ready.'],503);}
     }
 }

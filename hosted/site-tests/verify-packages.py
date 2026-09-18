@@ -25,6 +25,9 @@ for kind in ['site','runtime']:
    if kind=='site':
     source=ROOT/'wordpress'/entry['path']
     if entry['path']=='hosted/tools.v1.json':source=ROOT/'hosted/hub/contracts/tools.v1.json'
+    if entry['path']=='hosted/themes.json':source=ROOT/'templates/astro/src/lib/themes.json'
+    if entry['path'].startswith('build-source/template/'):source=ROOT/'templates/astro'/entry['path'][22:]
+    elif entry['path'].startswith('build-source/'):source=ROOT/'hosted/runtime'/entry['path'][13:]
    elif entry['path'].startswith('template/'):source=ROOT/'templates/astro'/entry['path'][9:]
    elif entry['path'] in ['build.mjs','supervise.mjs','package.json','package-lock.json','sources.lock.json']:source=ROOT/'hosted/runtime'/entry['path']
    if source:

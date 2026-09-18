@@ -59,3 +59,7 @@ Generated Astro sites are owned source code. Change the palette, surface behavio
 ## Shared publication framework
 
 The local and hosted products now share the Astro publication source. See [the feature matrix, configuration contract, and verification commands](frontend-framework.md). Existing generated sites remain owned copies.
+
+## Selectable hosted themes
+
+The [theme catalog](theme-catalog.md) offers Hypertext Diary, Field Notes, and After Hours as customizable starting points through the ChatGPT app.

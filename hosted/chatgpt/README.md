@@ -17,14 +17,14 @@ npm run check:hosted
 npm --prefix hosted/chatgpt run package
 ```
 
-The integration suite includes the existing Hub suite, which deletes only the Hub table in the supplied disposable installation. It uses actual WordPress and League OAuth but fixture site/Cloud/Stripe services. Never run it on customer or production data. Browser tests render the actual packaged component with a local MCP Apps fixture host; screenshots are not real ChatGPT screenshots.
+The integration suite includes the existing Hub suite, which deletes only the Hub table in the supplied disposable installation. It uses actual WordPress and RSA JWT verification against a simulated Auth0 provider but fixture site/Cloud/Stripe services. Never run it on customer or production data. Browser tests render the actual packaged component with a local MCP Apps fixture host; screenshots are not real ChatGPT screenshots.
 
 ## Implementation
 
 - `src/`: standards-based MCP Apps component, pure phase labels, short polling with capped exponential backoff and cancellation.
 - `php/Integration.php`: tool metadata, resource serving, credential projection, account/site/epoch-bound browser handoffs.
 - `php/Uploads.php`: authenticated image sessions and bounded OpenAI-to-WP-Cloud binary relay.
-- `tools.json`: three additive Hub tools, preserving the 23 site schemas.
+- `tools.json`: three additive Hub tools, alongside the 25 site tool schemas.
 - `dist/workflow.html`: generated self-contained component. Deploy through the packaged Hub, not an external static host.
 - `docs/site-contract-extension.md`: exact compatible upload and rollback boundary.
 - `submission/`: listing draft, scenarios, reviewer setup, screenshots and release checklist.
@@ -41,3 +41,7 @@ Existing `publish_previewed` and `rollback_release` schemas remain available for
 The Rip is copied from the selected SVG. Hot Type uses the actual selected raster concept; `hot-type-display.png` is a proportional 768px optimization of the same sheet and CSS displays its selected wordmark. No replacement font or new mark. The original remains unchanged. The wordmark still needs a vector master, and the icon still needs final optical review. Branding applies only to Dashless controls, never customer publications.
 
 Runtime dependencies are pinned in package-lock.json and Composer lock. Package generation includes dependency/license manifests and checksums. No Node service or build host runs in production.
+
+## Theme discovery
+
+The app offers [three named themes](../../docs/theme-catalog.md) through `list_themes` and `get_theme`. Theme selection is staged through `update_design` and uses the existing private preview and authenticated approval flow.

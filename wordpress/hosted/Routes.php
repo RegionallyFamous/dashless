@@ -25,7 +25,7 @@ final class Routes {
         },10,3);
         $this->endpoint('/builder','POST',fn($r)=>(new RemoteRuntime($this->app))->configure($r->get_json_params()??[]));
         $this->endpoint('/capabilities','GET',fn()=>$this->app->capabilities());
-        $this->endpoint('/health','GET',fn()=>['ready'=>$this->app->runtime->ready() && (bool)$this->app->store->get('release','active'),'release_id'=>$this->app->store->get('release','active')['data']['release_id']??null,'runtime_status'=>$this->app->runtime->ready()?'verified':'not_installed']);
+        $this->endpoint('/health','GET',fn()=>['ready'=>$this->app->runtime->ready() && (bool)$this->app->store->get('release','active'),'release_id'=>$this->app->store->get('release','active')['data']['release_id']??null,'runtime_status'=>$this->app->runtime->ready()?'verified':'not_installed','quota'=>$this->app->quota()]);
         $this->endpoint('/entitlement','POST',fn($r)=>$this->app->entitlement($r->get_json_params()??[]));
         $this->endpoint('/jobs','POST',function($r){$this->app->active();$a=$r->get_json_params()??[];
             if (($a['kind']??'')!=='initial_release') { throw new Failure('invalid_job','Unsupported provisioning job.',400); }
@@ -112,7 +112,7 @@ final class Routes {
             if (is_wp_error($id)) { throw new Failure('upload_failed','WordPress could not save this media.',503); }
             update_post_meta($id,'_dashless_private_media',['key'=>$key,'filename'=>$u['filename']]+$meta);update_post_meta($id,'_wp_attachment_image_alt',$u['alt_text']);
             if ($dims) { wp_update_attachment_metadata($id,['width'=>$dims[0],'height'=>$dims[1],'file'=>$u['filename'],'sizes'=>[]]); }
-            $u['complete']=true;$u['sha256']=$hash;$u['media_id']=$id;$this->app->store->put('upload',$r['id'],$u,$owner);return ['media_id'=>$id,'saved'=>true];
+            $u['complete']=true;$u['expires']=0;$u['sha256']=$hash;$u['media_id']=$id;$this->app->store->put('upload',$r['id'],$u,$owner);return ['media_id'=>$id,'saved'=>true];
         });
     }
     private function media(\WP_REST_Request $r): \WP_REST_Response {
@@ -163,7 +163,7 @@ final class Routes {
         try { $body=$this->artifact($active['candidate'],$file,''); }
         catch(Failure $e) { status_header(503);echo 'This page is temporarily unavailable.';exit; }
         foreach (Support::noCache() as $k=>$v) { if ($k!=='X-Robots-Tag') { header($k.': '.$v); } }
-        status_header($status);header('Content-Type: '.$this->mime($file));header('X-Dashless-Release: '.$active['release_id']);header('X-Dashless-Content-Generation: '.$active['generation']);header('ETag: "'.hash('sha256',$body).'"');
+        status_header($status);header('Content-Type: '.$this->mime($file));header('X-Dashless-Release: '.$active['release_id']);header('X-Dashless-Content-Generation: '.$active['generation']);header('ETag: "'.hash('sha256',$body).'"');header('Referrer-Policy: strict-origin-when-cross-origin');header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()');
         header('Content-Security-Policy: '.$this->csp($body,$this->mime($file),false));
         $method=isset($_SERVER['REQUEST_METHOD'])?sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'])):'GET';if ($method!=='HEAD') { echo $body; }exit;
     }

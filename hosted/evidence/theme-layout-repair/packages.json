@@ -1,0 +1,28 @@
+{
+  "before": {
+    "version": "0.1.0",
+    "site": {
+      "sha256": "4d90fd2671f6f91caa2257233afe8df2d24905c5fd7ffb329e095f38e544cc06",
+      "filename": "4d90fd2671f6f91caa2257233afe8df2d24905c5fd7ffb329e095f38e544cc06.zip",
+      "bytes": 676719
+    },
+    "runtime": {
+      "sha256": "4d7a41e1ced4c9fbe12948c28162c6c4ed37acdc4c31949d5fba527a011e4b9e",
+      "filename": "4d7a41e1ced4c9fbe12948c28162c6c4ed37acdc4c31949d5fba527a011e4b9e.zip",
+      "bytes": 137438098
+    }
+  },
+  "after": {
+    "version": "0.1.0",
+    "site": {
+      "sha256": "8020813c5388b2e6124df5ca371e03f8f333194362885596c65e703255239503",
+      "filename": "8020813c5388b2e6124df5ca371e03f8f333194362885596c65e703255239503.zip",
+      "bytes": 629140
+    },
+    "runtime": {
+      "sha256": "15c41d33664a762451e0131130f5770e0f5fa146d9aca7939fedee6ac167731f",
+      "filename": "15c41d33664a762451e0131130f5770e0f5fa146d9aca7939fedee6ac167731f.zip",
+      "bytes": 137333591
+    }
+  }
+}

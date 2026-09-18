@@ -12,9 +12,10 @@ final class Export {
         $h=str_pad($name,100,"\0").sprintf('%07o',0600)."\0".str_repeat("0000000\0",2).sprintf('%011o',$size)."\0"."00000000000\0".str_repeat(' ',8).'0'.str_repeat("\0",100)."ustar\00000".str_repeat("\0",80).str_pad($prefix,155,"\0").str_repeat("\0",12);
         $sum=array_sum(unpack('C*',$h));return substr_replace($h,sprintf('%06o',$sum)."\0 ",148,8);
     }
-    private function persist(array $s,int $owner): void { $this->app->store->put('export',$s['export_id'],$s,$owner); }
+    private function persist(array $s,int $owner): void { $this->app->store->put('export',$s['export_id'],$s,$owner,(int)($s['expires']??time()+30*DAY_IN_SECONDS)); }
     private function append(array &$s,string $bytes): void {
         if ($bytes==='') { return; }
+        if (($s['bytes']??0)+strlen($bytes)>Support::QUOTAS['export_bytes']) throw new Failure('export_quota','This export exceeds the supported download size.',413);
         $this->app->vault()->put($s['key'].':'.$s['chunks'],$bytes);$s['chunks']++;$s['bytes']+=strlen($bytes);
     }
     private function plan(array &$job,string $work): array {
@@ -31,7 +32,7 @@ final class Export {
             foreach ($files as $f) { if ($f->isFile()&&!$f->isLink()) { $suffix=is_dir($path)?$rel.'/'.substr($f->getPathname(),strlen($path)+1):$rel;if (preg_match('~(?:^|/)(?:node_modules|dist|\.astro|\.dashless-cache)(?:/|$)|(?:^|/)\.env~',$suffix)) { continue; }$entries[]=['name'=>'source/'.$suffix,'bytes'=>$f->getSize(),'source'=>['path'=>$f->getPathname(),'mtime'=>$f->getMTime()]]; } }
         }
         $this->app->vault()->put('export-plan:'.$id,wp_json_encode($entries));
-        return ['export_id'=>$id,'key'=>'export:'.$id,'complete'=>false,'format'=>'tar','generation'=>$snapshot['generation'],'design_hash'=>$snapshot['design_hash'],'chunks'=>0,'bytes'=>0,'entry'=>0,'offset'=>0,'header_written'=>false,'total_entries'=>count($entries)];
+        return ['export_id'=>$id,'key'=>'export:'.$id,'complete'=>false,'expires'=>time()+30*DAY_IN_SECONDS,'format'=>'tar','generation'=>$snapshot['generation'],'design_hash'=>$snapshot['design_hash'],'chunks'=>0,'bytes'=>0,'entry'=>0,'offset'=>0,'header_written'=>false,'total_entries'=>count($entries)];
     }
     public function step(array &$job,string $work,float $deadline): bool {
         $this->app->active(true);$s=isset($job['export_id'])?($this->app->store->get('export',$job['export_id'])['data']??null):null;

@@ -1,5 +1,7 @@
 # Implement the Dashless ChatGPT app
 
+> Authentication update: use [Auth0 sign-in](../docs/auth0.md). The earlier local OAuth issuer described below is retired; preserve account/site isolation and human approval checks when integrating the new identity flow.
+
 ## Objective
 
 Build the customer-facing ChatGPT app (the “ChatGPT plugin”): remote MCP tools, authenticated preview/build-status/Publish component, supported media transfer and review/submission materials. Extend the existing PHP Hub on WP Cloud. Customers connect existing Dashless accounts; they do not configure infrastructure or buy subscriptions inside ChatGPT.

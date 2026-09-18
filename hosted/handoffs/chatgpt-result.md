@@ -1,5 +1,7 @@
 # ChatGPT app result — 2026-09-16
 
+> Authentication update: use [Auth0 sign-in](../docs/auth0.md). The earlier local OAuth issuer described below is retired; preserve account/site isolation and human approval checks when integrating the new identity flow.
+
 Implemented and tested the customer-facing PHP Hub adapter and MCP Apps component. **Not submitted, not published, and not yet production-ready.** No infrastructure, payment, customer site or public listing was changed. Live checkout gates remain closed.
 
 ## Supported behavior

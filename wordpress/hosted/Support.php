@@ -8,6 +8,7 @@ final class Failure extends \RuntimeException {
 
 final class Support {
     public const VERSION = '0.1.0';
+    public const QUOTAS = ['queued_jobs'=>10,'active_jobs'=>1,'previews'=>5,'upload_bytes'=>20*1024*1024,'private_storage_bytes'=>512*1024*1024,'export_bytes'=>1024*1024*1024,'retained_jobs'=>100];
     /** Stable machine codes stay separate from the words readers and writers see. */
     public static function friendly(string $code,string $fallback): string {
         return [
@@ -50,6 +51,9 @@ final class Support {
             'export_source_missing'=>'An image or file is missing. Please check your library and try again.',
             'export_pending'=>'Your download is still being prepared. Please check back shortly.',
             'retention_expired'=>'The 30-day recovery period has ended. Please contact support.',
+            'capacity_limited'=>'Your blog has reached its current work limit. Please wait for the saved request to finish.',
+            'storage_quota'=>'Your private media storage is full. Remove an upload or wait for cleanup before adding another file.',
+            'export_quota'=>'This download exceeds the supported export size.',
         ][$code]??$fallback;
     }
     public static function uuid(string $id): string {

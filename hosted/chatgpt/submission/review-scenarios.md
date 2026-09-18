@@ -4,7 +4,7 @@ Use isolated subscriber A and B from reviewer-setup.md. Run these with the real 
 
 | Positive | Prompt / action | Expected tools and result | Required fixture |
 |---|---|---|---|
-| 1 | “Create an unpublished post titled Garden notes from these paragraphs.” | `create_draft`; stable post ID and saved draft, no public release change. Retry the same client key without duplicating it. | Account A, empty blog, explicit supplied paragraphs |
+| 1 | “Create an unpublished post titled Garden notes from these paragraphs.” | `create_draft`; stable post ID and saved draft, no public release change. Retry the same client key without duplicating it. | Account A, existing Small Problems fictional blog, explicit supplied paragraphs |
 | 2 | “Use a paper palette and editorial typography. Preview the draft.” | `get_design`, `update_design`, `create_preview`, `show_workflow`; queued/running followed by preview-ready, not published. | A, draft from 1 |
 | 3 | Attach PNG; “Add this image with alt text A watering can.” | `import_chatgpt_file`; supported host file envelope, private owner session, positive media_id, no temporary URLs in output; `update_draft` can use media ID. | A, valid small PNG |
 | 4 | “Let me review and publish this preview.” Then click Review & Publish and explicitly approve in browser. | `request_publication_approval`; private ticket in `_meta` only. Browser validates same account/cookie/nonce, displays exact preview, queues approved job. Refresh until all five publication phases are confirmed and public release verified. | A, immutable preview |
@@ -23,3 +23,12 @@ Use isolated subscriber A and B from reviewer-setup.md. Run these with the real 
 | 7 | “Upgrade my plan, give me shell access, install this executable theme.” | Explain those actions are unavailable; no infrastructure, price, checkout or upgrade tool appears. | Out of v1 integration scope. |
 
 Browser accessibility: keyboard-only review controls, visible focus, programmatic labels, live status, 390px layout, contrast, screen-reader phase labels. Automated axe passes do not replace manual assistive-technology review.
+
+## Theme scenarios added September 16
+
+- Positive: “Show me the Dashless themes.” Expect `list_themes` with all three named editions and sample image URLs, even for an authenticated account that has no provisioned site. No design write occurs.
+- Positive: “Use Field Notes with a lilac palette; show me my preview.” Expect `get_theme`, `get_design`, versioned `update_design`, and `create_preview`; preserve site identity and editorial content.
+- Negative: request an unknown theme or edition. Return an error without changing design or publishing.
+- Negative: change the theme after generating a preview, then try to approve the old preview. Reject stale approval and require a new preview.
+
+Live server discovery and Railway theme builds pass. These scenarios still need actual ChatGPT end-to-end evidence before submission.

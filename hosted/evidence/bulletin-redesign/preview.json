@@ -1,0 +1,31 @@
+{
+  "contract_version": 1,
+  "site_id": 152161766,
+  "job_id": "35ca823f-22ed-40d1-9a7d-8411e17379f0",
+  "kind": "preview",
+  "status": "succeeded",
+  "attempts": 2,
+  "created_at": "2026-09-17T01:03:52+00:00",
+  "saved": true,
+  "preview_ready": true,
+  "published_in_wordpress": false,
+  "deployed": false,
+  "publicly_verified": false,
+  "previous_release_preserved": true,
+  "continuation_required": false,
+  "started_at": "2026-09-17T01:04:20+00:00",
+  "runtime_sha256": "4d7a41e1ced4c9fbe12948c28162c6c4ed37acdc4c31949d5fba527a011e4b9e",
+  "snapshot_generation": 84,
+  "snapshot_counts": {
+    "posts": 7,
+    "pages": 2,
+    "media": 1
+  },
+  "poll_after": 1789607042,
+  "build_driver": "railway",
+  "full_snapshot": true,
+  "html_pages": 22,
+  "preview_id": "d3e0e503-6c15-4c72-b86e-2211825dc445",
+  "finished_at": "2026-09-17T01:04:20+00:00",
+  "message": "Your preview is ready."
+}

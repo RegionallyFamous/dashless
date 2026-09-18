@@ -1,7 +1,11 @@
 ---
-import "../styles/global.css";
-import "../styles/presets.css";
+import globalStyles from "../styles/global.css?url";
+import presetStyles from "../styles/presets.css?url";
+import themeStyles from "../styles/themes.css?url";
+import bulletinStyles from "../styles/bulletin.css?url";
+import { ClientRouter } from "astro:transitions";
 import { config, getNavigation } from "../lib/dashless.mjs";
+import { themeTemplate } from "../lib/theme-registry.mjs";
 
 const {
   title = config.siteName,
@@ -14,7 +18,19 @@ const {
   publishedTime,
   modifiedTime,
 } = Astro.props;
+const bulletin = themeTemplate(config.design) === "bulletin";
+const hypertext = themeTemplate(config.design) === "standard" && ((config.design as any)?.theme_id || "hypertext-diary") === "hypertext-diary";
+const department = new URL(config.publicUrl).hostname === "smallproblems.dashless.blog";
+const demoStyles = [
+  ["bulletin", "Bulletin"],
+  ["hypertext-diary", "Hypertext Diary"],
+  ["field-notes", "Field Notes"],
+  ["after-hours", "After Hours"],
+  ["sunroom", "Sunroom"],
+  ["mono-press", "Mono Press"],
+] as const;
 const canonical = new URL(Astro.url.pathname, config.publicUrl).toString();
+const pageKind = article ? "article" : Astro.url.pathname === "/" ? "home" : Astro.url.pathname.startsWith(`/${config.postsPath}/`) ? "archive" : Astro.url.pathname.startsWith("/search/") ? "search" : Astro.url.pathname.startsWith(`/${config.topicsPath}/`) || Astro.url.pathname.startsWith(`/${config.tagsPath}/`) ? "taxonomy" : Astro.url.pathname === "/404.html" ? "404" : "page";
 const displayHost = new URL(config.publicUrl).hostname || "localhost";
 const navigation = await getNavigation();
 const isCurrent = (url: string) => url === "/" ? Astro.url.pathname === "/" : Astro.url.pathname.startsWith(url);
@@ -40,12 +56,20 @@ const structuredData = article ? {
 ---
 
 <!doctype html>
-<html lang={config.language || "en"} data-palette={config.design?.palette} data-type={config.design?.typography} data-layout={config.design?.layout}>
+<html lang={config.language || "en"} data-design={config.design && "theme_id" in config.design ? String(config.design.theme_id) : "hypertext-diary"} data-palette={config.design?.palette} data-type={config.design?.typography} data-layout={config.design?.layout} data-demo-site={department ? "small-problems" : undefined}>
   <head>
     <meta charset="UTF-8" />
+    {department && <script is:inline>{`(() => {
+      const allowed = new Set(["bulletin", "hypertext-diary", "field-notes", "after-hours", "sunroom", "mono-press"]);
+      let style = new URL(location.href).searchParams.get("style");
+      if (!style) { try { style = localStorage.getItem("small-problems-style"); } catch {} }
+      if (style && allowed.has(style)) document.documentElement.dataset.demoStyle = style;
+    })();`}</script>}
+    {(bulletin ? [bulletinStyles] : [globalStyles, presetStyles, themeStyles]).map(href => <link rel="stylesheet" href={href} />)}
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="color-scheme" content="light dark" />
+    <ClientRouter fallback="swap" />
     <title>{title === config.siteName ? title : `${title} · ${config.siteName}`}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex,follow" />}
@@ -81,23 +105,24 @@ const structuredData = article ? {
     <script is:inline>
       try {
         const saved = localStorage.getItem("dashless-theme");
-        const dark = saved ? saved === "dark" : document.documentElement.dataset.palette === "night" || matchMedia("(prefers-color-scheme: dark)").matches;
+        const dark = saved ? saved === "dark" : document.documentElement.dataset.palette === "night" || (document.documentElement.dataset.design !== "bulletin" && matchMedia("(prefers-color-scheme: dark)").matches);
         if (dark) document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
   </head>
-  <body data-teddy={usesTeddyMark ? "true" : undefined}>
+<body data-page={pageKind} data-teddy={usesTeddyMark ? "true" : undefined} data-theme-shell={department ? "edition-v2" : undefined}>
+    {department && <div class="style-lab-dock" id="style-lab" aria-label="Small Problems style lab"><span class="style-lab-label">STYLE LAB</span><div class="style-lab-buttons" role="group" aria-label="Preview publication styles">{demoStyles.map(([id, name]) => <button type="button" data-demo-style={id} aria-pressed={id === "bulletin" ? "true" : "false"}>{name}</button>)}</div></div>}
     <a class="skip-link" href="#main-content">Skip to content</a>
-    <div class="page-grid" aria-hidden="true"></div>
-    <div class="site-frame">
-      <header class="site-header">
+    {!bulletin && <div class="page-grid" aria-hidden="true"></div>}
+    <div class={bulletin ? "bulletin-frame" : "site-frame"}>
+      {bulletin ? <header class="bulletin-header"><a class="bulletin-brand" href="/" data-astro-prefetch aria-label={`${config.siteName} — home`}><span class="bulletin-emblem" aria-hidden="true">✳</span><span>{department && <small>The Department of</small>}<strong>{department ? 'Small Problems' : config.siteName}</strong></span></a><div class="edition-identity" aria-hidden="true"><span data-edition="bulletin">THE DEPARTMENT BULLETIN</span><span data-edition="hypertext-diary">SMALL PROBLEMS / ONLINE</span><span data-edition="field-notes">FIELD NOTES · VOL. 04</span><span data-edition="after-hours">AFTER HOURS // LIVE</span><span data-edition="sunroom">A QUIET EDITION</span><span data-edition="mono-press">SMALL PROBLEMS DAILY</span></div><nav aria-label="Main navigation">{navigation.map((item:any)=><a href={item.url} data-astro-prefetch aria-current={isCurrent(item.url)?'page':undefined}>{item.label.toLowerCase() === 'latest' ? 'Home' : item.label.charAt(0).toUpperCase()+item.label.slice(1).toLowerCase()}</a>)}<button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme">NIGHT MODE</button></nav></header> : <header class="site-header">
         <div class="browser-bar">
           <div class="browser-dots" aria-hidden="true"><span></span><span></span><span></span></div>
           <p><span aria-hidden="true">⌂</span> https://{displayHost}{Astro.url.pathname}</p>
           <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme">NIGHT MODE</button>
         </div>
         <div class="masthead">
-          <a class:list={["wordmark", { "has-teddy-mark": usesTeddyMark }]} href="/" aria-label={`${config.siteName} — home`}>
+          <a class:list={["wordmark", { "has-teddy-mark": usesTeddyMark }]} href="/" data-astro-prefetch aria-label={`${config.siteName} — home`}>
             {config.logo ? <span class="wordmark-logo"><img src={config.logo} alt="" width="60" height="60" /></span> : usesTeddyMark ? (
               <span class="wordmark-logo" aria-hidden="true"><img src="/teddy-logo.png" alt="" width="512" height="512" /></span>
             ) : (
@@ -106,24 +131,34 @@ const structuredData = article ? {
             <span class="wordmark-name">{config.siteName}</span>
           </a>
           <nav aria-label="Main navigation">
-            {navigation.map((item: any) => <a href={item.url} aria-current={isCurrent(item.url) ? "page" : undefined}>{item.label}</a>)}
+            {navigation.map((item: any) => <a href={item.url} data-astro-prefetch aria-current={isCurrent(item.url) ? "page" : undefined}>{item.label}</a>)}
           </nav>
         </div>
         <div class="signal-strip" aria-label="Site status">
           <span><i aria-hidden="true"></i> {config.siteName.toUpperCase()} IS ONLINE</span>
           <span aria-hidden="true">✦ FRESH POSTS ✦ STRANGE LINKS ✦ GOOD INTERNET ✦</span>
-          <a href="/rss.xml">RSS FEED ↗</a>
+          <a href="/rss.xml" data-astro-reload>RSS FEED ↗</a>
         </div>
-      </header>
+      </header>}
+      {(hypertext || department) && <aside class="hypertext-rail" aria-label="Quick navigation">
+        <nav>
+          <a href="/" data-astro-prefetch aria-current={Astro.url.pathname === "/" ? "page" : undefined}><span aria-hidden="true">⌂</span> Home</a>
+          <a href={`/${config.postsPath}/`} data-astro-prefetch aria-current={Astro.url.pathname.startsWith(`/${config.postsPath}/`) ? "page" : undefined}><span aria-hidden="true">▣</span> Archive</a>
+          <a href={`/${config.topicsPath}/`} data-astro-prefetch aria-current={Astro.url.pathname.startsWith(`/${config.topicsPath}/`) ? "page" : undefined}><span aria-hidden="true">▤</span> Topics</a>
+          <a href="/search/" data-astro-prefetch aria-current={Astro.url.pathname.startsWith("/search/") ? "page" : undefined}><span aria-hidden="true">⌕</span> Search</a>
+          <a href="/404.html"><span aria-hidden="true">☻</span> 404</a>
+        </nav>
+        <div class="hypertext-rail-note"><span aria-hidden="true">▰</span><p>Small things<br />last longer<br />here.</p></div>
+      </aside>}
       <main id="main-content"><slot /></main>
-      <footer class="site-footer">
+      {bulletin ? <footer class="bulletin-footer"><p><strong>{config.siteName}</strong><br/>{department ? 'No concern too minor. No investigation on schedule.' : config.siteDescription}</p><div><a href="/rss.xml">RSS</a><a href="#main-content">Back to top ↑</a></div></footer> : <footer class="site-footer">
         <div>{usesTeddyMark ? <img class="footer-teddy" src="/teddy-logo.png" alt="" width="512" height="512" /> : <span class="footer-star" aria-hidden="true">✦</span>}<p><strong>{config.siteName}</strong><br />A small corner of the big internet.</p></div>
-        <p>Made with curiosity and unreasonable enthusiasm.<br /><a href="/rss.xml">Subscribe via RSS</a> · <a href="#main-content">Back to top ↑</a></p>
+        <p>Made with curiosity and unreasonable enthusiasm.<br /><a href="/rss.xml" data-astro-reload>Subscribe via RSS</a> · <a href="#main-content">Back to top ↑</a></p>
         <div class="footer-curiosities">
           <div class="web-badge" aria-label="Independent website"><span>WORLD</span><strong>WIDE WEB</strong><small>BEST VIEWED WITH CURIOSITY</small></div>
           <button class="oddity-switch" id="oddity-switch" type="button" aria-pressed="false" title="There may be another way in">DO NOT PRESS</button>
         </div>
-      </footer>
+      </footer>}
     </div>
     {usesTeddyMark && <Fragment set:html="<!-- You found the source-code tunnel. Try typing T-E-D-D-Y. -->" />}
     <div class="oddity-layer" id="oddity-layer" aria-hidden="true" hidden>
@@ -134,7 +169,7 @@ const structuredData = article ? {
       <p><strong>TEDDY HAS ENTERED THE BROWSER</strong><small>Please remain mostly calm.</small></p>
     </div>}
     <script>
-      (() => {
+      const initDashless = () => {
         const button = document.querySelector<HTMLButtonElement>("#theme-toggle");
         const themeColor = document.querySelector("#theme-color");
         const colorPreference = matchMedia("(prefers-color-scheme: dark)");
@@ -145,20 +180,54 @@ const structuredData = article ? {
           button.setAttribute("aria-pressed", String(dark));
           button.setAttribute("aria-label", dark ? "Switch to day mode" : "Switch to night mode");
           button.title = dark ? "Lights on" : "Lights off";
-          if (themeColor) themeColor.setAttribute("content", dark ? "#111024" : "#4757ff");
+          if (themeColor) themeColor.setAttribute("content", document.documentElement.dataset.design === "bulletin" ? (dark ? "#1d2421" : "#f6f3ec") : (dark ? "#111024" : "#4757ff"));
         };
         sync();
-        button?.addEventListener("click", () => {
-          const useDarkTheme = document.documentElement.dataset.theme !== "dark";
-          document.documentElement.dataset.theme = useDarkTheme ? "dark" : "light";
-          try { localStorage.setItem("dashless-theme", useDarkTheme ? "dark" : "light"); } catch {}
-          sync();
-        });
-        colorPreference.addEventListener("change", (event) => {
-          try { if (localStorage.getItem("dashless-theme") !== null) return; } catch {}
-          document.documentElement.dataset.theme = event.matches ? "dark" : "light";
-          sync();
-        });
+        if (button && button.dataset.dashlessBound !== "true") {
+          button.dataset.dashlessBound = "true";
+          button.addEventListener("click", () => {
+            const useDarkTheme = document.documentElement.dataset.theme !== "dark";
+            document.documentElement.dataset.theme = useDarkTheme ? "dark" : "light";
+            try { localStorage.setItem("dashless-theme", useDarkTheme ? "dark" : "light"); } catch {}
+            sync();
+          });
+        }
+        if (!dashlessWindow.__dashlessColorPreferenceBound) {
+          dashlessWindow.__dashlessColorPreferenceBound = true;
+          colorPreference.addEventListener("change", (event) => {
+            try { if (localStorage.getItem("dashless-theme") !== null) return; } catch {}
+            document.documentElement.dataset.theme = event.matches ? "dark" : "light";
+            sync();
+          });
+        }
+
+        const styleSwitcher = document.querySelector<HTMLDetailsElement>("#style-switcher");
+        const styleButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-demo-style]")];
+        const validStyles = new Set(styleButtons.map((item) => item.dataset.demoStyle));
+        const syncDemoStyle = (style: string) => {
+          if (!validStyles.has(style)) return;
+          document.documentElement.dataset.demoStyle = style;
+          styleButtons.forEach((item) => item.setAttribute("aria-pressed", String(item.dataset.demoStyle === style)));
+          try { localStorage.setItem("small-problems-style", style); } catch {}
+          const url = new URL(location.href);
+          url.searchParams.set("style", style);
+          history.replaceState({}, "", url);
+        };
+        if (styleButtons.length) {
+          let savedStyle = new URL(location.href).searchParams.get("style") || "bulletin";
+          if (!new URL(location.href).searchParams.has("style")) {
+            try { savedStyle = localStorage.getItem("small-problems-style") || savedStyle; } catch {}
+          }
+          syncDemoStyle(savedStyle);
+          styleButtons.forEach((item) => {
+            if (item.dataset.dashlessBound === "true") return;
+            item.dataset.dashlessBound = "true";
+            item.addEventListener("click", () => {
+              syncDemoStyle(item.dataset.demoStyle || "bulletin");
+              if (styleSwitcher) styleSwitcher.open = false;
+            });
+          });
+        }
 
         const oddityButton = document.querySelector<HTMLButtonElement>("#oddity-switch");
         const oddityLayer = document.querySelector<HTMLElement>("#oddity-layer");
@@ -185,16 +254,25 @@ const structuredData = article ? {
             oddityToast.hidden = true;
           }
         };
-        oddityButton?.addEventListener("click", () => setOddity(document.body.dataset.oddity !== "true"));
+        if (oddityButton && oddityButton.dataset.dashlessBound !== "true") {
+          oddityButton.dataset.dashlessBound = "true";
+          oddityButton.addEventListener("click", () => setOddity(document.body.dataset.oddity !== "true"));
+        }
 
-        let secretBuffer = "";
-        if (oddityToast) document.addEventListener("keydown", (event) => {
-          const target = event.target as HTMLElement | null;
-          if (event.metaKey || event.ctrlKey || event.altKey || target?.matches("input, textarea, select, [contenteditable='true']")) return;
-          if (event.key.length !== 1) return;
-          secretBuffer = `${secretBuffer}${event.key.toLowerCase()}`.slice(-5);
-          if (secretBuffer === "teddy") setOddity(true);
-        });
+        if (!dashlessWindow.__dashlessSecretBound) {
+          dashlessWindow.__dashlessSecretBound = true;
+          let secretBuffer = "";
+          document.addEventListener("keydown", (event) => {
+            const target = event.target as HTMLElement | null;
+            if (event.metaKey || event.ctrlKey || event.altKey || target?.matches("input, textarea, select, [contenteditable='true']")) return;
+            if (event.key.length !== 1) return;
+            secretBuffer = `${secretBuffer}${event.key.toLowerCase()}`.slice(-5);
+            if (secretBuffer !== "teddy") return;
+            if (!document.querySelector("#teddy-sighting")) return;
+            const currentOddityButton = document.querySelector<HTMLButtonElement>("#oddity-switch");
+            if (currentOddityButton?.getAttribute("aria-pressed") !== "true") currentOddityButton?.click();
+          });
+        }
 
         const replaceBrokenImage = (image: HTMLImageElement) => {
           if (!image.isConnected || image.dataset.fallbackReady === "true") return;
@@ -234,7 +312,17 @@ const structuredData = article ? {
           image.addEventListener("error", () => markMediaMissing(image), { once: true });
           if (image.complete && image.naturalWidth === 0) markMediaMissing(image);
         });
-      })();
+      };
+      const dashlessWindow = window as Window & {
+        __dashlessSiteInit?: boolean;
+        __dashlessColorPreferenceBound?: boolean;
+        __dashlessSecretBound?: boolean;
+      };
+      if (!dashlessWindow.__dashlessSiteInit) {
+        dashlessWindow.__dashlessSiteInit = true;
+        document.addEventListener("astro:page-load", initDashless);
+      }
+      initDashless();
     </script>
   </body>
 </html>

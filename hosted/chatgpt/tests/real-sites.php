@@ -2,25 +2,25 @@
 /** Real local Hub -> HTTP site REST -> native Astro -> HTTP public verification. No WP Cloud/ChatGPT claim. */
 require dirname(__DIR__,2).'/tests/integration.php';
 use Dashless\Hub\{App,Agent,Cloud,Crypto,Config,Jobs,Mcp,Previews};
-$baseline=$passed;$oauthQuery=$query;remove_all_filters('pre_http_request');
+$baseline=$passed;remove_all_filters('pre_http_request');Auth0Fixture::hook();
 function localCommand(array $command): string {
  $p=proc_open($command,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);fclose($pipes[0]);$out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$status=proc_close($p);
  if($status!==0)throw new RuntimeException('Local fixture command failed: '.substr($err,-1500).' '.substr($out,-1500));return $out;
 }
 $origins=[];$accounts=[];$credentials=[];$tokenByOwner=[];$rootByOwner=[];
 foreach(['a'=>8892,'b'=>8893] as $letter=>$port){
- $name='chatgpt-real-'.$letter;$u=get_user_by('login',$name);$owner=(int)($u?$u->ID:wp_insert_user(['user_login'=>$name,'user_email'=>$name.'@example.test','user_pass'=>wp_generate_password(48),'role'=>'subscriber']));update_user_meta($owner,'dashless_email_verified',true);update_user_meta($owner,'dashless_wpcom_id','fixture-'.$owner);
+ $name='chatgpt-real-'.$letter;$u=get_user_by('login',$name);$owner=(int)($u?$u->ID:wp_insert_user(['user_login'=>$name,'user_email'=>$name.'@example.test','user_pass'=>wp_generate_password(48),'role'=>'subscriber']));Auth0Fixture::bind($owner,'auth0|fixture-'.$owner);
  $secret=bin2hex(random_bytes(32));$file=tempnam('/tmp','dashless-fixture-secret-');chmod($file,0600);file_put_contents($file,$secret);
  $siteRoot='/tmp/dashless-site-test-chatgpt-'.$letter;$origin='http://localhost:'.$port;
  try{localCommand(['php',dirname(__DIR__,2).'/site-tests/configure.php',$siteRoot,(string)(880000+$owner),(string)$owner,$file,$origin]);}finally{unlink($file);}
  localCommand(['php',__DIR__.'/prepare-site.php',$siteRoot]);
  $a=['user_id'=>$owner,'state'=>'ready','entitlement'=>'active','site_id'=>880000+$owner,'slug'=>$name,'domain'=>$name.'.dashless.blog','site_secret'=>Crypto::seal($secret)];$identity->save($a);$accounts[]=$a;$origins[$a['domain']]=$origin;$credentials[$owner]=$secret;$rootByOwner[$owner]=$siteRoot;
- $location=$oauth->approve($oauthQuery,$owner,true)->getHeaderLine('Location');parse_str(parse_url($location,PHP_URL_QUERY),$authResponse);
- $tokens=json_decode((string)$oauth->token(['grant_type'=>'authorization_code','client_id'=>'chatgpt-fixture','code'=>$authResponse['code'],'redirect_uri'=>$oauthQuery['redirect_uri'],'code_verifier'=>$verifier,'resource'=>Config::resource()])->getBody(),true);$tokenByOwner[$owner]=$tokens['access_token'];
- check($oauth->authenticate('Bearer '.$tokens['access_token'])['owner']===$owner,'real site owner connected using local OAuth');
+ $tokenByOwner[$owner]=Auth0Fixture::access($owner);
+ check($oauth->authenticate('Bearer '.$tokenByOwner[$owner])['owner']===$owner,'real site owner connected using RSA-verified Auth0 fixture token');
 }
 $image=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jM1sAAAAASUVORK5CYII=');
 add_filter('pre_http_request',function($pre,$args,$url)use($origins,$image){
+ if($pre!==false)return $pre;
  $host=parse_url($url,PHP_URL_HOST);
  if(isset($origins[$host]))return wp_remote_request($origins[$host].parse_url($url,PHP_URL_PATH).(parse_url($url,PHP_URL_QUERY)?'?'.parse_url($url,PHP_URL_QUERY):''),$args);
  if($url==='https://files.oaiusercontent.com/fixture.png')return ['headers'=>[],'body'=>$image,'response'=>['code'=>200,'message'=>'OK'],'cookies'=>[]];

@@ -1,0 +1,28 @@
+{
+  "purpose": "Owner-designated Small Problems reviewer fixture, adopted into the hosted runtime and linked to the dedicated reviewer identity",
+  "site": {
+    "title": "The Department of Small Problems",
+    "url": "https://smallproblems.dashless.blog/",
+    "wpcloud_site_id": 152161766,
+    "reviewer_username": "metestdc972072fd",
+    "content_source": "examples/small-problems/demo/content.mjs",
+    "preserve_existing_content": true
+  },
+  "draft": {
+    "title": "Garden notes",
+    "content": "<p>Today I planted basil in a blue pot. I moved it beside the kitchen window and wrote down a simple watering schedule.</p>",
+    "status": "draft"
+  },
+  "theme": {
+    "id": "field-notes",
+    "version": 1
+  },
+  "requirements": [
+    "Sign in through the real Auth0 Universal Login flow",
+    "Sign in with the dedicated reviewer identity using the configured Auth0 email method",
+    "Use the already-adopted hosted site with its imported fictional stories/pages/media and complimentary test entitlement",
+    "Use the published hosted release; its prior static demo archive is retained for recovery",
+    "Use the supplied draft for the five portal tests",
+    "Use a second isolated tenant for privacy testing without sharing its real credentials with reviewers"
+  ]
+}

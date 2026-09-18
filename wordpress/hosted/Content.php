@@ -15,6 +15,18 @@ final class Content {
     public function design(): array {
         return $this->app->store->get('design','current')['data']??['version'=>0,'palette'=>'paper','typography'=>'editorial','layout'=>'journal','site_title'=>get_bloginfo('name'),'description'=>get_bloginfo('description'),'logo_media_id'=>0,'navigation'=>[]];
     }
+    public function themes(): array {
+        return Support::json(is_file(__DIR__.'/themes.json') ? __DIR__.'/themes.json' : dirname(__DIR__,2).'/templates/astro/src/lib/themes.json');
+    }
+    public function theme(string $id): array {
+        foreach ($this->themes() as $theme) { if ($theme['id']===$id) { return $theme; } }
+        throw new Failure('theme_missing','That theme is not available. Use list_themes.',404);
+    }
+    public function themePreview(array $theme): array {
+        $theme['preview_image']=plugins_url('theme-previews/'.$theme['preview_image'],__FILE__);
+        $theme['preview_note']='Illustrative sample content. Use create_preview to see your own site before publishing.';
+        return $theme;
+    }
     public function post(string $type,int $id): array {
         $p=get_post($id);
         if (!$p || !in_array($type,['post','page'],true) || $p->post_type!==$type || $p->post_status==='trash') { throw new Failure('post_missing','The WordPress item was not found.',404); }
@@ -103,11 +115,18 @@ final class Content {
                 if (is_wp_error(wp_update_post(wp_slash($p),true))) { throw new Failure('save_failed','WordPress could not save the media details.',503); }
                 if (isset($a['alt_text'])) { update_post_meta($a['id'],'_wp_attachment_image_alt',sanitize_text_field($a['alt_text'])); }
                 return ['saved'=>true,'media'=>$this->media($a['id'])];
+            case 'list_themes': return ['themes'=>array_map(fn($theme)=>$this->themePreview($theme),$this->themes())];
+            case 'get_theme': return $this->themePreview($this->theme($a['theme_id']));
             case 'get_design': return $this->design();
             case 'update_design':
                 $design=$this->design();
                 if ($design['version']!==$a['expected_version']) { throw new Failure('stale_design','The design changed. Read the current version before editing.'); }
                 $changes=$a['changes'];
+                if (isset($changes['theme_id']) || isset($changes['theme_version'])) {
+                    $theme=$this->theme($changes['theme_id']??'');
+                    if (($changes['theme_version']??null)!==$theme['version']) { throw new Failure('theme_version','Read get_theme and use its current version.',400); }
+                    $changes=array_replace($theme['defaults'],$changes);
+                }
                 foreach (['site_title','description'] as $key) { if (isset($changes[$key])) { $changes[$key]=sanitize_text_field($changes[$key]); } }
                 if (!empty($changes['logo_media_id'])) { $this->media($changes['logo_media_id']); }
                 foreach ($changes['navigation']??[] as &$link) { $this->post('page',$link['page_id']);$link['label']=sanitize_text_field($link['label']); }unset($link);

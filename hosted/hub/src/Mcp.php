@@ -48,7 +48,7 @@ final class Mcp {
             $a=$this->identity->account($owner);
             if($name==='list_themes')return self::result(['themes'=>Themes::catalog()]);
             if($name==='get_theme')return self::result(Themes::get($args['theme_id']));
-            if($name==='get_status')return self::result(['state'=>$a['state'],'entitlement'=>$a['entitlement']??'none','site_url'=>isset($a['domain'])?'https://'.$a['domain']:null,'ready'=>$a['state']==='ready']);
+            if($name==='get_status')return self::result(['state'=>$a['state'],'entitlement'=>$a['entitlement']??'none','site_url'=>isset($a['public_domain'])?'https://'.$a['public_domain']:(isset($a['domain'])?'https://'.$a['domain']:null),'platform_site_url'=>isset($a['domain'])?'https://'.$a['domain']:null,'ready'=>$a['state']==='ready']);
             if(!in_array($a['entitlement']??'',['active','grace'],true) && !in_array($name,['export_site','get_job','show_workflow'],true))throw new Failure('subscription_inactive','This account does not currently include editing access.',403);
             if($a['state']!=='ready' && !(in_array($name,['export_site','get_job','show_workflow'],true) && $a['state']==='suspended'))throw new Failure('site_not_ready','Your site is not ready for this action.',409);
             if(in_array($name,['get_job','show_workflow'],true)) {

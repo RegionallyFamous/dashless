@@ -1,0 +1,41 @@
+{
+  "checked_at": "2026-09-16T16:51:07.995Z",
+  "origin": "https://dashless.blog",
+  "checks": [
+    {
+      "check": "registered client reaches sign-in",
+      "passed": true
+    },
+    {
+      "check": "wrong client rejected",
+      "passed": true
+    },
+    {
+      "check": "wrong redirect rejected",
+      "passed": true
+    },
+    {
+      "check": "wrong resource rejected",
+      "passed": true
+    },
+    {
+      "check": "plain PKCE rejected",
+      "passed": true
+    },
+    {
+      "check": "missing state rejected",
+      "passed": true
+    },
+    {
+      "check": "unknown scope rejected",
+      "passed": true
+    },
+    {
+      "check": "invalid code rejected",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "No account sign-in, consent, token issuance, refresh or actual ChatGPT linking is exercised."
+  ]
+}

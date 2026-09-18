@@ -1,0 +1,50 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "release": "20260916T181244000Z-35a1b5",
+    "bytes": 13778
+  },
+  {
+    "path": "/stories/",
+    "status": 200,
+    "release": "20260916T181244000Z-35a1b5",
+    "bytes": 11969
+  },
+  {
+    "path": "/stories/seven-objects-on-the-chair/",
+    "status": 200,
+    "release": "20260916T181244000Z-35a1b5",
+    "bytes": 11658
+  },
+  {
+    "path": "/about/",
+    "status": 200,
+    "release": "20260916T181244000Z-35a1b5",
+    "bytes": 9300
+  },
+  {
+    "path": "/search/",
+    "status": 200,
+    "release": "20260916T181244000Z-35a1b5",
+    "bytes": 15652
+  },
+  {
+    "path": "/topics/",
+    "status": 200,
+    "release": "20260916T181244000Z-35a1b5",
+    "bytes": 7878
+  },
+  {
+    "path": "/rss.xml",
+    "status": 200,
+    "release": "20260916T181244000Z-35a1b5",
+    "bytes": 3101
+  },
+  {
+    "path": "/about/staff/",
+    "status": 200,
+    "release": "20260916T181244000Z-35a1b5",
+    "bytes": 8879
+  }
+]

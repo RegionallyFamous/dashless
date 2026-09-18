@@ -1,0 +1,10 @@
+{
+  "name": "dashless-oauth-discovery",
+  "main": "worker.mjs",
+  "account_id": "e5e0c8aa371205879d059040e25ef0b6",
+  "compatibility_date": "2026-09-16",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "dashless.blog/.well-known/*", "zone_name": "dashless.blog" }
+  ]
+}

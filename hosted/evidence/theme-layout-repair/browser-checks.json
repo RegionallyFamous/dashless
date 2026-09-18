@@ -1,0 +1,218 @@
+[
+  {
+    "port": 8891,
+    "width": 320,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 320,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 320,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 390,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 390,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 390,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 768,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 768,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 768,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 1280,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 1280,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8891,
+    "width": 1280,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 320,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 320,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 320,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 390,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 390,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 390,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 768,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 768,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 768,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 1280,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 1280,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8892,
+    "width": 1280,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 320,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 320,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 320,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 390,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 390,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 390,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 768,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 768,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 768,
+    "route": "/stories/story-1/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 1280,
+    "route": "/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 1280,
+    "route": "/stories/",
+    "issues": []
+  },
+  {
+    "port": 8893,
+    "width": 1280,
+    "route": "/stories/story-1/",
+    "issues": []
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "before": {
+    "version": "0.1.0",
+    "site": {
+      "sha256": "8020813c5388b2e6124df5ca371e03f8f333194362885596c65e703255239503",
+      "filename": "8020813c5388b2e6124df5ca371e03f8f333194362885596c65e703255239503.zip",
+      "bytes": 629140
+    },
+    "runtime": {
+      "sha256": "15c41d33664a762451e0131130f5770e0f5fa146d9aca7939fedee6ac167731f",
+      "filename": "15c41d33664a762451e0131130f5770e0f5fa146d9aca7939fedee6ac167731f.zip",
+      "bytes": 137333591
+    }
+  },
+  "after": {
+    "version": "0.1.0",
+    "site": {
+      "sha256": "1752c605a5c5a0a36a4202aea0aadb9b4c05c17865965fa8ffe240ad677d535c",
+      "filename": "1752c605a5c5a0a36a4202aea0aadb9b4c05c17865965fa8ffe240ad677d535c.zip",
+      "bytes": 736169
+    },
+    "runtime": {
+      "sha256": "9665dac057a427650cf5b7e6f2ad00a1c55c7f37d24c486fb6209077a941dbd3",
+      "filename": "9665dac057a427650cf5b7e6f2ad00a1c55c7f37d24c486fb6209077a941dbd3.zip",
+      "bytes": 137339078
+    }
+  }
+}

@@ -118,3 +118,13 @@ It can replace Dashless magic-link login, while retaining Hub account/subscripti
 ## Subsequent account and demo deployment
 
 WordPress.com-only customer sign-in and the live Small Problems example are now deployed. The homepage includes real screenshots and a live-demo link. See [deployment record](../hosted/docs/wpcom-demo-deployment-2026-09-16.md) for validation and remaining launch scope.
+
+## Subsequent theme release and live submission audit
+
+The named theme catalog, Hub/ChatGPT adapter, immutable customer packages and patched Railway builder are deployed. See the [theme deployment record](../hosted/docs/themes-deployment-2026-09-16.md) and [current submission blockers](../hosted/chatgpt/submission/readiness.md). Public discovery now exposes 28 tools. Live testing confirmed that ChatGPT OAuth configuration and a support contact are absent, policies remain drafts, and the domain challenge is missing. Neither public submission nor paid launch is approved by these deployment checks.
+
+## Submission draft follow-up
+
+Production Hub package `a1afdce658948e0a42c5b626907a0ecbdf6e2b0dbb6cea2d33783d1e1b03e3e1` installed successfully (WP Cloud task 759299). Public policies now identify Izzi’s Gym LLC DBA Regionally Famous, South Dakota, USA. Support forwarding is active. OAuth signing keys and a public PKCE client are configured using the actual portal callback. Anonymous GET and empty POST return metadata challenges. Final validation: 92 syntax checks, 19 local HTTP checks and live public readiness checks pass; 105 integration checks and eight OAuth entry checks passed earlier. Temporary deployment and discovery MU plugins were removed.
+
+The real OpenAI draft contains listing material, scenarios and Allow all availability. Business verification now shows Approved in Organization Settings; the matching identity still needs selection in the draft. The portal still cannot discover OAuth metadata (`oauth_config: null`; “OAuth configuration not found”). Domain token/scan, one dedicated reviewer account, provisioned review fixture, real ChatGPT journeys and demo recording remain incomplete. A second identity is for internal isolation testing, not a requirement for two reviewer logins. No final attestation, submission or publication occurred. These improvements do not resolve the remaining billing/capacity/restore and operational launch gates above. See hosted/chatgpt/submission/readiness.md for current submission status.

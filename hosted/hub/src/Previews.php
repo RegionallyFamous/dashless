@@ -36,7 +36,7 @@ final class Previews {
         });
     }
     public function screen(): string {
-        if(!is_user_logged_in() || !Identity::verified(get_current_user_id()))return '<p>Sign in to view a private preview, then reopen this preview link.</p><a class="dl-button" href="'.esc_url(home_url('/sign-in/')).'">Sign in →</a>';
+        if(!is_user_logged_in() || !Identity::verified(get_current_user_id()))return '<p>Sign in to view your private preview.</p><a class="dl-button" href="'.esc_url(add_query_arg('return',Identity::returnPath((string)wp_unslash($_SERVER['REQUEST_URI']??'')),Config::origin().'/auth/login')).'">Sign in →</a>';
         try {
             nocache_headers();
             if(!headers_sent()){header('Referrer-Policy: no-referrer');header('X-Frame-Options: DENY');}

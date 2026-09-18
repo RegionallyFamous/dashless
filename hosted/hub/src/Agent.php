@@ -18,7 +18,11 @@ class Agent {
         return $body;
     }
     public function publicHealth(array $a,string $release): bool {
-        $r=wp_remote_get('https://'.$a['domain'].'/?dashless_verify='.rawurlencode($release),['timeout'=>10,'redirection'=>0,'headers'=>['Cache-Control'=>'no-cache']]);
+        return $this->publicHealthFor((string)$a['domain'], $release);
+    }
+    public function publicHealthFor(string $domain,string $release): bool {
+        $domain=Domains::normalize($domain);
+        $r=wp_remote_get('https://'.$domain.'/?dashless_verify='.rawurlencode($release),['timeout'=>10,'redirection'=>0,'headers'=>['Cache-Control'=>'no-cache']]);
         return !is_wp_error($r) && wp_remote_retrieve_response_code($r)===200 && hash_equals($release,(string)wp_remote_retrieve_header($r,'x-dashless-release'));
     }
 }

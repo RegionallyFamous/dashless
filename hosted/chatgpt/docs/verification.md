@@ -1,5 +1,7 @@
 # Verification — 2026-09-16
 
+> Authentication results below are historical. The September 17 Auth0 migration supersedes the local OAuth issuer; see [current setup and cutover checklist](../../docs/auth0.md). Fresh local authentication results are recorded in [Auth0 verification](../../docs/auth0-verification-2026-09-17.md). Live login remains a separate acceptance step.
+
 ## Executed
 
 | Check | Result | Boundary |

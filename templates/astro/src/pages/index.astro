@@ -1,14 +1,18 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
+import BulletinHome from "../components/BulletinHome.astro";
 import StoryCard from "../components/StoryCard.astro";
+import { themeTemplate } from "../lib/theme-registry.mjs";
 import { config, getCategories, getPages, getPosts, plainText } from "../lib/dashless.mjs";
 
 const [posts, pages, categories] = await Promise.all([getPosts(), getPages(), getCategories()]);
 const [lead, ...remaining] = posts.slice(0, 10);
 const homePage = pages.find((page: any) => page.isHome);
+const template = themeTemplate(config.design);
 ---
 
 <SiteLayout digest={homePage?.digest}>
+  {template === "bulletin" ? <BulletinHome posts={posts} categories={categories}/> : <>
   <section class="hero retro-window">
     <div class="window-bar"><span>Home</span><span aria-hidden="true">— □ ×</span></div>
     <div class="hero-copy">
@@ -47,4 +51,5 @@ const homePage = pages.find((page: any) => page.isHome);
   ) : (
     <section class="empty-state retro-window"><div class="window-bar"><span>Stories</span><span>×</span></div><h2>No published stories yet.</h2><p>New stories will appear here when they are published.</p></section>
   )}
+</>}
 </SiteLayout>

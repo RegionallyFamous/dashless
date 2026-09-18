@@ -1,0 +1,39 @@
+{
+  "time": "2026-09-18T15:02:00Z",
+  "provider": "WP Cloud",
+  "client": "ultrarare",
+  "site_id": 152161766,
+  "site": "smallproblems.dashless.blog",
+  "site_package": {
+    "sha256": "4eb8fdcbae26393c41946b874f0058bd8986b1698d90087fff14f37d3ab82738",
+    "url": "https://dashless.blog/wp-content/dashless-packages/4eb8fdcbae26393c41946b874f0058bd8986b1698d90087fff14f37d3ab82738.zip",
+    "live_sha256_verified": true
+  },
+  "runtime_package": {
+    "sha256": "1a5bb9d5b0bd64c53652ffc7da660384bd8260688495f9b3ffd9e97da697198f",
+    "url": "https://dashless.blog/wp-content/dashless-packages/1a5bb9d5b0bd64c53652ffc7da660384bd8260688495f9b3ffd9e97da697198f.zip",
+    "live_sha256_verified": true
+  },
+  "activation_task": "760940",
+  "activation_result": "success",
+  "verification": {
+    "url": "https://smallproblems.dashless.blog/wp-json/dashless-hosted/v1/capabilities",
+    "http_status": 401,
+    "contract_version": 1,
+    "site_id": 152161766,
+    "meaning": "The hosted plugin route is active and correctly rejects unauthenticated access."
+  },
+  "hub_reconcile_task": "760938",
+  "hub_reconcile_result": "success",
+  "theme_package": {
+    "sha256": "8a192cb5cb9587c2bcabb07e5b113242946b0edd9a98e3b24d62dcd0263b843f",
+    "url": "https://dashless.blog/wp-content/dashless-packages/8a192cb5cb9587c2bcabb07e5b113242946b0edd9a98e3b24d62dcd0263b843f.zip",
+    "archive_published": true,
+    "cache_busting_functions_live": true
+  },
+  "maintenance_tasks": {
+    "theme_install_manager": "177516533",
+    "cache_flush_manager": "177516894",
+    "direct_theme_file_verification": true
+  }
+}

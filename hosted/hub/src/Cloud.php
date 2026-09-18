@@ -50,4 +50,15 @@ class Cloud {
         else $this->call('GET','/site-meta/'.rawurlencode($domain).'/suspended/remove');
     }
     public function delete(string $domain): array { return $this->call('POST','/delete-site/domain/'.rawurlencode($domain)); }
+    public function routingIps(string $domain): array {
+        $data=$this->call('GET','/get-ips/'.rawurlencode(Config::required('wpcloud_client')).'/'.rawurlencode($domain));
+        $ips=$data['ips']??$data['ip_addresses']??$data;
+        return array_values(array_filter((array)$ips,fn($ip)=>is_string($ip)&&filter_var($ip,FILTER_VALIDATE_IP)));
+    }
+    public function aliasAdd(string $primary,string $domain): array { return $this->call('GET','/site-alias/domain/'.rawurlencode($primary).'/add/'.rawurlencode($domain)); }
+    public function aliasRemove(string $primary,string $domain): array { return $this->call('GET','/site-alias/domain/'.rawurlencode($primary).'/remove/'.rawurlencode($domain)); }
+    public function setCanonicalizeAliases(string $domain,bool $enabled): mixed {
+        if ($enabled) return $this->call('GET','/site-meta/'.rawurlencode($domain).'/canonicalize_aliases/remove');
+        return $this->call('POST','/site-meta/'.rawurlencode($domain).'/canonicalize_aliases/update',['value'=>'false']);
+    }
 }

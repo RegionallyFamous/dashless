@@ -2,9 +2,9 @@
 
 **Name:** Dashless
 
-**Short description:** Draft in conversation. Preview your blog. Publish the version you approve.
+**Short description:** Your blog, by conversation.
 
-**Long description:** Work on your existing Dashless blog from ChatGPT. Create and revise posts and pages, organize categories and tags, add supported images, and choose a curated design. Follow background builds in the conversation, then open a private preview in your signed-in Dashless browser. Publication requires your approval of that exact preview. Check release status, review a rollback, or prepare a private export of your content and source.
+**Long description:** Work on your existing Dashless blog from ChatGPT. Create and revise posts and pages, organize categories and tags, add supported images, and choose and customize Hypertext Diary, Field Notes, or After Hours. Follow background builds in the conversation, then open a private preview in your signed-in Dashless browser. Publication requires your approval of that exact preview. Check release status, review a rollback, or prepare a private export of your content and source.
 
 An existing Dashless account with active access is required for editing. Your ChatGPT access is supplied separately. The app does not create subscriptions or manage infrastructure. One owner and one blog per account. No teams, custom domains, newsletters, arbitrary plugins, executable designs or shell access.
 
@@ -20,12 +20,12 @@ An existing Dashless account with active access is required for editing. Your Ch
 
 **Terms:** https://dashless.blog/terms/
 
-These are intended canonical links, not a claim that final production policies and support identity have passed verification. Existing local pages are release drafts. Final publisher identity, policy retention/contact details, support coverage and region availability must be approved before submission.
+These public pages are live. Privacy and terms identify Izzi’s Gym LLC DBA Regionally Famous, South Dakota, USA, and the active support address. The portal draft is set to Allow all countries. Business verification, reviewer access, OAuth scan and actual-host evidence remain incomplete; see readiness.md.
 
 **Starter prompts**
 
 - “Create a draft post called Small discoveries from these notes. Keep it unpublished.”
-- “Give my blog a paper palette and editorial typography. Show me a preview.”
+- “Show me the Dashless themes, then preview Field Notes on my blog.”
 - “Add this photo to my draft with the description ‘A red bicycle beside the garden gate.’”
 - “Show my preview's build progress, then open the private review.”
 - “Show the active and previous releases. Let me review restoring the previous one.”
@@ -35,4 +35,10 @@ These are intended canonical links, not a claim that final production policies a
 
 **Assets:** `icon-512.png` and `icon-128.png` use the selected Rip SVG, on Acid. `screenshots/` are captures of the actual component under a labeled local fixture host. Replace/add real ChatGPT captures before submitting the listing. Hot Type is the selected raster concept, not a finished vector master. Icon optical refinement remains pending.
 
-**Publisher:** Must select the user's verified individual/business identity in the publishing organization. No invented publisher name, address, identity verification, reviewer credentials or availability countries are included.
+**Publisher display name:** Regionally Famous.
+
+**Legal operator:** Izzi’s Gym LLC, doing business as Regionally Famous, South Dakota, United States (confirmed by owner September 16, 2026). Select the matching verified identity in the publishing organization; verification remains to be checked.
+
+**Public support email:** howdy@regionallyfamous.com.
+
+**Availability:** All countries/regions offered by the submission portal, as requested by the owner. This is the desired distribution setting, not a claim that OpenAI supports every country or that public launch has occurred.

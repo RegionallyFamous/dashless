@@ -8,7 +8,7 @@ Hub → site: HTTPS `/wp-json/dashless-hosted/v1`, `Authorization: Bearer <per-s
 
 Every JSON response includes `contract_version: 1` (integer) and `site_id` (the atomic ID). Hub verifies both. Errors have a stable code, safe human message and HTTP status; never return paths, SQL, stack traces, credentials, process environment or raw subprocess logs. IDs are UUIDs, not local paths. Hub resolves the site from the authenticated OAuth account; tool arguments cannot select another tenant.
 
-OAuth/MCP live on the Hub: `/mcp`, `/oauth/authorize`, `/oauth/token`, `/oauth/revoke`, standard protected-resource/authorization-server discovery. Pre-register the exact public ChatGPT client/redirect. S256 is mandatory; resource is exactly `https://dashless.blog/mcp`; access tokens last 15 minutes, codes 5 minutes, refresh 30 days. Scopes: `blog:read`, `blog:write`, `blog:publish`. Disconnect revokes an account's token chains. No infrastructure commands or commerce tools are advertised.
+MCP and protected-resource discovery remain on the Hub at `/mcp`. Auth0 is the sole authorization server: browser sign-in uses `/auth/login` and `/auth/callback`; consent, token exchange and refresh use Auth0 directly. Resource/audience is exactly `https://dashless.blog/mcp`; scopes are `blog:read`, `blog:write`, `blog:publish`. Require RS256, exact issuer, audience and expiry, and S256 code flow. Disconnect immediately blocks prior tokens locally and revokes the owner’s blog-API grants at Auth0. Retired local `/oauth/*` endpoints return 410. See [Auth0 configuration and migration](auth0.md). No infrastructure commands or commerce tools are advertised.
 
 ## Required endpoints
 

@@ -1,0 +1,416 @@
+{
+  "$schema": "https://developers.openai.com/apps-sdk/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "Dashless",
+    "subtitle": "Write and publish your blog",
+    "description": "Manage an existing Dashless blog through conversation: create drafts, revise posts, add images, choose named themes, prepare private previews, review exact versions before publishing or restoring releases, and export content and source.",
+    "category": "PRODUCTIVITY"
+  },
+  "tools": {
+    "inspect_site": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "list_posts": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "get_post": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "create_draft": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "update_draft": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "stage_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "list_revisions": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "stage_revision_restore": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "list_terms": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "ensure_terms": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "list_media": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "update_media": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "get_status": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "get_job": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "list_themes": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "get_theme": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "get_design": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "update_design": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "create_preview": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "request_publication_approval": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "publish_previewed": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Can delete or overwrite a release and requires the app approval workflow."
+      }
+    },
+    "get_release": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves information without changing blog state.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "rollback_release": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Can change public blog state only through the explicit publishing workflow.",
+        "destructive_justification": "Can delete or overwrite a release and requires the app approval workflow."
+      }
+    },
+    "export_site": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "create_media_upload": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "show_workflow": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "request_rollback_approval": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    },
+    "import_chatgpt_file": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "May create or update blog state or start a review workflow.",
+        "open_world_justification": "Does not change public internet state directly.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform an irreversible action."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "Create a private draft",
+      "user_prompt": "Create an unpublished post titled Garden notes: Today I planted basil in a blue pot.",
+      "file_attachment_urls": null,
+      "tools_triggered": "create_draft",
+      "expected_output": "Returns a saved draft and post ID on the dedicated review account; no public release changes.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Choose a named theme and preview",
+      "user_prompt": "Show me the Dashless themes, then use Field Notes with a lilac palette and preview Garden notes.",
+      "file_attachment_urls": null,
+      "tools_triggered": "list_themes, get_theme, get_design, update_design, create_preview, get_job, show_workflow",
+      "expected_output": "Lists the named themes, stages the selected version while preserving content, and returns a private preview ready for browser review.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Import an attached image",
+      "user_prompt": "Add this attached PNG to Garden notes with alt text A watering can. Create a fresh preview.",
+      "file_attachment_urls": null,
+      "tools_triggered": "import_chatgpt_file, update_draft, create_preview, get_job",
+      "expected_output": "Imports the reviewer-owned image, returns a media ID, and includes it in a new private preview without exposing temporary URLs.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Approve publication and rollback",
+      "user_prompt": "Let me review and publish the latest preview. After publication, show my releases and let me restore the previous one.",
+      "file_attachment_urls": null,
+      "tools_triggered": "request_publication_approval, get_job, get_release, request_rollback_approval",
+      "expected_output": "Opens exact browser reviews and requires explicit approval for publication and rollback; stale or invented approvals fail.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Export and disconnect",
+      "user_prompt": "Prepare an export of my blog and source, then show where I can disconnect ChatGPT.",
+      "file_attachment_urls": null,
+      "tools_triggered": "export_site, get_job, get_status",
+      "expected_output": "Returns authenticated export progress and a download; disconnecting invalidates old tokens and handoffs.",
+      "expected_output_url": null
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "Unrelated writing request",
+      "user_prompt": "Explain how to write a stronger opening paragraph. Do not access or change my blog.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Unrelated commerce request",
+      "user_prompt": "Buy a new laptop and upgrade my ChatGPT subscription.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because it has no purchasing or subscription tools.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Unsupported infrastructure request",
+      "user_prompt": "Install a PHP plugin on an unrelated WordPress site and give me shell access.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because infrastructure administration is outside its supported workflows.",
+      "expected_output_url": null
+    }
+  ]
+}

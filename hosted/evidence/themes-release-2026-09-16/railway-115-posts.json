@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "provider": "Railway",
+  "job_id": "510bbc4e-5694-4014-9535-901b45d92b86",
+  "duration_ms": 5109,
+  "posts": 115,
+  "pages": 3,
+  "media": 1,
+  "html_pages": 134,
+  "files": 258,
+  "archive_bytes": 5291582,
+  "archive_sha256": "1705d8a2a6d091bb7a893fa8a6bf47784829f1a014aba0616a5ba41a219b4d5a",
+  "quality": {
+    "version": 1,
+    "passed": true,
+    "routes": 133,
+    "articles": 115,
+    "htmlPages": 134
+  }
+}

@@ -44,4 +44,16 @@ final class Vault {
         $meta=json_decode($this->get($key.':meta'),true);
         for ($i=0;$i<$meta['chunks'];$i++) { echo $this->get($key.':'.$i); }
     }
+    public function deleteKeys(array $keys): int {
+        $removed=0;
+        foreach ($keys as $key) {
+            if (!is_string($key) || $key==='') continue;
+            $file=$this->file($key);
+            if (is_file($file) && !is_link($file) && @unlink($file)) $removed++;
+        }
+        return $removed;
+    }
+    public function bytes(): int {
+        $total=0; foreach (glob($this->root().'/*.blob') ?: [] as $file) { if (is_file($file) && !is_link($file)) $total+=(int)filesize($file); } return $total;
+    }
 }

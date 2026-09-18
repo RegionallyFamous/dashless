@@ -1,0 +1,23 @@
+{
+  "url": "https://smallproblems.dashless.blog",
+  "release": "20260917T005718000Z-bb2652",
+  "updated_css": true,
+  "pages": [
+    {
+      "route": "/",
+      "status": 200
+    },
+    {
+      "route": "/stories/",
+      "status": 200
+    },
+    {
+      "route": "/about/",
+      "status": 200
+    },
+    {
+      "route": "/search/",
+      "status": 200
+    }
+  ]
+}

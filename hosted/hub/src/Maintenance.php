@@ -27,7 +27,7 @@ final class Maintenance {
             catch(\Throwable $e) {$counts['errors']++;$this->store->audit($r['owner'],'reconciliation_failed',['code'=>$e instanceof Failure?$e->slug:'internal_error']);}
         }
         update_option('dashless_hub_maintenance_offset',($processed<count($accounts) || count($accounts)===25)?$offset+$processed:0,false);
-        $this->store->prune();update_option('dashless_hub_last_maintenance',['time'=>time()]+$counts,false);
+        $this->store->prune();$health=['time'=>time(),'pending'=>$this->pending(),'counts'=>$counts,'failed_events'=>count($this->store->rows('stripe_event',null,500,0,'failed')),'running_jobs'=>count($this->store->rows('job',null,500,0,'running'))];update_option('dashless_hub_last_maintenance',$health,false);update_option('dashless_hub_health',$health,false);
         return $counts;
     }
     public function advance(int $owner): void {

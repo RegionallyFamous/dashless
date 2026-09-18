@@ -1,6 +1,6 @@
 ---
 import SiteLayout from "../../layouts/SiteLayout.astro";
-import { config, getPosts, plainText } from "../../lib/dashless.mjs";
+import { config, formatDate, getPosts, plainText } from "../../lib/dashless.mjs";
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -16,11 +16,11 @@ const description = plainText(post.excerpt || post.content).slice(0, 180);
     <header class="article-header retro-window">
       <div class="window-bar"><span>Story</span><span aria-hidden="true">— □ ×</span></div>
       <div class="article-heading-copy">
-        <a class="back-link" href={`/${config.postsPath}/`}>← RETURN TO ARCHIVE</a>
-        <p class="kicker"><time datetime={post.date}>{new Date(post.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</time></p>
+        <a class="back-link" href={`/${config.postsPath}/`} data-astro-prefetch>← RETURN TO ARCHIVE</a>
+        <p class="kicker"><time datetime={post.date}>{formatDate(post.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</time></p>
         <h1 style={`view-transition-name: dashless-story-title-${post.id};`}>{post.title}</h1>
         {post.excerpt && <p class="dek">{plainText(post.excerpt)}</p>}
-        {post.categoryTerms.length > 0 && <div class="term-list" aria-label="Topics">{post.categoryTerms.map((term: any) => <a href={term.url}>#{term.name}</a>)}</div>}
+        {post.categoryTerms.length > 0 && <div class="term-list" aria-label="Topics">{post.categoryTerms.map((term: any) => <a href={term.url} data-astro-prefetch>#{term.name}</a>)}</div>}
       </div>
     </header>
     {post.featuredImage && (
@@ -39,6 +39,6 @@ const description = plainText(post.excerpt || post.content).slice(0, 180);
       </figure>
     )}
     <div class="article-body paper-panel" set:html={post.content} />
-    {post.tagTerms.length > 0 && <footer class="article-tags"><span>Tagged</span>{post.tagTerms.map((term: any) => <a href={term.url}>{term.name}</a>)}</footer>}
+    {post.tagTerms.length > 0 && <footer class="article-tags"><span>Tagged</span>{post.tagTerms.map((term: any) => <a href={term.url} data-astro-prefetch>{term.name}</a>)}</footer>}
   </article>
 </SiteLayout>

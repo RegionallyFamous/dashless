@@ -62,11 +62,30 @@ function formattedDate(value) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", year: "numeric" }).format(date).toUpperCase();
 }
 
-function baseSvg({ siteName, title, category, date, displayHost, hasImage }) {
+function baseSvg({ siteName, title, category, date, displayHost, hasImage, design }) {
   const cleanSiteName = truncate(siteName || "WordPress", 32);
   const cleanHost = truncate(displayHost || "wordpress.local", 64);
   const label = truncate(category || "Story", 24).toUpperCase();
   const dateLabel = formattedDate(date);
+  if (['field-notes', 'after-hours', 'sunroom', 'mono-press'].includes(design?.theme_id)) {
+    const dark = design.palette === 'night';
+    const mono = design.theme_id === 'mono-press';
+    const sunroom = design.theme_id === 'sunroom';
+    const paper = dark ? (mono ? '#181818' : '#101214') : (sunroom ? '#fffaf0' : '#fffaf0');
+    const ink = dark ? '#f3f4ed' : '#221c2b';
+    const accent = dark ? (mono ? '#ff8b79' : sunroom ? '#e5a08a' : '#d5f875') : (mono ? '#c43d2f' : sunroom ? '#b64f35' : '#51402d');
+    const font = design.typography === 'modern' || mono ? 'Arial, Helvetica, sans-serif' : 'Georgia, serif';
+    const weight = design.theme_id === 'after-hours' || mono ? 900 : 400;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
+      <rect width="1200" height="630" fill="${paper}"/>
+      <path d="M68 68h1064" stroke="${accent}" stroke-width="${design.theme_id==='after-hours' || mono ? 8 : 1}"/>
+      <text x="68" y="120" fill="${accent}" font-family="Arial" font-size="18">${xml(label)} · ${xml(dateLabel)}</text>
+      <text x="68" y="245" fill="${ink}" font-family="${font}" font-size="${String(title??'').length<=46?68:String(title??'').length<=78?56:47}" font-weight="${weight}">${titleMarkup(title)}</text>
+      <path d="M68 548h1064" stroke="${accent}"/>
+      <text x="68" y="590" fill="${ink}" font-family="${font}" font-size="28">${xml(cleanSiteName)}</text>
+      ${hasImage?'':`<text x="965" y="340" text-anchor="middle" fill="${accent}" font-family="Georgia" font-size="160">✦</text>`}
+    </svg>`;
+  }
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
       <rect width="1200" height="630" fill="#f2ead6"/>
@@ -126,7 +145,7 @@ async function renderCard(options, destination) {
   const featured = await featuredComposite(options);
   const layers = featured ? [
     { input: featured, left: 822, top: 113 },
-    { input: frameOverlay(), left: 0, top: 0 },
+    ...(!options.design?.theme_id || options.design.theme_id==='hypertext-diary' ? [{ input: frameOverlay(), left: 0, top: 0 }] : []),
   ] : [];
   await mkdir(path.dirname(destination), { recursive: true });
   await sharp(Buffer.from(baseSvg({ ...options, hasImage: Boolean(featured) })))

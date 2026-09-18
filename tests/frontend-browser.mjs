@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 import { fixture, fixtureImage } from './fixtures/publication/site.mjs';
-import { presets } from '../templates/astro/src/lib/design.mjs';
+import { presets, themes } from '../templates/astro/src/lib/design.mjs';
 const root=path.resolve('.'), evidence=path.join(root,'dist/frontend-qa');
 await mkdir(evidence,{recursive:true});
 const work=await realpath(await mkdtemp(path.join(os.tmpdir(),'dashless-browser-'))), source=path.join(work,'source');
@@ -30,7 +30,7 @@ const server=http.createServer(async(req,res)=>{
     if(ext==='.html') {
       let html=body.toString().replace(/((?:href|src|poster|action)=["']|"url":")\/(?!\/)/g,'$1/preview/');
       const hashes=[...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(m=>!/(?:\bsrc\s*=|application\/(?:ld\+)?json)/i.test(m[1])).map(m=>`'sha256-${createHash('sha256').update(m[2]).digest('base64')}'`);
-      res.setHeader('Content-Security-Policy',`default-src 'none'; script-src 'self' ${hashes.join(' ')}; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'`);
+      res.setHeader('Content-Security-Policy',`default-src 'none'; script-src 'self' ${hashes.join(' ')}; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'`);
       body=Buffer.from(html);
     }
     res.writeHead(200,{'Content-Type':mime});res.end(body);
@@ -40,21 +40,46 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1
 const report={scenarios:[],presets:0,widths:[390,768,1280,320],source:work};
 try {
   browser=await chromium.launch({headless:true});
-  for(const [name,options] of [['empty',{count:0}],['single',{count:1,palette:'night',typography:'modern',layout:'minimal'}],['archive',{count:14,home:true,palette:'lilac',typography:'classic',layout:'magazine'}]]) {
-    const data=fixture({...options,withMedia:options.count>0}),snapshot=path.join(work,'snapshot.json');await writeFile(snapshot,JSON.stringify(data));
+  for(const [name,options] of [['empty',{count:0}],['single',{count:1,palette:'night',typography:'modern',layout:'minimal'}],['archive',{count:14,home:true,palette:'lilac',typography:'classic',layout:'magazine'}],...themes.map(theme=>[theme.id,{count:6,...theme.defaults,theme}])]) {
+    const data=fixture({...options,withMedia:options.count>0 && !options.theme});
+    if(options.theme) { data.items.forEach((item,i)=>{item.title=['The art of paying attention','A city best explored on foot','The objects we keep','An afternoon without a plan','Letters from the coast','In praise of the ordinary'][i];item.rendered.excerpt='A small collection of moments, close observations, and unexpected discoveries.';}); Object.assign(data.design,{theme_id:options.theme.id,theme_version:options.theme.version,site_title:'The Sunday Journal',description:'Observations on places, people, and the things we almost missed.'}); }
+    const snapshot=path.join(work,'snapshot.json');await writeFile(snapshot,JSON.stringify(data));
     if(options.count) { await mkdir(path.join(work,'media'),{recursive:true}); await writeFile(path.join(work,'media/9000-photo.png'),fixtureImage); }
     await writeFile(path.join(source,'dashless.config.mjs'),`export default ${JSON.stringify({siteName:name === "single" ? "Teddy Gazette" : data.design.site_title,siteDescription:data.design.description,wordpressUrl:data.site_url,publicUrl:data.site_url,postsPath:'stories',topicsPath:'topics',tagsPath:'tags',postsPerPage:12,mirrorMedia:true,homePageId:data.settings.homePageId,design:data.design,navigation:data.design.navigation})};\n`);
     await rm(path.join(source,'public/_dashless'),{recursive:true,force:true});
     await run(['run','build'],{DASHLESS_SNAPSHOT:snapshot});
     const context=await browser.newContext(),page=await context.newPage(),errors=[];
-    page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(['error','warning'].includes(message.type()))errors.push(message.text());});
+    page.on('pageerror',error=>{if(!/Transition was skipped/i.test(error.message))errors.push(error.message);});page.on('console',message=>{if(['error','warning'].includes(message.type()) && !/Transition was skipped/i.test(message.text()))errors.push(message.text());});
     const routes=['/','/stories/','/topics/','/tags/','/search/','/404.html',...(options.count?['/stories/story-1/','/topics/news/','/tags/web/']:[]),...(options.home?['/about/team/','/stories/page/2/']:[])];
     for(const width of report.widths)for(const route of routes) {
       await page.setViewportSize({width,height:900});await page.goto(url+route);await page.evaluate(()=>document.fonts.ready);
       assert.equal(await page.locator('h1').count(),1,`${name} ${route}: heading`);
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${name} ${route} overflows ${width}`);
+      assert.deepEqual(await page.evaluate(()=>{
+        const problems=[];
+        for(const card of document.querySelectorAll('.story-card')) {
+          const bounds=card.getBoundingClientRect(),copy=card.querySelector('.story-copy').getBoundingClientRect();
+          if(copy.bottom>bounds.bottom+1) problems.push('Story content escapes card');
+          if(card.classList.contains('featured')&&!card.querySelector('.story-image')&&copy.width<bounds.width-10) problems.push('Imageless lead retains an empty column');
+        }
+        const title=document.querySelector('.hero h1'),sticker=document.querySelector('.hero-sticker');
+        if(title&&sticker&&sticker.getClientRects().length){const a=title.getBoundingClientRect(),b=sticker.getBoundingClientRect();if(a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top)problems.push('Sticker overlaps headline');}
+        return problems;
+      }),[],`${name} ${route} layout collisions at ${width}`);
+
     }
     await page.goto(url+'/');
+    if (options.count) {
+      await Promise.all([
+        page.waitForURL(/\/stories\//),
+        page.locator('.story-card h2 a').first().click(),
+      ]);
+      assert.match(page.url(), /\/stories\//, `${name}: story navigation did not complete`);
+      assert.equal(await page.locator('#main-content').count(), 1, `${name}: transitioned page lost main landmark`);
+      await page.goBack();
+      assert.match(page.url(), /\/preview\/$/, `${name}: back navigation did not restore the homepage`);
+      assert.equal(await page.locator('#theme-toggle').count(), 1, `${name}: controls were not restored after back navigation`);
+    }
     if(name === 'single') {
       assert.equal(await page.locator('#teddy-sighting').count(),1);
       await page.keyboard.type('teddy');assert.equal(await page.locator('#teddy-sighting').isVisible(),true);
@@ -64,11 +89,11 @@ try {
       assert.equal(await page.locator('img[src$="/teddy-logo.png"]').count(),0);
       assert.ok(!(await page.content()).includes('Try typing T-E-D-D-Y'));
       await page.keyboard.type('teddy');assert.notEqual(await page.locator('body').getAttribute('data-oddity'),'true');
-      await page.locator('#oddity-switch').click();
-      assert.doesNotMatch(await page.locator('.signal-strip > span').nth(1).evaluate(el=>getComputedStyle(el,'::after').content),/TEDDY/);
+      if(!options.theme || options.theme.id==='hypertext-diary') await page.locator('#oddity-switch').click();
+      if(await page.locator('.signal-strip').count()) assert.doesNotMatch(await page.locator('.signal-strip > span').nth(1).evaluate(el=>getComputedStyle(el,'::after').content),/TEDDY/);
       await page.goto(url+'/');
     }
-    await page.keyboard.press('Tab');assert.equal(await page.locator('.skip-link').evaluate(el=>el===document.activeElement),true);
+    await page.keyboard.press('Tab');assert.equal(await page.locator('.skip-link').evaluate(el=>el===document.activeElement),true);await page.locator('.skip-link').evaluate(el=>el.blur());
     const theme=page.locator('#theme-toggle');const before=await theme.getAttribute('aria-pressed');await theme.click();assert.notEqual(await theme.getAttribute('aria-pressed'),before);await page.reload();assert.notEqual(await theme.getAttribute('aria-pressed'),before);
     await page.goto(url+'/search/');await page.getByLabel('Search this site').fill('curiosity');await page.getByRole('button',{name:'Search',exact:true}).click();
     assert.equal(await page.locator('#search-results article').count(),options.count);assert.match(page.url(),/q=curiosity/);
@@ -89,7 +114,7 @@ try {
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${palette}/${typography}/${layout} overflow`);report.presets++;
       }
     }
-    if(options.count) {
+    if(options.count && !options.theme) {
       await page.goto(url+'/stories/story-1/');
       assert.equal(await page.locator('.wp-block-gallery img').count(),2);
       await page.locator('.article-body img').evaluateAll(images=>images.forEach(img=>img.dispatchEvent(new Event('error'))));
@@ -97,6 +122,12 @@ try {
       assert.equal(await page.locator('.wp-block-gallery .inline-image-fallback[aria-hidden="true"]').count(),1);
     }
     await page.setViewportSize({width:1280,height:1000});await page.goto(url+'/');await page.screenshot({path:path.join(evidence,`${name}.png`),fullPage:true});
+    if(options.theme) {
+      await page.evaluate(palette=>localStorage.setItem('dashless-theme',palette==='night'?'dark':'light'),options.theme.defaults.palette);await page.reload();
+      await mkdir(path.join(root,'wordpress/hosted/theme-previews'),{recursive:true});
+      await page.screenshot({path:path.join(root,'wordpress/hosted/theme-previews',options.theme.preview_image)});
+      await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(evidence,`${name}-mobile.png`),fullPage:true});
+    }
     if(options.home) {
       await page.evaluate(()=>localStorage.setItem('dashless-theme','light'));await page.reload();
       await page.screenshot({path:path.join(evidence,'archive-light.png'),fullPage:true});

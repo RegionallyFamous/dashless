@@ -3,10 +3,10 @@
 ## Dedicated Hub setup
 
 1. Create a fresh WP Cloud WordPress site for `dashless.blog`. Install the packaged Hub ZIP and activate the Dashless theme. Run `wp dashless-hub install-pages`. Keep `DASHLESS_LIVE_CHECKOUT=false`.
-2. Set constants/environment following `config.example.php`. Generate a stable random 32-byte encryption key and RSA signing key (≥2048 bits). Store them outside public web roots and outside database backups; restrict PHP/native CLI file permissions. Back them up in the operator's existing secure recovery system. Do not write keys into `_data`, cloned blueprints, screenshots or logs.
+2. Set constants/environment following `config.example.php`. Generate a stable random 32-byte encryption key. Auth0 owns token-signing keys. Store them outside public web roots and outside database backups; restrict PHP/native CLI file permissions. Back them up in the operator's existing secure recovery system. Do not write keys into `_data`, cloned blueprints, screenshots or logs.
 3. Configure API egress allowlisting for the Hub's actual WP Cloud outgoing addresses. Verify from both HTTP and native CLI. Local API success is not Hub egress evidence.
 4. Set actual DNS provider records for the apex and customer subdomains using WP Cloud's returned routing target. Do not invent a wildcard target. Verify new-host TLS and expected release header before declaring ready. DNS provider credentials and actual records are not supplied yet; DNS mutation is intentionally not implemented against an assumed provider.
-5. Configure the WordPress.com Connect application using the exact callback `/auth/wordpress/callback`, `auth` scope, and protected `DASHLESS_WPCOM_CLIENT_ID` / `DASHLESS_WPCOM_CLIENT_SECRET`. Customers sign in only through WordPress.com. Separately verify WP Cloud mail and sender authentication for billing/service notices; `wp_mail=true` alone is not delivery evidence.
+5. Configure Auth0 using the [sign-in and migration guide](auth0.md) and protected settings in `config.example.php`. Verify passwordless email receipt through a production sender and actual Auth0/ChatGPT connection, refresh and disconnect. Separately verify WP Cloud delivery of service notices; `wp_mail=true` alone is not delivery evidence.
 6. Keep cookies host-only. Shared `.dashless.blog` cookies are rejected. Force HTTPS in production. Exclude account/sign-in/OAuth/MCP and private APIs from every page/CDN cache. Avoid request-body/query logging on sign-in and OAuth endpoints. Disable public subscriber author enumeration where it would reveal membership.
 
 ## Stripe test mode
@@ -33,21 +33,17 @@ Canceled/past-due sites become offline through the site plugin, retaining authen
 
 ## Backup and restore drill
 
-Back up the Hub database, plugin packages/manifests and protected encryption/signing keys separately. WP Cloud site backups must cover customer database, runtime and release artifacts. Restore a disposable Hub copy without exposing production hostname, outbound email, live Stripe webhooks or native dispatch. Load the original encryption key and verify one fixture credential decrypts; verify OAuth tokens as appropriate, then rotate/revoke fixture credentials. Restore one customer site and compare snapshot generation, release manifest and private asset access. Document retention/deletion behavior for provider backups. Record actual restore evidence before launch.
+Back up the Hub database, plugin packages/manifests and protected encryption key and Auth0 client configuration separately. WP Cloud site backups must cover customer database, runtime and release artifacts. Restore a disposable Hub copy without exposing production hostname, outbound email, live Stripe webhooks or native dispatch. Load the original encryption key and verify one fixture credential decrypts; verify OAuth tokens as appropriate, then rotate/revoke fixture credentials. Restore one customer site and compare snapshot generation, release manifest and private asset access. Document retention/deletion behavior for provider backups. Record actual restore evidence before launch.
 
-If the encryption key is lost, do not overwrite encrypted values with new ciphertext under an unrelated key. Pause signup and reconcile recovery first. Key rotation requires decrypt/re-encrypt under a migration procedure and a backup of the previous key; signing-key rotation requires token expiry/revocation planning. Rotating a per-site secret is separate and supported by the operator action.
+If the encryption key is lost, do not overwrite encrypted values with new ciphertext under an unrelated key. Pause signup and reconcile recovery first. Key rotation requires decrypt/re-encrypt under a migration procedure and a backup of the previous key; Auth0 signing-key rotation uses provider JWKS discovery and must be verified before retiring old keys. Rotating a per-site secret is separate and supported by the operator action.
 
 ## Launch evidence
 
 Use the gate table for dated evidence of task concurrency, runtime memory, provisioning, DNS/TLS, email delivery, OAuth, tenant isolation, backup restore, published ChatGPT integration, billing and policies. Also confirm task/retention pricing with the account agreement; $4.99 after the stated $5 site cost excludes Stripe, Hub, support and other costs. There is no automatically assumed profit margin. Public subscriptions stay disabled while any required evidence is missing.
 
-## WordPress.com identity migration
+## Customer identity migration
 
-Client application 148408 is registered for `https://dashless.blog/auth/wordpress/callback`. Its secret lives in protected Hub configuration and an owner-only backup, never Git. The callback validates ten-minute single-use state bound to a host-only HttpOnly SameSite=Lax browser cookie, exchanges the code server-side, and requires `email_verified: true`. Only the stable provider ID controls returning ownership. Provider tokens are not persisted.
-
-Customers cannot use the old email endpoint, local passwords or local password reset. Operators retain WordPress administration for recovery. Old unlinked Hub sessions/tokens do not authorize customer actions.
-
-For an existing account collision, first verify the owner independently. Have them attempt WordPress.com sign-in to create a one-hour verified pending identity. Then run `wp dashless-hub link-wordpress --user=EXACT_EXISTING_LOGIN --confirm-owner` on the Hub only. This requires exactly one pending match and refuses linked/conflicting identities. The owner then signs in again. Do not automatically link by email or grant new roles. The owner account was linked with native task 759157; no role was changed.
+Follow [Auth0 sign-in](auth0.md). Existing owners need a fresh verified Auth0 attempt and explicit operator linking; blog and billing records are preserved. Retired provider routes and local OAuth endpoints cannot issue credentials. Reconnect ChatGPT after cutover. Customer local passwords remain disabled, while restricted operator recovery remains available.
 
 ## Live billing configuration (September 16)
 

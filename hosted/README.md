@@ -14,9 +14,11 @@ The Hub and block theme are implemented in this directory and deployed at https:
 - `docs/operations.md`: setup, native tasks, recovery, rollout, key backup and launch checks.
 - `docs/verification.md`: measured evidence and unverified dependencies.
 
+For the current authentication migration and live setup checklist, see [Auth0 sign-in](docs/auth0.md). This working-tree migration has passed local tests but is not yet a verified live cutover.
+
 ## Implemented
 
-WordPress.com-only customer identity with browser-bound single-use OAuth state and explicit POST consumption; host-only WordPress sessions; unique address reservation; server-owned $9.99 monthly Stripe Checkout; signed webhook deduplication and current-state reconciliation; grace, cancellation, retained export/recovery, initial provisioning refund orchestration; resumable WP Cloud creation/bootstrap/build verification; durable one-job-per-site dispatch; OAuth via League with PKCE, resource audience, token rotation and revocation; stateless PHP MCP routing; minimal account, billing and export pages; private browser preview/approval fallback; restricted operator recovery, credential rotation, canary rollout and launch evidence controls.
+Auth0-only customer identity with browser-bound single-use state, S256 PKCE and verified ID tokens; host-only WordPress sessions; unique address reservation; server-owned $9.99 monthly Stripe Checkout; signed webhook deduplication and current-state reconciliation; grace, cancellation, retained export/recovery, initial provisioning refund orchestration; resumable WP Cloud creation/bootstrap/build verification; durable one-job-per-site dispatch; Auth0-issued MCP access tokens with strict signature/issuer/audience checks and provider-backed disconnect; stateless PHP MCP routing; minimal account, billing and export pages; private browser preview/approval fallback; restricted operator recovery, credential rotation, canary rollout and launch evidence controls.
 
 `DASHLESS_LIVE_CHECKOUT` defaults to false. Live activation also requires every evidence gate and credential. Test checkout accepts test keys only. A pause switch blocks new signup and checkout while existing accounts retain access. Policies are visibly marked release drafts.
 
