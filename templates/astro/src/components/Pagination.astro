@@ -1,6 +1,7 @@
 ---
+import { sitePath } from "../lib/dashless.mjs";
 const { current, total, base } = Astro.props;
-const pageUrl = (page: number) => page === 1 ? `${base}/` : `${base}/page/${page}/`;
+const pageUrl = (page: number) => sitePath(page === 1 ? `${base}/` : `${base}/page/${page}/`);
 ---
 
 {total > 1 && (
