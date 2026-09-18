@@ -14,6 +14,7 @@ const themes = [
     description: 'A handmade browser-window journal for links, fragments, references, and a mind that refuses to stay in one tab.',
     bestFor: 'Personal blogs · creative journals · internet culture',
     className: 'hyper',
+    demoPath: '/demos/hypertext-diary/',
     image: hypertext,
   },
   {
@@ -22,6 +23,7 @@ const themes = [
     description: 'A literary notebook for walks, places, recipes, and the small observations worth keeping.',
     bestFor: 'Essays · travel journals · independent writers',
     className: 'field',
+    demoPath: '/demos/field-notes/',
     image: fieldNotes,
   },
   {
@@ -30,6 +32,7 @@ const themes = [
     description: 'A late-night culture desk for city lights, music, photography, and the thoughts that arrive after dark.',
     bestFor: 'Music · culture · photography · design',
     className: 'after',
+    demoPath: '/demos/after-hours/',
     image: afterHours,
   },
   {
@@ -38,6 +41,7 @@ const themes = [
     description: 'A restrained independent publication where dispatches are treated like a small printed journal.',
     bestFor: 'Independent magazines · essays · cultural reporting',
     className: 'bulletin',
+    demoPath: '/demos/bulletin/',
     image: bulletin,
   },
   {
@@ -46,6 +50,7 @@ const themes = [
     description: 'A sunny reading room where a publication feels collected, human, and close at hand.',
     bestFor: 'Personal essays · lifestyle journals · small magazines',
     className: 'sunroom',
+    demoPath: '/demos/sunroom/',
     image: sunroom,
   },
   {
@@ -54,6 +59,7 @@ const themes = [
     description: 'A confident black-and-white newspaper grid translated to the open web.',
     bestFor: 'Newsletters · culture writing · design studios',
     className: 'mono',
+    demoPath: '/demos/mono-press/',
     image: monoPress,
   },
 ];
@@ -95,11 +101,11 @@ const themes = [
               <h3>{theme.name}</h3>
               <p>{theme.description}</p>
               <small>{theme.bestFor}</small>
-              <a class="dl-theme-showcase-link" href="/#account">
-                Choose this direction in your account <span aria-hidden="true">↗</span>
+              <a class="dl-theme-showcase-link" href={theme.demoPath}>
+                Open the live demo <span aria-hidden="true">↗</span>
               </a>
             </div>
-            <a class="dl-theme-showcase-image" href="/#account" aria-label={`Choose ${theme.name}`}>
+            <a class="dl-theme-showcase-image" href={theme.demoPath} aria-label={`Open the ${theme.name} demo`}>
               <span class="dl-theme-window-bar" aria-hidden="true"><i></i><i></i><i></i></span>
               <img src={theme.image.src} width="1280" height="1000" loading="lazy" decoding="async" alt={`${theme.name} sample publication homepage`} />
             </a>

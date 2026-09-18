@@ -36,7 +36,10 @@
         "minimal"
       ]
     },
-    "preview_image": "hypertext-diary.png"
+    "preview_image": "hypertext-diary.png",
+    "visual_reference": "docs/design/theme-boards/hypertext-diary-redesign-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "browser-window masthead with lively signal strips", "hero": "offset introduction with a navigable hypertext rail", "cards": "overlapping browser cards and link fragments", "reading": "quiet long-form column inside the playful frame", "mobile": "rail collapses into a compact tab bar"}
   },
   {
     "id": "field-notes",
@@ -75,7 +78,10 @@
         "minimal"
       ]
     },
-    "preview_image": "field-notes.png"
+    "preview_image": "field-notes.png",
+    "visual_reference": "docs/design/theme-boards/field-notes-redesign-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "quiet editorial masthead with fine rules", "hero": "single-column lead with generous negative space", "cards": "ruled notebook entries with restrained metadata", "reading": "wide serif reading column with marginal context", "mobile": "stacked notebook rhythm with preserved measure"}
   },
   {
     "id": "after-hours",
@@ -114,7 +120,10 @@
         "minimal"
       ]
     },
-    "preview_image": "after-hours.png"
+    "preview_image": "after-hours.png",
+    "visual_reference": "docs/design/theme-boards/after-hours-redesign-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "dark culture-desk masthead with luminous controls", "hero": "oversized image-led lead story", "cards": "sharp two-column magazine panels", "reading": "high-contrast article column with visual pull quotes", "mobile": "single-column night desk with preserved accent rules"}
   },
   {
     "id": "bulletin",
@@ -148,7 +157,10 @@
         "journal"
       ]
     },
-    "preview_image": "bulletin.png"
+    "preview_image": "bulletin.png",
+    "visual_reference": "docs/design/theme-boards/bulletin-redesign-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "compact printed-publication masthead", "hero": "photographic lead with dispatch index", "cards": "newspaper-like dispatch list with hard hierarchy", "reading": "spacious journal column with print-inspired annotations", "mobile": "single dispatch stream with compact utility bar"}
   },
   {
     "id": "sunroom",
@@ -187,7 +199,10 @@
         "minimal"
       ]
     },
-    "preview_image": "sunroom.png"
+    "preview_image": "sunroom.png",
+    "visual_reference": "docs/design/theme-boards/sunroom-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "warm reading-room header with soft utility furniture", "hero": "rounded lead story with collected objects", "cards": "tactile paper cards with terracotta signals", "reading": "comfortable literary column with soft section breaks", "mobile": "stacked reading room with enlarged touch targets"}
   },
   {
     "id": "mono-press",
@@ -225,6 +240,9 @@
         "minimal"
       ]
     },
-    "preview_image": "mono-press.png"
+    "preview_image": "mono-press.png",
+    "visual_reference": "docs/design/theme-boards/mono-press-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "direct black-and-white press desk", "hero": "front-page lead with hard editorial mark", "cards": "rigid newspaper grid with strong rules", "reading": "high-density print column with explicit metadata", "mobile": "single-column press page with retained rule hierarchy"}
   }
 ]

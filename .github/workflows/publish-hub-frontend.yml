@@ -8,6 +8,7 @@ on:
       - 'hosted/scripts/cleanup-hub-releases.mjs'
       - 'hosted/scripts/check-hub-frontend.mjs'
       - 'hosted/scripts/cleanup-hub-root-assets.mjs'
+      - 'hosted/scripts/build-theme-demos.mjs'
       - 'wordpress/dashless-wpcloud.php'
   workflow_dispatch:
 permissions:

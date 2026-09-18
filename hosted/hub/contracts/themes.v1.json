@@ -5,6 +5,10 @@
     "template": "standard",
     "name": "Hypertext Diary",
     "description": "A playful personal web journal: browser windows, colorful labels, offset borders and a lively sidebar.",
+    "concept": "A bright little browser window for people who want the web to feel personal again.",
+    "mood": ["playful", "nostalgic", "curious"],
+    "signature": "browser-window framing and colorful signal strips",
+    "quiet_area": "long-form article reading",
     "best_for": [
       "personal blogs",
       "creative journals",
@@ -32,7 +36,10 @@
         "minimal"
       ]
     },
-    "preview_image": "hypertext-diary.png"
+    "preview_image": "hypertext-diary.png",
+    "visual_reference": "docs/design/theme-boards/hypertext-diary-redesign-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "browser-window masthead with lively signal strips", "hero": "offset introduction with a navigable hypertext rail", "cards": "overlapping browser cards and link fragments", "reading": "quiet long-form column inside the playful frame", "mobile": "rail collapses into a compact tab bar"}
   },
   {
     "id": "field-notes",
@@ -40,6 +47,10 @@
     "template": "standard",
     "name": "Field Notes",
     "description": "A quiet editorial notebook: warm paper, generous serif headlines, fine rules and spacious reading.",
+    "concept": "A literary notebook that lets observation and long-form writing take the foreground.",
+    "mood": ["quiet", "literary", "spacious"],
+    "signature": "fine rules and a single-column reading rhythm",
+    "quiet_area": "homepage decoration",
     "best_for": [
       "essays",
       "travel journals",
@@ -67,7 +78,10 @@
         "minimal"
       ]
     },
-    "preview_image": "field-notes.png"
+    "preview_image": "field-notes.png",
+    "visual_reference": "docs/design/theme-boards/field-notes-redesign-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "quiet editorial masthead with fine rules", "hero": "single-column lead with generous negative space", "cards": "ruled notebook entries with restrained metadata", "reading": "wide serif reading column with marginal context", "mobile": "stacked notebook rhythm with preserved measure"}
   },
   {
     "id": "after-hours",
@@ -75,6 +89,10 @@
     "template": "standard",
     "name": "After Hours",
     "description": "A bold nocturnal magazine: oversized sans headlines, sharp panels, a two-column story grid and luminous accents.",
+    "concept": "A late-night culture desk with loud headlines, sharp edges, and room for image-led stories.",
+    "mood": ["bold", "nocturnal", "graphic"],
+    "signature": "acid accent rules against a dark editorial canvas",
+    "quiet_area": "article body typography",
     "best_for": [
       "music and culture",
       "photography",
@@ -102,7 +120,10 @@
         "minimal"
       ]
     },
-    "preview_image": "after-hours.png"
+    "preview_image": "after-hours.png",
+    "visual_reference": "docs/design/theme-boards/after-hours-redesign-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "dark culture-desk masthead with luminous controls", "hero": "oversized image-led lead story", "cards": "sharp two-column magazine panels", "reading": "high-contrast article column with visual pull quotes", "mobile": "single-column night desk with preserved accent rules"}
   },
   {
     "id": "bulletin",
@@ -110,6 +131,10 @@
     "template": "bulletin",
     "name": "Bulletin",
     "description": "A considered editorial publication with a compact masthead, photographic lead story, structured dispatches, and spacious article pages.",
+    "concept": "A restrained independent publication where dispatches are treated like a small printed journal.",
+    "mood": ["considered", "tactile", "editorial"],
+    "signature": "compact masthead and newspaper-like dispatch list",
+    "quiet_area": "navigation and footer furniture",
     "best_for": [
       "independent magazines",
       "essays",
@@ -132,7 +157,10 @@
         "journal"
       ]
     },
-    "preview_image": "bulletin.png"
+    "preview_image": "bulletin.png",
+    "visual_reference": "docs/design/theme-boards/bulletin-redesign-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "compact printed-publication masthead", "hero": "photographic lead with dispatch index", "cards": "newspaper-like dispatch list with hard hierarchy", "reading": "spacious journal column with print-inspired annotations", "mobile": "single dispatch stream with compact utility bar"}
   },
   {
     "id": "sunroom",
@@ -144,10 +172,37 @@
     "mood": ["warm", "human", "optimistic"],
     "signature": "rounded paper surfaces with one terracotta signal",
     "quiet_area": "secondary navigation and utility copy",
-    "best_for": ["personal essays", "lifestyle journals", "small magazines"],
-    "defaults": {"palette": "paper", "typography": "classic", "layout": "minimal"},
-    "customization": {"palette": ["paper", "night", "lilac"], "typography": ["editorial", "modern", "classic"], "layout": ["journal", "magazine", "minimal"]},
-    "preview_image": "sunroom.png"
+    "best_for": [
+      "personal essays",
+      "lifestyle journals",
+      "small magazines"
+    ],
+    "defaults": {
+      "palette": "paper",
+      "typography": "classic",
+      "layout": "minimal"
+    },
+    "customization": {
+      "palette": [
+        "paper",
+        "night",
+        "lilac"
+      ],
+      "typography": [
+        "editorial",
+        "modern",
+        "classic"
+      ],
+      "layout": [
+        "journal",
+        "magazine",
+        "minimal"
+      ]
+    },
+    "preview_image": "sunroom.png",
+    "visual_reference": "docs/design/theme-boards/sunroom-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "warm reading-room header with soft utility furniture", "hero": "rounded lead story with collected objects", "cards": "tactile paper cards with terracotta signals", "reading": "comfortable literary column with soft section breaks", "mobile": "stacked reading room with enlarged touch targets"}
   },
   {
     "id": "mono-press",
@@ -159,9 +214,35 @@
     "mood": ["direct", "graphic", "confident"],
     "signature": "black-and-white grid with a single red mark",
     "quiet_area": "metadata and archive controls",
-    "best_for": ["newsletters", "culture writing", "design studios"],
-    "defaults": {"palette": "paper", "typography": "modern", "layout": "magazine"},
-    "customization": {"palette": ["paper", "night"], "typography": ["editorial", "modern", "classic"], "layout": ["journal", "magazine", "minimal"]},
-    "preview_image": "mono-press.png"
+    "best_for": [
+      "newsletters",
+      "culture writing",
+      "design studios"
+    ],
+    "defaults": {
+      "palette": "paper",
+      "typography": "modern",
+      "layout": "magazine"
+    },
+    "customization": {
+      "palette": [
+        "paper",
+        "night"
+      ],
+      "typography": [
+        "editorial",
+        "modern",
+        "classic"
+      ],
+      "layout": [
+        "journal",
+        "magazine",
+        "minimal"
+      ]
+    },
+    "preview_image": "mono-press.png",
+    "visual_reference": "docs/design/theme-boards/mono-press-board.png",
+    "route_states": ["home", "archive", "article", "search", "taxonomy", "rss", "404"],
+    "structure": {"header": "direct black-and-white press desk", "hero": "front-page lead with hard editorial mark", "cards": "rigid newspaper grid with strong rules", "reading": "high-density print column with explicit metadata", "mobile": "single-column press page with retained rule hierarchy"}
   }
 ]

@@ -53,10 +53,11 @@ function routeFor(file, distPath) {
   return `/${relative}`;
 }
 
-function targetForPathname(pathname, distPath) {
+function targetForPathname(pathname, distPath, basePath = "") {
   let decoded;
   try { decoded = decodeURIComponent(pathname); } catch { return null; }
-  const relative = decoded.replace(/^\/+/, "");
+  const relativePath = basePath && (decoded === basePath || decoded.startsWith(`${basePath}/`)) ? decoded.slice(basePath.length) : decoded;
+  const relative = relativePath.replace(/^\/+/, "");
   if (!relative) return path.join(distPath, "index.html");
   if (path.extname(relative)) return path.join(distPath, relative);
   return path.join(distPath, relative, "index.html");
@@ -82,6 +83,7 @@ function issue(level, code, message, file = null, route = null) {
 export function auditSite({ projectPath = process.cwd(), distPath = null, production = false } = {}) {
   const project = path.resolve(projectPath);
   const dist = path.resolve(distPath || path.join(project, "dist"));
+  const basePath = (process.env.DASHLESS_BASE_PATH || "").replace(/\/$/, "");
   const errors = [];
   const warnings = [];
   const addError = (code, message, file, route) => errors.push(issue("error", code, message, file, route));
@@ -243,7 +245,7 @@ export function auditSite({ projectPath = process.cwd(), distPath = null, produc
       continue;
     }
     if (resolved.origin !== "https://audit.invalid") continue;
-    const target = targetForPathname(resolved.pathname, dist);
+    const target = targetForPathname(resolved.pathname, dist, basePath);
     if (!target || !existsSync(target)) addError("internal-link-broken", `Internal link does not resolve in dist: ${link.href}`, link.file, link.route);
   }
 

@@ -76,11 +76,11 @@ const structuredData = article ? {
     <link rel="canonical" href={canonical} />
     {usesTeddyMark ? (
       <>
-        <link rel="icon" type="image/png" sizes="96x96" href="/teddy-favicon.png" />
-        <link rel="apple-touch-icon" href="/teddy-logo.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href={sitePath("/teddy-favicon.png")} />
+        <link rel="apple-touch-icon" href={sitePath("/teddy-logo.png")} />
       </>
     ) : (
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      <link rel="icon" type="image/svg+xml" href={sitePath("/favicon.svg")} />
     )}
     <link rel="sitemap" href={sitePath("/sitemap.xml")} />
     <link rel="alternate" type="application/rss+xml" title={config.siteName} href={sitePath("/rss.xml")} />

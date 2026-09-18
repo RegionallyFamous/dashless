@@ -5,13 +5,18 @@ import { auditSite } from './audit-dist.mjs';
 export async function checkPublication(project, { production = true } = {}) {
   const dist = path.join(project, 'dist');
   const manifest = JSON.parse(await readFile(path.join(dist, 'dashless-publication.json'), 'utf8'));
+  const basePath = (process.env.DASHLESS_BASE_PATH || '').replace(/\/$/, '');
+  const fsPath = (route) => {
+    const value = String(route).replace(new RegExp(`^${basePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`), '') || '/';
+    return value;
+  };
   if (manifest.version !== 1 || !Array.isArray(manifest.routes)) throw new Error('Unsupported publication contract');
   for (const route of manifest.routes) {
     if (!/^\/(?!\/)/.test(route) || route.includes('..') || /[\\?#]/.test(route)) throw new Error(`Unsafe publication route: ${route}`);
-    await access(path.join(dist, route, 'index.html'));
+    await access(path.join(dist, fsPath(route), 'index.html'));
   }
   for (const post of manifest.posts) {
-    const html = await readFile(path.join(dist, post.url, 'index.html'), 'utf8');
+    const html = await readFile(path.join(dist, fsPath(post.url), 'index.html'), 'utf8');
     if (!html.includes('dashless-content-digest') || !html.includes('og:image')) throw new Error(`Article metadata missing: ${post.url}`);
     if (!post.socialImage) throw new Error(`Social card missing: ${post.url}`);
     const imagePath = new URL(post.socialImage, 'https://publication.invalid').pathname;
@@ -23,8 +28,9 @@ export async function checkPublication(project, { production = true } = {}) {
   const rss = await readFile(path.join(dist, 'rss.xml'), 'utf8');
   if (!rss.includes('<rss') || !sitemap.includes('<urlset')) throw new Error('Invalid discovery document');
   if (sitemap.includes('/search/</loc>') || sitemap.includes('/404')) throw new Error('Noindex routes must not be in the sitemap');
-  for (const route of manifest.routes.filter(route => route !== '/search/')) {
-    const html = await readFile(path.join(dist, route, 'index.html'), 'utf8');
+  const searchRoute = `${basePath}/search/` || '/search/';
+  for (const route of manifest.routes.filter(route => route !== searchRoute)) {
+    const html = await readFile(path.join(dist, fsPath(route), 'index.html'), 'utf8');
     const canonical = html.match(/rel="canonical" href="([^"]+)"/)?.[1];
     if (!canonical || !sitemap.includes(`<loc>${canonical}</loc>`)) throw new Error(`Sitemap route missing: ${route}`);
     for (const match of html.matchAll(/<(?:img|script|link)\b[^>]*(?:src|href)="([^"#]+)"/g)) {
@@ -33,7 +39,7 @@ export async function checkPublication(project, { production = true } = {}) {
       let asset = url.pathname;
       for (const marker of ['/_astro/', '/_dashless/']) if (asset.includes(marker)) asset = asset.slice(asset.indexOf(marker));
       if (asset.endsWith('/')) continue;
-      await access(path.join(dist, asset));
+      await access(path.join(dist, fsPath(asset)));
     }
   }
   const search = await readFile(path.join(dist, 'search/index.html'), 'utf8');
