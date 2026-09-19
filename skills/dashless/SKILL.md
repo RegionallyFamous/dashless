@@ -65,6 +65,7 @@ Dashless makes WordPress the canonical publishing engine, Astro the reader-facin
 
 ## Deployment
 
+- `dashless.blog` is reserved for the managed public Hub. Never configure a customer frontend deployment to target that hostname or its Hub release directory; use the repository's canonical `npm run publish:hub` publisher for Hub changes.
 - `configure_deployment` supports an atomic local release directory, SSH/rsync, or WP Cloud with key-based SFTP. It never stores an SSH/SFTP password.
 - `get_status` reports `content_sync` when the WordPress companion is available. If `needs_build` or `needs_deploy` is true, use `preview_frontend` or `deploy_frontend` as appropriate.
 - For same-server hosting, keep Astro and WordPress in separate web roots. Point the public virtual host at `<releases_path>/current`; keep WordPress on a separate hostname or directory.

@@ -1,0 +1,19 @@
+---
+import PolicyPage from '../../components/PolicyPage.astro';
+
+const sections = [
+  { id: 'service', heading: 'The service', paragraphs: [
+    '<strong>Effective September 16, 2026.</strong> Dashless is provided by Izzi’s Gym LLC, doing business as Regionally Famous, South Dakota, United States. Questions, complaints, refund requests and abuse reports: <a href="mailto:howdy@regionallyfamous.com">howdy@regionallyfamous.com</a>.',
+    'Dashless provides one hosted blog per account and an integration for managing its content and design through ChatGPT. Auth0 handles sign-in using your email address. ChatGPT access is separate and subject to OpenAI’s terms. Dashless does not provide shell access, arbitrary plugins, custom executable themes or team accounts through the app.'
+  ]},
+  { id: 'content', heading: 'Your content', paragraphs: [
+    'You retain ownership of your content. You authorize us and the service providers described in our <a href="/privacy/">privacy notice</a> to store, process, build, transmit and display it as necessary to provide your requested service. You are responsible for having the rights and permissions needed for text, images and other material you supply, and for reviewing content before publication. Automated assistance can make mistakes.',
+    'Do not use Dashless for unlawful activity, infringement, malware, fraud, harassment, exploitation, disclosure of another person’s private information without authorization, or attempts to evade authentication or access another account.'
+  ]},
+  { id: 'billing', heading: 'Billing and availability', paragraphs: [
+    'If initial paid setup cannot be completed, we investigate and reconcile provisioning before canceling and refunding the failed initial setup. For other refund requests or billing problems, contact support with enough information to identify the account; do not email card numbers. Nothing in these terms limits cancellation, refund or other consumer rights that cannot lawfully be excluded.',
+    'Service can be interrupted by maintenance, provider outages or technical failures. We do not promise uninterrupted availability or that automated output will be error-free. We may update features, supported limits or these terms and will provide notice where required by applicable law.'
+  ]}
+];
+---
+<PolicyPage title="Terms" kicker="A CLEAR AGREEMENT" intro="The rules for using Dashless, written so you can understand what you are agreeing to." sections={sections} />

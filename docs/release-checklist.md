@@ -9,6 +9,10 @@ Current cross-component launch decision and Railway acceptance gates: [September
 - The generated Astro project installs from its lockfile and builds representative content.
 - The production site audit has no errors and no undocumented warnings.
 - `npm run test:frontend` passes and its browser evidence is retained.
+- `npm run check:theme-release -- --dist=/absolute/path/to/release` verifies the immutable theme artifact before activation, and the same verifier proves the live release header after activation.
+- Production Hub publication uses `npm run publish:hub`, which hard-fails on a non-canonical target, builds the shared Astro Hub before demos, verifies the Hub, all six live demo release headers, public support and policy routes, and all six theme preview assets, rolls back the pointer on failed verification, and performs manifest-driven cleanup only after verification. Cleanup retains the newest verified previous release and reports the retained rollback target.
+- If activation succeeds but housekeeping is interrupted, retry only the cleanup with `npm run cleanup:hub`; it reads the active pointer and cannot build or activate a different release.
+- `npm run check:deployment-paths` proves the Hub workflow, package workflow, customer deployer, Railway worker, and shared deployment contract remain non-overlapping.
 - Hosted candidates pass `node --test hosted/runtime/test.mjs` and the shared publication gate; native hosting acceptance is recorded separately.
 - New reader features appear in the [frontend feature matrix](frontend-framework.md) with acceptance evidence.
 - The WordPress companion activates on the minimum and current compatibility matrix.

@@ -61,6 +61,7 @@ async function stageCodex(directory) {
     "LICENSE",
     "README.md",
     "SECURITY.md",
+    "config",
     "docs",
     "package.json",
     "server",

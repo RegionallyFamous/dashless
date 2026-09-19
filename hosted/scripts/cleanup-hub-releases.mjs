@@ -26,6 +26,24 @@ export function releaseIdsFromListing(listing, remoteRoot) {
   return [...ids].sort();
 }
 
+/**
+ * Return superseded releases that are safe to remove while retaining a
+ * rollback window. Release IDs contain their UTC timestamp, so lexical order
+ * is chronological for valid IDs.
+ */
+export function releasesToCleanup(ids, activeReleaseId, retainPrevious = 1) {
+  if (!RELEASE_ID_PATTERN.test(activeReleaseId)) {
+    throw new Error(`Refusing cleanup: invalid active release id: ${activeReleaseId}`);
+  }
+  if (!Number.isInteger(retainPrevious) || retainPrevious < 0) {
+    throw new Error(`Refusing cleanup: invalid rollback retention: ${retainPrevious}`);
+  }
+  const previous = ids
+    .filter((id) => id !== activeReleaseId && RELEASE_ID_PATTERN.test(id))
+    .sort();
+  return previous.slice(0, Math.max(0, previous.length - retainPrevious));
+}
+
 function manifestEntries(manifestsDir, releaseId) {
   const manifestPath = path.join(manifestsDir, `${releaseId}.json`);
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
@@ -47,7 +65,7 @@ function manifestEntries(manifestsDir, releaseId) {
   return { files, directories: [...directories].sort((a, b) => b.length - a.length) };
 }
 
-export function cleanupBatch({ listing, activeReleaseId, remoteRoot, manifestsDir }) {
+export function cleanupBatch({ listing, activeReleaseId, remoteRoot, manifestsDir, onlyReleaseId = null, continueOnError = false }) {
   if (!RELEASE_ID_PATTERN.test(activeReleaseId)) {
     throw new Error(`Refusing cleanup: invalid active release id: ${activeReleaseId}`);
   }
@@ -61,15 +79,17 @@ export function cleanupBatch({ listing, activeReleaseId, remoteRoot, manifestsDi
     throw new Error(`Refusing cleanup: release manifest directory is unavailable: ${manifestsDir}`);
   }
 
-  return ids
-    .filter((id) => id !== activeReleaseId)
+  const candidates = releasesToCleanup(ids, activeReleaseId, onlyReleaseId ? 0 : 1);
+  return candidates
+    .filter((id) => !onlyReleaseId || id === onlyReleaseId)
     .flatMap((id) => {
       const entries = manifestEntries(manifestsDir, id);
+      const command = (value) => `${continueOnError ? "-" : ""}${value}`;
       return [
-      ...entries.files.map((file) => `rm ${root}/${id}/${file}`),
-      `rm ${root}/${id}/dashless-release.json`,
-      ...entries.directories.map((directory) => `rmdir ${root}/${id}/${directory}`),
-      `rmdir ${root}/${id}`,
+      ...entries.files.map((file) => command(`rm ${root}/${id}/${file}`)),
+      command(`rm ${root}/${id}/dashless-release.json`),
+      ...entries.directories.map((directory) => command(`rmdir ${root}/${id}/${directory}`)),
+      command(`rmdir ${root}/${id}`),
       ];
     })
     .join('\n');

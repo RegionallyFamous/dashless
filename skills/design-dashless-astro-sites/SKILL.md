@@ -144,6 +144,35 @@ unauthenticated root may legitimately be the Astro reader). Keep the emitted
 fingerprints with release evidence so a deployment can be compared to the
 source artifact; never treat an ambiguous homepage response as Hub proof.
 
+Before changing a theme, run the repository contracts:
+
+```sh
+node scripts/check-theme-system.mjs
+node scripts/check-theme-route-matrix.mjs
+```
+
+The theme manifest is authoritative. Every theme must point to its reviewed
+Imagegen/reference board, declare all seven required route states, and record
+non-empty structural decisions for the header, hero, cards, reading column, and
+mobile transformation. A palette-only entry or a duplicate structural
+signature fails the contract before implementation begins.
+
+The canonical visual verification command is `npm run test:frontend`. It builds
+the shared `templates/astro` frontend through the existing fixture harness,
+renders every declared theme at desktop and mobile sizes across the route
+matrix, and writes machine-readable evidence plus screenshots under
+`dist/frontend-qa/theme-matrix`. RSS is verified as an HTTP/content-type smoke
+state rather than a screenshot. Do not create a second frontend or a parallel
+browser harness for a theme; extend the shared template and this matrix.
+
+Before activation, verify the actual immutable artifact with
+`node scripts/check-theme-release.mjs --dist /absolute/path/to/release`. This
+checks the WP Cloud release manifest, required entrypoints, exact file sizes,
+and SHA-256 hashes. After activation, run the same verifier with
+`--url=https://site.example --release-id=...` and optionally `--theme=...`.
+The live check must see the expected `X-Dashless-Release` header and selected
+theme on a cache-busting request; otherwise the release is not live.
+
 ### Non-superficial redesign gate
 
 Do not describe a redesign as complete when the result is only a palette,
@@ -184,6 +213,31 @@ live asset hashes, and remove the temporary patch before declaring the release
 healthy. A successful build is not visual proof; a successful upload is not
 deployment proof; an unchanged live fingerprint means the old release is still
 serving.
+
+### Model-independent deployment guardrails
+
+Treat the model as an untrusted build operator. Do not rely on its memory of the
+hosting setup, its interpretation of a successful command, or its claim that a
+release is live. Production publication must go through the canonical publisher
+(`npm run publish:hub`), which must:
+
+- refuse an ambiguous or wrong production target before building;
+- build the shared Astro Hub before the theme demos, then package one immutable
+  release from that exact output;
+- verify every release file against its manifest before upload;
+- activate by pointer-last replacement, preserving the previous pointer;
+- request the public Hub and every demo route with cache-busting and require the
+  expected release header on each response;
+- restore the previous pointer when live verification fails; and
+- remove superseded releases only from their manifest-listed files after the
+  new release has passed live verification.
+
+Importing publisher helpers must be side-effect free. A module import must not
+build, upload, activate, or delete anything; those operations belong behind an
+explicit command entrypoint. A weaker model must be unable to bypass these
+guards by choosing a different frontend, SFTP root, or “close enough” live
+check. If a release cannot prove its target, build order, release ID, and live
+route headers, report it as not live.
 
 For a theme-switcher demo, verify at least two visibly different styles in a
 fresh browser context and verify that the selected style survives navigation,

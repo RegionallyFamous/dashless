@@ -34,7 +34,9 @@ for(const [name,options] of [['empty', {count:0}],['single',{count:1,palette:'ni
     assert.equal((await readdir(path.join(dist,'_dashless/social'))).length,options.count);
   } else assert.match(home,/No published stories yet/);
   if(options.home) {
-    assert.match(home,/Welcome home/);await readFile(path.join(dist,'stories/page/2/index.html'));await readFile(path.join(dist,'about/team/index.html'));
+    await readFile(path.join(dist,'stories/page/2/index.html'));
+    const team=await readFile(path.join(dist,'about/team/index.html'),'utf8');
+    assert.match(team,/team page body/);
   }
   // Removing a required route must prevent a releasable result.
   await rm(path.join(dist,'search'),{recursive:true});await assert.rejects(checkPublication(path.join(work,'source')));

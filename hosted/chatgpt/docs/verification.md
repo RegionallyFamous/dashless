@@ -8,7 +8,7 @@
 |---|---|---|
 | `npm run check` | 44 tests passed | Existing local Codex workflow, original WordPress bridge and Astro tests |
 | `npm run check:hosted` | Passed | PHP/JS syntax plus unchanged 23 scoped contract schemas; excludes developer node_modules |
-| `php hosted/tests/integration.php /tmp/dashless-wp-test` | 46 checks passed | Actual local WordPress/League OAuth; external services are fixtures |
+| `php hosted/tests/integration.php /tmp/dashless-wp-test` | 84 checks passed in the current Auth0 rerun | Actual local WordPress/League OAuth; external services are fixtures |
 | `php hosted/chatgpt/tests/integration.php /tmp/dashless-wp-test` | 101 additional checks passed, plus the 46 baseline | Real OAuth for two test subscribers; site behavior is simulated |
 | `node hosted/chatgpt/tests/http.mjs` | 17 checks passed | Actual PHP HTTP transport/discovery, unauthenticated tool scan, OAuth challenge, resources, status codes, origin rejection and forbidden approval |
 | `npm --prefix hosted/chatgpt test` | 4 tests passed | Publication claims, failure wording, trusted review URLs and polling backoff |

@@ -25,7 +25,16 @@ files.sort((a, b) => a.path.localeCompare(b.path));
 if (!files.some((entry) => entry.path === 'index.html') || !files.some((entry) => entry.path === '404.html')) throw new Error('Hub build must contain index.html and 404.html');
 const fingerprint = sha(Buffer.from(files.map((entry) => `${entry.path}:${entry.bytes}:${entry.sha256}`).join('\n'))).slice(0, 6);
 const releaseId = `${new Date().toISOString().replace(/[-:.]/g, '').replace(/\d{3}Z$/, 'Z')}-${fingerprint}`;
-const manifest = { version: 1, release_id: releaseId, public_host: publicHost, content_generation: 0, created_at: new Date().toISOString(), files };
+const manifest = {
+  version: 1,
+  release_id: releaseId,
+  public_host: publicHost,
+  content_generation: 0,
+  created_at: new Date().toISOString(),
+  build_system: 'canonical-astro-hub-v1',
+  build_order: ['hub-astro', 'theme-demos', 'immutable-release'],
+  files,
+};
 await fs.rm(output, { recursive: true, force: true });
 await fs.mkdir(output, { recursive: true });
 for (const entry of files) {

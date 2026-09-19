@@ -2,6 +2,22 @@
 
 **Not ready to submit. Not submitted or published.** The theme release is deployed; the submission prerequisites below remain incomplete.
 
+## Current authoritative status — September 18, 2026
+
+Auth0 is the current intended authorization architecture in source and local
+fixtures. The local Auth0 migration checks pass, but they do not prove a live
+cutover. The current six-theme catalog and release builder pass local contract,
+build, and browser checks. A dry-run Hub release can build and verify all six
+theme demos without touching the production target.
+
+The remaining blockers are external acceptance evidence: a real Auth0 login and
+ChatGPT connect/refresh/disconnect journey, portal metadata/tool scan and
+reviewer recording, fresh-site provisioning, billing, full media-heavy builds,
+capacity, cleanup, and restore drills. Keep submission and paid-launch gates
+closed until those steps are completed and recorded. Older observations below
+are retained as dated history; where they conflict with this section, this
+section is the source of truth.
+
 Latest update, 23:56 UTC: the submission draft now has the production MCP URL, OAuth authentication, release notes, and verified domain challenge. Cloudflare proxying is enabled for both WP Cloud origin records so the narrowly scoped challenge route can run at the MCP hostname; WP Cloud remains the origin and Railway remains the build executor. The portal still reports the MCP tools scan and demo recording as incomplete; no final attestation or submission was made. See [discovery deployment](../../oauth-discovery/README.md).
 
 ## Auth0 migration — September 17
@@ -11,9 +27,9 @@ Current code replaces the old customer sign-in and local OAuth issuer with Auth0
 ## Verified on the live service — historical September 16 observations
 
 - Production HTTPS MCP endpoint: `https://dashless.blog/mcp`; initialization, public discovery of 28 tools, complete annotation fields, OAuth challenges, and UI resource/CSP delivery pass.
-- Server instructions explicitly direct theme discovery during setup/redesign. `list_themes` and `get_theme` return the three editions for authenticated accounts, including an account without a provisioned site. Public HTTPS theme images return 200.
+- Server instructions explicitly direct theme discovery during setup/redesign. `list_themes` and `get_theme` return the current six editions for authenticated accounts, including an account without a provisioned site. Public HTTPS theme images return 200.
 - Theme-aware `update_design` is advertised. Selection is versioned and staged; publication still requires the exact approved preview. Local PHP tests verify defaults, overrides, identity preservation and rejection of stale/unsupported selections.
-- The patched Railway image builds each of the three themes successfully. A separate 115-post/three-page/one-image live fixture also passed. This is not the outstanding real media-heavy workload.
+- The patched Railway image builds the current six-theme catalog locally. A separate 115-post/three-page/one-image live fixture also passed. This is not the outstanding real media-heavy workload.
 - The updated Hub, public theme and immutable customer plugin/runtime packages are installed or published. The Hub points to the verified new customer package. The Small Problems reviewer fixture is now hosted, linked to the dedicated reviewer identity with complimentary access, and published after a clean private-preview check.
 - 105 local Hub/ChatGPT integration checks passed, along with theme tests and hosted syntax checks. These are not actual ChatGPT account journeys.
 

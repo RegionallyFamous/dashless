@@ -1,18 +1,31 @@
 name: Publish Hub Astro frontend
+
 on:
   push:
     branches: [main]
     paths:
       - 'hosted/hub-frontend/**'
+      - 'hosted/scripts/publish-hub-release.mjs'
       - 'hosted/scripts/make-hub-release.mjs'
       - 'hosted/scripts/cleanup-hub-releases.mjs'
       - 'hosted/scripts/check-hub-frontend.mjs'
-      - 'hosted/scripts/cleanup-hub-root-assets.mjs'
       - 'hosted/scripts/build-theme-demos.mjs'
+      - 'config/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'templates/astro/**'
+      - 'examples/small-problems/**'
+      - 'wordpress/hosted/theme-previews/**'
       - 'wordpress/dashless-wpcloud.php'
   workflow_dispatch:
+
 permissions:
   contents: read
+
+concurrency:
+  group: dashless-hub-frontend-production
+  cancel-in-progress: false
+
 jobs:
   publish:
     if: ${{ vars.DASHLESS_RELEASE_ENABLED == 'true' }}
@@ -25,101 +38,23 @@ jobs:
           node-version: '22.23.2'
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm ci --prefix hosted/hub-frontend --ignore-scripts --no-audit --no-fund
-      - run: npm run build --prefix hosted/hub-frontend
-      - run: node hosted/scripts/check-hub-frontend.mjs
-      - run: node hosted/scripts/make-hub-release.mjs
-        env:
-          DASHLESS_RELEASE_ORIGIN: ${{ vars.DASHLESS_RELEASE_ORIGIN || 'https://dashless.blog' }}
-      - name: Install SFTP key
+      - name: Install WP Cloud SSH key and host trust
         env:
           SSH_KEY: ${{ secrets.WPCLOUD_SSH_KEY }}
-          SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST }}
+          SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST || 'sftp.wp.com' }}
           SSH_PORT: ${{ secrets.WPCLOUD_SSH_PORT || 22 }}
+          KEY_PATH: ${{ runner.temp }}/dashless-hub-id_ed25519
         run: |
+          set -euo pipefail
           install -d -m 700 ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KEY" > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
           ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
-      - name: Upload static release and pointer
+      - name: Build, activate, verify, and clean the canonical Hub release
         env:
-          SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST }}
-          SSH_USER: ${{ secrets.WPCLOUD_SSH_USER }}
-          SSH_PORT: ${{ secrets.WPCLOUD_SSH_PORT || 22 }}
-          HTDOCS_PATH: ${{ secrets.WPCLOUD_HTDOCS_PATH || '.' }}
-        run: |
-          set -euo pipefail
-          release_id="$(node -p "require('./hosted/dist/hub/release.json').release_id")"
-          remote_dir="$HTDOCS_PATH/wp-content/uploads/dashless/releases/$release_id"
-          batch_file="$(mktemp)"
-          printf -- '-mkdir %s\n' "$HTDOCS_PATH/wp-content/uploads/dashless" >> "$batch_file"
-          printf -- '-mkdir %s\n' "$HTDOCS_PATH/wp-content/uploads/dashless/releases" >> "$batch_file"
-          printf -- '-mkdir %s\n' "$remote_dir" >> "$batch_file"
-          find "hosted/dist/hub/$release_id" -type f -print0 | while IFS= read -r -d '' file; do
-            rel="${file#hosted/dist/hub/$release_id/}"
-            remote="$remote_dir/${rel}"
-            parent="$(dirname "$remote")"
-            printf -- '-mkdir %s\n' "$parent" >> "$batch_file"
-            printf 'put %s %s\n' "$file" "$remote" >> "$batch_file"
-          done
-          printf 'put hosted/dist/hub/current.json %s\n' "$HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json.tmp" >> "$batch_file"
-          printf 'rename %s %s\n' "$HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json.tmp" "$HTDOCS_PATH/wp-content/uploads/dashless/releases/current.json" >> "$batch_file"
-          printf -- '-mkdir %s\n' "$HTDOCS_PATH/wp-content/mu-plugins" >> "$batch_file"
-          printf 'put wordpress/dashless-wpcloud.php %s\n' "$HTDOCS_PATH/wp-content/mu-plugins/dashless-wpcloud.php" >> "$batch_file"
-          find "hosted/dist/hub/$release_id/_astro" -type f -print0 | while IFS= read -r -d '' file; do
-            rel="${file#hosted/dist/hub/$release_id/}"
-            printf -- '-mkdir %s\n' "$HTDOCS_PATH/_astro" >> "$batch_file"
-            printf 'put %s %s\n' "$file" "$HTDOCS_PATH/$rel.tmp" >> "$batch_file"
-            printf 'rename %s %s\n' "$HTDOCS_PATH/$rel.tmp" "$HTDOCS_PATH/$rel" >> "$batch_file"
-          done
-          printf 'put hosted/dist/hub/%s/index.html %s\n' "$release_id" "$HTDOCS_PATH/index.html.tmp" >> "$batch_file"
-          printf 'rename %s %s\n' "$HTDOCS_PATH/index.html.tmp" "$HTDOCS_PATH/index.html" >> "$batch_file"
-          sftp -b "$batch_file" -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
-      - name: Remove stale root assets
-        env:
-          SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST }}
-          SSH_USER: ${{ secrets.WPCLOUD_SSH_USER }}
-          SSH_PORT: ${{ secrets.WPCLOUD_SSH_PORT || 22 }}
-          HTDOCS_PATH: ${{ secrets.WPCLOUD_HTDOCS_PATH || '.' }}
-        run: |
-          set -euo pipefail
-          listing_file="$(mktemp)"
-          cleanup_file="$(mktemp)"
-          printf 'ls -1 %s/_astro\n' "$HTDOCS_PATH" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" > "$listing_file"
-          node hosted/scripts/cleanup-hub-root-assets.mjs --manifest=hosted/dist/hub/current.json --remote-root="$HTDOCS_PATH/_astro" < "$listing_file" > "$cleanup_file"
-          while IFS= read -r command; do
-            [ -z "$command" ] && continue
-            printf '%s\n' "$command" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
-          done < "$cleanup_file"
-      - name: Remove superseded release artifacts
-        env:
-          SSH_HOST: ${{ secrets.WPCLOUD_SSH_HOST }}
-          SSH_USER: ${{ secrets.WPCLOUD_SSH_USER }}
-          SSH_PORT: ${{ secrets.WPCLOUD_SSH_PORT || 22 }}
-          HTDOCS_PATH: ${{ secrets.WPCLOUD_HTDOCS_PATH || '.' }}
-        run: |
-          set -euo pipefail
-          release_id="$(node -p "require('./hosted/dist/hub/release.json').release_id")"
-          release_root="$HTDOCS_PATH/wp-content/uploads/dashless/releases"
-          listing_file="$(mktemp)"
-          manifests_dir="$(mktemp -d)"
-          ids_file="$(mktemp)"
-          cleanup_file="$(mktemp)"
-          trap 'rm -rf "$listing_file" "$manifests_dir" "$ids_file" "$cleanup_file"' EXIT
-          printf 'ls -1 %s\n' "$release_root" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" > "$listing_file"
-          node --input-type=module -e 'import fs from "node:fs"; import { releaseIdsFromListing } from "./hosted/scripts/cleanup-hub-releases.mjs"; const listing=fs.readFileSync(process.argv[1], "utf8"); const root=process.argv[2].replace(/\/+$/, ""); const active=process.argv[3]; const ids=releaseIdsFromListing(listing, root); if (!ids.includes(active)) throw new Error(`Active release ${active} missing from listing`); for (const id of ids.filter((value) => value !== active)) console.log(id);' "$listing_file" "$release_root" "$release_id" > "$ids_file"
-          while IFS= read -r old_release_id; do
-            [ -z "$old_release_id" ] && continue
-            printf 'get %s/%s/dashless-release.json %s/%s.json\n' "$release_root" "$old_release_id" "$manifests_dir" "$old_release_id"
-          done < "$ids_file" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST"
-          node hosted/scripts/cleanup-hub-releases.mjs --active "$release_id" --remote-root "$release_root" --manifests-dir "$manifests_dir" < "$listing_file" > "$cleanup_file"
-          if [ -s "$cleanup_file" ]; then
-            # SFTP has no recursive rm and this endpoint does not support rm -f.
-            # Run each exact manifest-derived command independently so a retry
-            # can recover from a partial cleanup without touching other paths.
-            while IFS= read -r command; do
-              [ -z "$command" ] && continue
-              printf '%s\n' "$command" | sftp -q -b - -P "$SSH_PORT" -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" || true
-            done < "$cleanup_file"
-          else
-            echo "No superseded Hub release artifacts to remove."
-          fi
+          DASHLESS_RELEASE_ORIGIN: ${{ vars.DASHLESS_RELEASE_ORIGIN || 'https://dashless.blog' }}
+          DASHLESS_HUB_SSH_KEY: ${{ runner.temp }}/dashless-hub-id_ed25519
+          DASHLESS_HUB_SSH_TARGET: ${{ secrets.WPCLOUD_SSH_USER || 'dashlessdeploy' }}@${{ secrets.WPCLOUD_SSH_HOST || 'sftp.wp.com' }}
+          DASHLESS_HUB_SSH_PORT: ${{ secrets.WPCLOUD_SSH_PORT || 22 }}
+          DASHLESS_HUB_REMOTE_ROOT: /htdocs/wp-content/uploads/dashless/releases
+        run: npm run publish:hub

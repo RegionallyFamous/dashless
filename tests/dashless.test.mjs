@@ -243,6 +243,10 @@ test("WP Cloud deployments use the uploads-backed immutable release contract", (
     validateDeployment({ kind: "wpcloud", public_url: "https://EXAMPLE.com./", host: "ssh.wp.cloud", user: "dashless" }).public_url,
     "https://example.com",
   );
+  assert.throws(
+    () => validateDeployment({ kind: "wpcloud", public_url: "https://dashless.blog", host: "sftp.wp.com", user: "dashlessdeploy" }),
+    (error) => error.code === "canonical_hub_deployment_required",
+  );
 });
 
 test("WP Cloud deployment rejects server-executable files before upload", async () => {

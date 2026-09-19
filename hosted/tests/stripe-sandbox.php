@@ -5,6 +5,7 @@
  */
 ob_start();
 $root=$argv[1]??'';$file=$argv[2]??'';
+if(!$root || !is_file($root.'/wp-load.php') || !$file || !is_file($file)){fwrite(STDERR,"Usage: php hosted/tests/stripe-sandbox.php /path/to/local/wp /protected/stripe-sandbox.json\n");exit(2);}
 $c=json_decode(file_get_contents($file),true,512,JSON_THROW_ON_ERROR);
 if(!str_starts_with($c['secret_key']??'','sk_test_'))throw new RuntimeException('Sandbox secret required.');
 putenv('DASHLESS_STRIPE_SECRET_KEY='.$c['secret_key']);putenv('DASHLESS_STRIPE_PRICE_ID='.$c['price_id']);putenv('DASHLESS_STRIPE_PORTAL_CONFIGURATION_ID='.$c['portal_configuration_id']);putenv('DASHLESS_TEST_CHECKOUT=1');

@@ -1,7 +1,13 @@
 import fs from 'node:fs';
 
-const manifestPath = process.argv.find((arg) => arg.startsWith('--manifest='))?.slice('--manifest='.length);
-const remoteRoot = process.argv.find((arg) => arg.startsWith('--remote-root='))?.slice('--remote-root='.length)?.replace(/\/+$/, '');
+function argument(name) {
+  const inline = process.argv.find((arg) => arg.startsWith(`${name}=`));
+  if (inline) return inline.slice(name.length + 1);
+  const index = process.argv.indexOf(name);
+  return index === -1 ? null : process.argv[index + 1] ?? null;
+}
+const manifestPath = argument('--manifest');
+const remoteRoot = argument('--remote-root')?.replace(/\/+$/, '');
 if (!manifestPath || !remoteRoot) throw new Error('Usage: cleanup-hub-root-assets.mjs --manifest=FILE --remote-root=REMOTE_PATH');
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));

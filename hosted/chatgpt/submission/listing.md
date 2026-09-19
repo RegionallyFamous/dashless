@@ -4,7 +4,7 @@
 
 **Short description:** Your blog, by conversation.
 
-**Long description:** Work on your existing Dashless blog from ChatGPT. Create and revise posts and pages, organize categories and tags, add supported images, and choose and customize Hypertext Diary, Field Notes, or After Hours. Follow background builds in the conversation, then open a private preview in your signed-in Dashless browser. Publication requires your approval of that exact preview. Check release status, review a rollback, or prepare a private export of your content and source.
+**Long description:** Work on your existing Dashless blog from ChatGPT. Create and revise posts and pages, organize categories and tags, add supported images, and choose and customize Hypertext Diary, Field Notes, After Hours, Bulletin, Sunroom, or Mono Press. Follow background builds in the conversation, then open a private preview in your signed-in Dashless browser. Publication requires your approval of that exact preview. Check release status, review a rollback, or prepare a private export of your content and source.
 
 An existing Dashless account with active access is required for editing. Your ChatGPT access is supplied separately. The app does not create subscriptions or manage infrastructure. One owner and one blog per account. No teams, custom domains, newsletters, arbitrary plugins, executable designs or shell access.
 
@@ -20,7 +20,7 @@ An existing Dashless account with active access is required for editing. Your Ch
 
 **Terms:** https://dashless.blog/terms/
 
-These public pages are live. Privacy and terms identify Izzi’s Gym LLC DBA Regionally Famous, South Dakota, USA, and the active support address. The portal draft is set to Allow all countries. Business verification, reviewer access, OAuth scan and actual-host evidence remain incomplete; see readiness.md.
+The source release includes these public pages. Privacy and terms identify Izzi’s Gym LLC DBA Regionally Famous, South Dakota, USA, and the active support address. The current production host still needs the verified Hub release promoted. The portal draft is set to Allow all countries. Business verification, reviewer access, OAuth scan and actual-host evidence remain incomplete; see readiness.md.
 
 **Starter prompts**
 

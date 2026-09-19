@@ -26,7 +26,7 @@ For a developer-mode connection, refresh its tool metadata and start a new conve
 
 - Live initialization, all 28 tool schemas/annotation fields, unauthenticated OAuth challenge, and UI resource/CSP passed.
 - All three public theme PNGs return 200 with PNG content type.
-- All three editions built on the live Railway service; verified archive hashes and generated `data-design` / palette values.
+- The catalog editions built on the live Railway service; verified archive hashes and generated `data-design` / palette values. The current catalog has six editions; this dated record predates the later catalog expansion.
 - A separate 115-post, three-page, one-media Railway fixture passed, producing 134 HTML pages. This does not prove the outstanding real media-heavy workload.
 - 105 local Hub/ChatGPT integration checks, 3 focused theme tests, and 87 hosted syntax checks passed. Prior frontend QA covers six scenarios, 27 presentation combinations and 320/390/768/1280 widths.
 - The immutable site package was downloaded from its live public URL and matched its pinned hash.

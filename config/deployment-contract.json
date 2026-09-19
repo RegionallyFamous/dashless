@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "canonical_hub": {
+    "origin": "https://dashless.blog",
+    "host": "dashless.blog",
+    "ssh_target": "dashlessdeploy@sftp.wp.com",
+    "remote_root": "/htdocs/wp-content/uploads/dashless/releases",
+    "publisher": "npm run publish:hub"
+  },
+  "separate_channels": {
+    "hub_packages": "The Hub builder/runtime package channel; it must not write the public Hub release directory.",
+    "customer_sites": "The WordPress-connected deploy_frontend path; it must not target the canonical Hub host.",
+    "railway": "Build execution only; it cannot activate or publish a reader release."
+  }
+}

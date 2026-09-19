@@ -4,13 +4,13 @@
 
 ## Current public transport check — 2026-09-18
 
-The read-only checks in [live-readiness evidence](../evidence/live-readiness-2026-09-18.json) passed against `https://dashless.blog`: MCP discovery and the 28-tool catalog, theme discovery and preview assets, Auth0 protected-resource metadata, PKCE/S256 discovery, public policy routes, and retirement of the old identity endpoints. This is availability and contract evidence only; it does not certify email delivery, a real sign-in, billing, provisioning, restore, or an end-to-end ChatGPT session.
+The archived read-only evidence in [live-readiness evidence](../evidence/live-readiness-2026-09-18.json) predates the current release. A fresh run now passes against `https://dashless.blog` on release `20260919T002657Z-8bb827`: all six preview assets are available, while immutable asset cache headers may still name the prior identical release. MCP discovery and the 28-tool catalog, Auth0 protected-resource metadata, PKCE/S256 discovery, and retirement of the old identity endpoints remain available. This is availability and contract evidence only; it does not certify email delivery, a real sign-in, billing, provisioning, restore, or an end-to-end ChatGPT session.
 
 ## Passed locally
 
 - `npm run check`: **42 existing local workflow tests passed**, including the WordPress bridge and Astro tests. No existing local source file changed.
 - `npm run check:hosted`: PHP/JavaScript syntax checks and 23 scoped MCP schemas passed.
-- `php hosted/tests/integration.php /tmp/dashless-wp-test`: **46 checks passed** against a real local WordPress installation (PHP 8.5, WordPress 7.1, SQLite integration). OAuth uses the actual League library, ephemeral RSA keys and database-backed token repositories; Stripe, WP Cloud and site-agent responses are fixtures.
+- The original integration baseline recorded **46 checks passed** against a real local WordPress installation (PHP 8.5, WordPress 7.1, SQLite integration). The current Auth0 fixture rerun is recorded in [Auth0 verification](auth0-verification-2026-09-17.md) and passes 84 Hub checks; Stripe, WP Cloud and site-agent responses remain fixtures.
 - Browser test: **20 checks passed**, including landing/account/sign-in/support/policy routes, mobile overflow, scanner-safe sign-in, successful POST login, disabled checkout, missing nonce and unsigned webhook rejection.
 - Composer audit: no advisories or abandoned packages reported for the locked dependencies.
 - Desktop and mobile screenshots inspected. Customer admin bar is hidden; operator WordPress administration remains available. Theme now uses the selected The Rip SVG and actual Hot Type raster wordmark from the branding task, with paper/ink/acid/lilac palette, heavy campaign type and no external font dependency. The earlier Georgia approximation was removed; final vector lettering and optical favicon refinement remain brand-production work.
@@ -63,6 +63,6 @@ PLAYWRIGHT_MODULE=/path/to/playwright node hosted/tests/browser.cjs
 
 ## Railway build transition (September 16)
 
-The new Railway worker passed three local service tests, a live 115-post/3-page/1-media build (134 HTML pages, 258 files, about 5.2 seconds including transfer), and real HTTPS integration with a disposable WordPress installation. Private preview creation, draft preservation and human approval were exercised; public activation HTTP was a local fixture. ZIP bootstrap verifies the plugin and portable source without installing Node on customer sites. Existing site integration (57 checks) and Hub integration (46 checks) passed.
+The new Railway worker passed three local service tests, a live 115-post/3-page/1-media build (134 HTML pages, 258 files, about 5.2 seconds including transfer), and real HTTPS integration with a disposable WordPress installation. Private preview creation, draft preservation and human approval were exercised; public activation HTTP was a local fixture. ZIP bootstrap verifies the plugin and portable source without installing Node on customer sites. Those dated runs recorded 57 site checks and 46 Hub checks; the current Auth0 rerun is 84 Hub checks plus 105 ChatGPT integration checks.
 
 WP Cloud Hub task 759107 succeeded with one target, one success and zero failures in 6.164 seconds: actual WP Cloud PHP submitted 115 fixture posts to Railway, waited for completion, verified the output archive checksum, and deleted the remote fixture. Temporary native probe files were removed. This proves WP Cloud-to-Railway build transport, not full customer provisioning or a media-heavy Teddy rebuild. See `../railway/README.md` and `../evidence/railway-*.json`.

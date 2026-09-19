@@ -8,8 +8,18 @@ The replacement is implemented locally. This record does **not** claim a product
 |---|---|
 | `npm run check` | 48 tests passed, including the existing local Codex/Astro workflow |
 | `npm run check:hosted` | 100 PHP/JS syntax checks; 25 scoped hosted tools validated |
-| `php hosted/tests/integration.php /tmp/dashless-wp-test` | 81 checks passed |
+| `php hosted/tests/integration.php /tmp/dashless-wp-test` | 81 checks passed (historical run) |
 | `php hosted/chatgpt/tests/integration.php /tmp/dashless-wp-test` | 105 additional checks passed |
+
+## September 18 rerun
+
+After the source checkout was repaired to resolve the ChatGPT adapter from
+`hosted/chatgpt` when the packaged Hub path is absent, the disposable fixture
+was rerun. The Hub integration passed **84 checks** and the ChatGPT integration
+passed **105 checks**. The rerun also covered empty MCP input schemas and the
+full two-account draft, upload, preview, approval, rollback, export, and
+disconnect cases. These remain fixture results, not real Auth0, ChatGPT, mail,
+payment, or WP Cloud acceptance.
 | `node hosted/chatgpt/tests/http.mjs` | 30 actual local PHP HTTP checks passed |
 | `node hosted/tests/browser.cjs` | 21 local browser checks passed |
 | `php hosted/tests/auth0-mail.php /tmp/dashless-wp-test` | 35 mail-connection checks passed, including the real REST route; all mail intercepted |

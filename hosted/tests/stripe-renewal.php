@@ -1,6 +1,8 @@
 <?php
 /** Real test-clock renewal/failed-payment/recovery checks; disposable local WP only. */
-ob_start();$root=$argv[1]??'';$c=json_decode(file_get_contents($argv[2]),true,512,JSON_THROW_ON_ERROR);
+ob_start();$root=$argv[1]??'';$config=$argv[2]??'';
+if(!$root || !is_file($root.'/wp-load.php') || !$config || !is_file($config)){fwrite(STDERR,"Usage: php hosted/tests/stripe-renewal.php /path/to/local/wp /protected/stripe-sandbox.json\n");exit(2);}
+$c=json_decode(file_get_contents($config),true,512,JSON_THROW_ON_ERROR);
 if(!str_starts_with($c['secret_key']??'','sk_test_'))throw new RuntimeException('Sandbox required');
 putenv('DASHLESS_STRIPE_SECRET_KEY='.$c['secret_key']);putenv('DASHLESS_STRIPE_PRICE_ID='.$c['price_id']);$_SERVER['REQUEST_METHOD']='GET';require $root.'/wp-load.php';if(wp_get_environment_type()!=='local')throw new RuntimeException('Local only');
 use Dashless\Hub\{Store,Identity,Billing,StripeGateway};

@@ -1,6 +1,6 @@
 <?php
 $root=$argv[1]??'';
-if(!str_starts_with($root,'/tmp/dashless-site-test-bootstrap-railway-'))throw new RuntimeException('Disposable fixture required');
+if(!str_starts_with($root,'/tmp/dashless-site-test-bootstrap-railway-') || !is_file($root.'/wp-load.php')){fwrite(STDERR,"Usage: php hosted/railway/bootstrap-test.php /tmp/dashless-site-test-bootstrap-railway-N\n");exit(2);}
 ob_start();require $root.'/wp-load.php';ob_end_clean();error_reporting(E_ALL & ~E_DEPRECATED);
 use Dashless\Site\{App,Cli};
 $app=App::boot();$p=json_decode(file_get_contents(dirname(__DIR__).'/dist/site-packages.json'),true)['site'];

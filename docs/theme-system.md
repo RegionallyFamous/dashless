@@ -23,6 +23,15 @@ Every theme manifest must include:
 Run `node scripts/check-theme-system.mjs` before changing implementation. It
 fails when a board is missing, a route state is omitted, a structural decision
 is empty, or two themes have the same structural acceptance signature.
+Run `node scripts/check-theme-route-matrix.mjs` to verify that the canonical
+Astro source exposes every required route. The shared browser gate is
+`npm run test:frontend`; it emits desktop/mobile screenshots and a report under
+`dist/frontend-qa/theme-matrix` for every theme and route state.
+For release evidence, run `npm run check:theme-release -- --dist=/absolute/path/to/release`
+before activation, then run it again with `--url=https://site.example
+--release-id=... --theme=...` after activation.
+The second check proves the live WP Cloud release header and selected theme,
+not merely that a build or upload succeeded.
 
 ## Build loop
 
@@ -50,9 +59,10 @@ the Railway artifact. `live` requires a WP Cloud release header, DOM
 fingerprint, selected-theme proof, and matching artifact manifest.
 
 Activation is atomic: upload the immutable release, switch `current.json`,
-verify the live fingerprint, remove manifest-listed superseded release files,
-and remove stale root assets. If any pointer, manifest, asset, or fingerprint
-check is ambiguous, stop without declaring success.
+verify the live fingerprint, remove only manifest-listed superseded release
+files while retaining the newest verified rollback release, and remove stale
+root assets. If any pointer, manifest, asset, or fingerprint check is
+ambiguous, stop without declaring success.
 
 ## Definition of done
 
@@ -60,3 +70,6 @@ A theme is complete only when its board, manifest, shared implementation,
 route matrix, fixture screenshots, accessibility checks, builder artifact, and
 live release evidence agree. “The page loaded” or “the CSS changed” is not
 evidence of completion.
+
+The first real live theme verification is recorded in
+`docs/evidence/theme-release-verification-2026-09-18.json`.

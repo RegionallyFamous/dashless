@@ -13,6 +13,8 @@ const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const templateRoot = path.join(pluginRoot, "templates", "astro");
 const staticServer = path.join(pluginRoot, "server", "serve-static.mjs");
 const wpCloudBridge = path.join(pluginRoot, "wordpress", "dashless-wpcloud.php");
+const deploymentContract = JSON.parse(await readFile(path.join(pluginRoot, "config/deployment-contract.json"), "utf8"));
+const canonicalHubHost = deploymentContract.canonical_hub.host;
 
 async function exists(file) {
   return Boolean(await lstat(file).catch(() => null));
@@ -264,6 +266,12 @@ export function validateDeployment(input) {
     kind: input.kind,
     public_url: normalizeDeploymentPublicUrl(input.public_url),
   };
+  if (new URL(deployment.public_url).hostname.toLowerCase() === canonicalHubHost) {
+    throw new DashlessError(
+      "canonical_hub_deployment_required",
+      "The public Dashless Hub is deployed only through npm run publish:hub; customer-site deployment cannot target dashless.blog.",
+    );
+  }
   if (input.kind === "local") deployment.releases_path = validateLocalReleasesPath(input.releases_path);
   if (input.kind === "ssh") deployment.releases_path = validateRemotePath(input.releases_path);
   if (input.kind === "ssh" || input.kind === "wpcloud") {

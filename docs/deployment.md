@@ -57,4 +57,6 @@ Choose `kind: local` when the Dashless process can write directly to the public 
 
 Choose `kind: ssh` when the static root is on another machine or Dashless is running from a workstation. SSH must already work with a key or agent. Dashless stores the hostname, username, port, and paths, but never asks for or stores an SSH password.
 
-The remote path is restricted to ordinary absolute path characters. Dashless uploads into a new release with rsync, then changes the remote `current` symlink. The previous release stays intact when upload or activation fails.
+The public Hub frontend has one production deployment authority: `npm run publish:hub`. It builds the shared Astro Hub, builds the theme demos from that same source, uploads one immutable release to WP Cloud, activates the pointer last, verifies the Hub, all six demos, all public support and policy routes, and all six theme preview assets, rolls back on failed verification, and removes superseded artifacts from their manifests while retaining the newest verified previous release for rollback. The GitHub Hub workflow is only a caller of that command; it must not contain its own SFTP or pointer logic.
+
+Other deployment channels are intentionally separate: `publish-site-release.yml` publishes the Hub's builder/runtime package channel, Railway runs builds only, and the WordPress bridge activates customer-site releases. None of those channels may write the public Hub frontend release directory.

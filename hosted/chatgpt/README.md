@@ -44,4 +44,4 @@ Runtime dependencies are pinned in package-lock.json and Composer lock. Package 
 
 ## Theme discovery
 
-The app offers [three named themes](../../docs/theme-catalog.md) through `list_themes` and `get_theme`. Theme selection is staged through `update_design` and uses the existing private preview and authenticated approval flow.
+The app offers six named themes through `list_themes` and `get_theme`: Hypertext Diary, Field Notes, After Hours, Bulletin, Sunroom, and Mono Press. Theme selection is staged through `update_design` and uses the existing private preview and authenticated approval flow.

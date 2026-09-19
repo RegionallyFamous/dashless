@@ -1,6 +1,8 @@
 <?php
 namespace Dashless\Hub;
-require_once dirname(__DIR__).'/chatgpt/php/Integration.php';
+$chatgptIntegration=dirname(__DIR__).'/chatgpt/php/Integration.php';
+if(!is_file($chatgptIntegration))$chatgptIntegration=dirname(__DIR__,2).'/chatgpt/php/Integration.php';
+require_once $chatgptIntegration;
 final class Mcp {
     public function __construct(private Store $store,private Identity $identity,private Agent $agent,private Jobs $jobs) {}
     public static function tools(): array {
@@ -40,7 +42,9 @@ final class Mcp {
         $args=$params['arguments']??[];
         if(!is_array($args) || array_is_list($args) && $args!==[])throw new Failure('invalid_arguments','Expected tool arguments.');
         foreach($tool['inputSchema']['required']??[] as $key)if(!array_key_exists($key,$args))throw new Failure('missing_argument','Missing required argument: '.$key);
-        foreach($args as $key=>$value)if(!array_key_exists($key,$tool['inputSchema']['properties']))throw new Failure('invalid_argument','Unexpected argument: '.$key);
+        $properties=$tool['inputSchema']['properties']??[];
+        if($properties instanceof \stdClass)$properties=get_object_vars($properties);
+        foreach($args as $key=>$value)if(!array_key_exists($key,$properties))throw new Failure('invalid_argument','Unexpected argument: '.$key);
         $validation=rest_validate_value_from_schema($args,$tool['inputSchema'],'arguments');
         if(is_wp_error($validation))throw new Failure('invalid_arguments','Arguments do not match the tool schema.');
         $this->store->rate('tools:'.$owner,120,60);

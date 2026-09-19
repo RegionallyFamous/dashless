@@ -1,7 +1,7 @@
 <?php
 // Real disposable WordPress → deployed Railway → verified private candidate.
 $root=$argv[1]??'';$url=$argv[2]??'';$keyFile=$argv[3]??'';
-if (!str_starts_with($root,'/tmp/dashless-site-test-railway-') || !is_file($keyFile)) throw new RuntimeException('Disposable fixture and key file required.');
+if (!str_starts_with($root,'/tmp/dashless-site-test-railway-') || !is_file($root.'/wp-load.php') || $url==='' || !is_file($keyFile)) { fwrite(STDERR,"Usage: php hosted/railway/site-integration.php /tmp/dashless-site-test-railway-N https://builder.example /protected/site-key\n"); exit(2); }
 ob_start();require $root.'/wp-load.php';error_reporting(E_ALL & ~E_DEPRECATED);
 if (wp_get_environment_type()!=='local') throw new RuntimeException('Local fixture required.');
 use Dashless\Site\{App,RemoteRuntime,Routes,Failure};

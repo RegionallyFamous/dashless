@@ -26,7 +26,7 @@ Browser accessibility: keyboard-only review controls, visible focus, programmati
 
 ## Theme scenarios added September 16
 
-- Positive: “Show me the Dashless themes.” Expect `list_themes` with all three named editions and sample image URLs, even for an authenticated account that has no provisioned site. No design write occurs.
+- Positive: “Show me the Dashless themes.” Expect `list_themes` with all six named editions and sample image URLs, even for an authenticated account that has no provisioned site. No design write occurs.
 - Positive: “Use Field Notes with a lilac palette; show me my preview.” Expect `get_theme`, `get_design`, versioned `update_design`, and `create_preview`; preserve site identity and editorial content.
 - Negative: request an unknown theme or edition. Return an error without changing design or publishing.
 - Negative: change the theme after generating a preview, then try to approve the old preview. Reject stale approval and require a new preview.

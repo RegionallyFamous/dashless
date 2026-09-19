@@ -1,0 +1,22 @@
+---
+import PolicyPage from '../../components/PolicyPage.astro';
+
+const sections = [
+  { id: 'collect', heading: 'What we process', paragraphs: [
+    '<strong>Effective September 16, 2026.</strong> Dashless is operated by Izzi’s Gym LLC, doing business as Regionally Famous, in South Dakota, United States. Contact <a href="mailto:howdy@regionallyfamous.com">howdy@regionallyfamous.com</a> for privacy questions or requests.',
+    'We process your Auth0 account ID, verified email address and display name to identify your account; blog settings, drafts, revisions, published posts, images, alternative text and design choices to provide your blog; subscription and invoice references and payment status to administer access; and job, authorization, security and support records to operate and troubleshoot the service. Requests can include technical information such as an IP address, browser information and timestamps. Please do not put passwords, payment-card details or other unnecessary sensitive information in blog content or support messages.'
+  ]},
+  { id: 'use', heading: 'Why we use it', paragraphs: [
+    'We use this information to authenticate you, perform the editorial actions you request, build and host your site, administer your subscription, answer support requests, prevent abuse and meet applicable legal obligations. Auth0 handles sign-in and authorizes the ChatGPT connection. Dashless validates those credentials but does not store your password or provider access and refresh tokens. A secure browser cookie keeps you signed in.',
+    'WP Cloud hosts the account service and blog data. Railway processes copies of content, media and design settings to build your site. Cloudflare provides domain, network and email-routing services. Stripe processes payments when billing is available; Dashless retains payment references rather than full payment-card numbers. Our email providers process support and service messages. These providers may process information in the United States and other countries.'
+  ]},
+  { id: 'chatgpt', heading: 'ChatGPT and public publishing', paragraphs: [
+    'When you connect ChatGPT, the tools return content, settings, theme choices and operation results needed for your requested actions to OpenAI. Images you select in ChatGPT can be transferred to your blog. OpenAI’s own terms, privacy controls and data practices govern your use of ChatGPT. Disconnecting Dashless does not erase an existing ChatGPT conversation. Publishing makes the approved content and included media publicly accessible; readers, search engines and other third parties may copy it.'
+  ]},
+  { id: 'rights', heading: 'Your choices and rights', paragraphs: [
+    'Account, billing, job and support records, and hosting-provider backups, may be retained separately where needed to provide recovery, resolve a request or dispute, prevent fraud, or meet legal obligations. Contact us to request deletion or to ask which records remain and why. We verify ownership before acting on requests and explain any applicable retention requirement or technical limitation.',
+    'You can edit your blog, export its content and source, and disconnect ChatGPT through the available account and editorial controls. To request access, correction, deletion, restriction or portability of your personal information, or to object to processing where applicable, email our privacy contact above. Depending on your location, you may have additional rights, including raising a concern with your local privacy regulator.'
+  ]}
+];
+---
+<PolicyPage title="Privacy notice" kicker="YOUR INFORMATION, EXPLAINED" intro="A plain language account of what Dashless uses to provide your blog and how to reach us about it." sections={sections} />

@@ -1,0 +1,23 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const { title, kicker, intro, sections = [] } = Astro.props;
+---
+<Layout title={title} description={`${title} for Dashless.`}>
+  <article class="dl-legal-page">
+    <header class="dl-legal-header">
+      <p class="dl-eyebrow">{kicker}</p>
+      <h1>{title}</h1>
+      <p class="dl-legal-intro">{intro}</p>
+    </header>
+    <div class="dl-legal-body">
+      {sections.map((section) => (
+        <section aria-labelledby={`legal-${section.id}`}>
+          <h2 id={`legal-${section.id}`}>{section.heading}</h2>
+          {section.paragraphs.map((paragraph) => <p set:html={paragraph} />)}
+        </section>
+      ))}
+    </div>
+    <p class="dl-legal-contact">Questions? <a href="mailto:howdy@regionallyfamous.com">Contact a human at howdy@regionallyfamous.com</a>.</p>
+  </article>
+</Layout>
