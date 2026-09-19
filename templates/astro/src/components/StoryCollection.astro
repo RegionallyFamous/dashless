@@ -1,0 +1,14 @@
+---
+import StoryCard from "./StoryCard.astro";
+const { stories = [], themeId = "bulletin" } = Astro.props;
+---
+
+<section class:list={["publication-stories", `publication-stories--${themeId}`]} aria-labelledby="publication-stories-title">
+  <div class="publication-section-heading">
+    <h2 id="publication-stories-title">The latest dispatches</h2>
+    <slot name="action" />
+  </div>
+  <div class="publication-story-collection">
+    {stories.map((story: any) => <StoryCard story={story} />)}
+  </div>
+</section>

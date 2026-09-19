@@ -1,0 +1,13 @@
+---
+import { config } from "../lib/dashless.mjs";
+const { themeId = "bulletin", department = false } = Astro.props;
+const description = department
+  ? "A publication about the things that probably don’t matter. And why we can’t stop thinking about them."
+  : config.siteDescription;
+---
+
+<header class:list={["publication-hero", `publication-hero--${themeId}`]}>
+  <p class="eyebrow">{department ? "THE DEPARTMENT BULLETIN" : "AN INDEPENDENT PUBLICATION"}</p>
+  <h1>{department ? <>Small problems.<br /><em>Thoroughly investigated.</em></> : config.siteName}</h1>
+  <p class="publication-hero-description">{description}</p>
+</header>

@@ -6,10 +6,11 @@ const index = JSON.stringify(searchIndex(posts, pages)).replaceAll("<", "\\u003c
 ---
 
 <SiteLayout title="Search" description={`Search ${config.siteName}.`} noindex>
-  <header class="archive-header retro-window"><div class="window-bar"><span>Search</span><span aria-hidden="true">— □ ×</span></div><div><p class="eyebrow">SEARCH THIS SITE</p><h1>Find a story.</h1><p>Search stories and pages by a word or phrase.</p></div></header>
-  <form class="search-form" role="search"><label for="dashless-search">Search this site</label><div><input id="dashless-search" name="q" type="search" autocomplete="off" autocapitalize="none" enterkeyhint="search" aria-describedby="search-summary" /><button type="submit">Search</button></div></form>
+  <div class="publication-search">
+  <header class="publication-archive-header archive-header retro-window"><div class="window-bar"><span>Search</span><span aria-hidden="true">— □ ×</span></div><div><p class="eyebrow">SEARCH THIS SITE</p><h1>Find a story.</h1><p>Search stories and pages by a word or phrase.</p></div></header>
+  <form class="publication-search-form search-form" role="search"><label for="dashless-search">Search this site</label><div><input id="dashless-search" name="q" type="search" autocomplete="off" autocapitalize="none" enterkeyhint="search" aria-describedby="search-summary" /><button type="submit">Search</button></div></form>
   <p id="search-summary" class="search-summary" aria-live="polite"></p>
-  <div id="search-results" class="search-results"></div>
+  <div id="search-results" class="publication-search-results search-results"></div>
   <script is:inline type="application/json" id="dashless-search-index" set:html={index} />
   <script>
     (() => {
@@ -42,4 +43,5 @@ const index = JSON.stringify(searchIndex(posts, pages)).replaceAll("<", "\\u003c
       const initial = new URL(location.href).searchParams.get('q') || ''; input.value = initial; if (initial) render();
     })();
   </script>
+  </div>
 </SiteLayout>

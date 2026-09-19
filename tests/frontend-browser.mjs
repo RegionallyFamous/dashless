@@ -52,9 +52,17 @@ try {
     page.on('pageerror',error=>{if(!/Transition was skipped/i.test(error.message))errors.push(error.message);});page.on('console',message=>{if(['error','warning'].includes(message.type()) && !/Transition was skipped/i.test(message.text()))errors.push(message.text());});
     const routes=['/','/stories/','/topics/','/tags/','/search/','/404.html',...(options.count?['/stories/story-1/','/topics/news/','/tags/web/']:[]),...(options.home?['/about/team/','/stories/page/2/']:[])];
     for(const width of report.widths)for(const route of routes) {
-      await page.setViewportSize({width,height:900});await page.goto(url+route);await page.evaluate(()=>document.fonts.ready);
+      await page.setViewportSize({width,height:900});await page.goto(url+route,{waitUntil:'domcontentloaded'});await page.evaluate(()=>document.fonts.ready);
       assert.equal(await page.locator('h1').count(),1,`${name} ${route}: heading`);
-      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${name} ${route} overflows ${width}`);
+      const overflow = await page.evaluate(() => ({
+        viewport: innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        offenders: [...document.querySelectorAll('*')].filter((element) => {
+          const box = element.getBoundingClientRect();
+          return box.right > innerWidth + 1 || box.left < -1;
+        }).slice(0, 8).map((element) => { const grid = element.closest('.archive-grid'); return { tag: element.tagName, className: element.className, left: Math.round(element.getBoundingClientRect().left), right: Math.round(element.getBoundingClientRect().right), width: Math.round(element.getBoundingClientRect().width), grid: grid ? { display: getComputedStyle(grid).display, columns: getComputedStyle(grid).gridTemplateColumns, width: Math.round(grid.getBoundingClientRect().width) } : null }; }),
+      }));
+      assert.ok(overflow.scrollWidth<=overflow.viewport+1,`${name} ${route} overflows ${width}: ${JSON.stringify(overflow)}`);
       assert.deepEqual(await page.evaluate(()=>{
         const problems=[];
         for(const card of document.querySelectorAll('.story-card')) {
@@ -72,16 +80,17 @@ try {
     if (options.count) {
       await Promise.all([
         page.waitForURL(/\/stories\//),
-        page.locator('.story-card h2 a').first().click(),
+        page.locator('.story-card h2 a, .bulletin-lead h2 a').first().click(),
       ]);
       assert.match(page.url(), /\/stories\//, `${name}: story navigation did not complete`);
       assert.equal(await page.locator('#main-content').count(), 1, `${name}: transitioned page lost main landmark`);
       await page.goBack();
-      assert.match(page.url(), /\/preview\/$/, `${name}: back navigation did not restore the homepage`);
+      assert.match(page.url(), /\/preview\/(?:\?style=[a-z-]+)?$/, `${name}: back navigation did not restore the homepage`);
       assert.equal(await page.locator('#theme-toggle').count(), 1, `${name}: controls were not restored after back navigation`);
     }
     if(name === 'single') {
       assert.equal(await page.locator('#teddy-sighting').count(),1);
+      await page.waitForFunction(() => document.querySelector('#oddity-switch')?.dataset.dashlessBound === 'true');
       await page.keyboard.type('teddy');assert.equal(await page.locator('#teddy-sighting').isVisible(),true);
       await page.goto(url+'/');
     } else {
@@ -122,6 +131,13 @@ try {
       assert.equal(await page.locator('.wp-block-gallery .inline-image-fallback[aria-hidden="true"]').count(),1);
     }
     if (options.theme) {
+      // Matrix screenshots are visual evidence, so keep them deterministic and
+      // independent from the interaction test's persisted dark-mode state.
+      await page.emulateMedia({ colorScheme: 'light', forcedColors: 'none', reducedMotion: 'no-preference' });
+      await page.evaluate(() => {
+        localStorage.removeItem('dashless-theme');
+        localStorage.removeItem('small-problems-style');
+      });
       const matrixRoutes = {
         home: '/',
         archive: '/stories/',

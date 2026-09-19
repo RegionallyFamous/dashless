@@ -744,6 +744,14 @@ body[data-oddity="true"] .hero-sticker, body[data-oddity="true"] .web-badge { an
   .site-footer { grid-template-columns: 1fr; padding: 24px 18px; }
 }
 
+@media (max-width: 700px) {
+  .publication-story-collection .story-copy { display: block; min-width: 0; }
+  .publication-story-collection .read-more { display: inline-flex; margin-top: 12px; }
+  .archive-grid .story-card { min-width: 0; }
+  .archive-grid .story-copy { display: flex; flex-direction: column; min-width: 0; width: 100%; max-width: 100%; overflow-wrap: anywhere; }
+  .archive-grid .read-more { display: inline-flex; margin-top: 12px; }
+}
+
 @media (max-width: 480px) {
   .masthead { gap: 16px; padding: 17px 15px; }
   .wordmark { font-size: 29px; }

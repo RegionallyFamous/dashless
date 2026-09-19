@@ -8,6 +8,8 @@ const signatures = new Set();
 for (const theme of themes) {
   const reference = path.join(root, theme.visual_reference);
   if (!fs.existsSync(reference)) throw new Error(`Theme ${theme.id} is missing its visual reference: ${theme.visual_reference}`);
+  const preview = path.join(root, 'wordpress/hosted/theme-previews', theme.preview_image);
+  if (!fs.existsSync(preview)) throw new Error(`Theme ${theme.id} is missing its preview asset: ${theme.preview_image}`);
   const signature = THEME_STRUCTURE_KEYS.map((key) => theme.structure[key]).join('|');
   if (signatures.has(signature)) throw new Error(`Theme ${theme.id} duplicates another theme's structural acceptance`);
   signatures.add(signature);

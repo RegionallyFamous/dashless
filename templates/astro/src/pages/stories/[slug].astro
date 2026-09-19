@@ -12,10 +12,10 @@ const description = plainText(post.excerpt || post.content).slice(0, 180);
 ---
 
 <SiteLayout title={post.title} description={description} digest={post.digest} image={post.socialImage || post.featuredImage?.src} imageAlt={post.socialImageAlt || post.featuredImage?.alt || post.title} article publishedTime={post.date} modifiedTime={post.modified}>
-  <article class="article-shell">
-    <header class="article-header retro-window">
+  <article class="publication-article article-shell">
+    <header class="publication-article-header article-header retro-window">
       <div class="window-bar"><span>Story</span><span aria-hidden="true">— □ ×</span></div>
-      <div class="article-heading-copy">
+      <div class="publication-article-heading article-heading-copy">
         <a class="back-link" href={sitePath(`/${config.postsPath}/`)} data-astro-prefetch>← RETURN TO ARCHIVE</a>
         <p class="kicker"><time datetime={post.date}>{formatDate(post.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</time></p>
         <h1 style={`view-transition-name: dashless-story-title-${post.id};`}>{post.title}</h1>
@@ -38,7 +38,7 @@ const description = plainText(post.excerpt || post.content).slice(0, 180);
         {post.featuredImage.caption && <figcaption set:html={post.featuredImage.caption} />}
       </figure>
     )}
-    <div class="article-body paper-panel" set:html={post.content} />
+    <div class="publication-article-body article-body paper-panel" set:html={post.content} />
     {post.tagTerms.length > 0 && <footer class="article-tags"><span>Tagged</span>{post.tagTerms.map((term: any) => <a href={term.url} data-astro-prefetch>{term.name}</a>)}</footer>}
   </article>
 </SiteLayout>

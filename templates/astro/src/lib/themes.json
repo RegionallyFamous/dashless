@@ -2,7 +2,7 @@
   {
     "id": "hypertext-diary",
     "version": 1,
-    "template": "standard",
+    "template": "bulletin",
     "name": "Hypertext Diary",
     "description": "A playful personal web journal: browser windows, colorful labels, offset borders and a lively sidebar.",
     "concept": "A bright little browser window for people who want the web to feel personal again.",
@@ -44,7 +44,7 @@
   {
     "id": "field-notes",
     "version": 1,
-    "template": "standard",
+    "template": "bulletin",
     "name": "Field Notes",
     "description": "A quiet editorial notebook: warm paper, generous serif headlines, fine rules and spacious reading.",
     "concept": "A literary notebook that lets observation and long-form writing take the foreground.",
@@ -86,7 +86,7 @@
   {
     "id": "after-hours",
     "version": 1,
-    "template": "standard",
+    "template": "bulletin",
     "name": "After Hours",
     "description": "A bold nocturnal magazine: oversized sans headlines, sharp panels, a two-column story grid and luminous accents.",
     "concept": "A late-night culture desk with loud headlines, sharp edges, and room for image-led stories.",
@@ -165,7 +165,7 @@
   {
     "id": "sunroom",
     "version": 1,
-    "template": "standard",
+    "template": "bulletin",
     "name": "Sunroom",
     "description": "A warm, tactile reading room with soft surfaces, terracotta signals, rounded lead stories, and generous literary type.",
     "concept": "A sunny reading room where the publication feels collected, human, and close at hand.",
@@ -207,7 +207,7 @@
   {
     "id": "mono-press",
     "version": 1,
-    "template": "standard",
+    "template": "bulletin",
     "name": "Mono Press",
     "description": "A disciplined black-and-white newspaper grid with oversized sans headlines, hard rules, and one red editorial mark.",
     "concept": "A confident print desk translated to the open web: direct, structured, and impossible to mistake for a feed.",

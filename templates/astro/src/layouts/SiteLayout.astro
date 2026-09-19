@@ -3,9 +3,11 @@ import globalStyles from "../styles/global.css?url";
 import presetStyles from "../styles/presets.css?url";
 import themeStyles from "../styles/themes.css?url";
 import bulletinStyles from "../styles/bulletin.css?url";
+import rebuiltThemeStyles from "../styles/theme-rebuild.css?url";
 import { ClientRouter } from "astro:transitions";
 import { config, getNavigation, sitePath } from "../lib/dashless.mjs";
-import { themeTemplate } from "../lib/theme-registry.mjs";
+import { themes, themeTemplate } from "../lib/theme-registry.mjs";
+import PublicationHeader from "../components/PublicationHeader.astro";
 
 const {
   title = config.siteName,
@@ -19,16 +21,10 @@ const {
   modifiedTime,
 } = Astro.props;
 const bulletin = themeTemplate(config.design) === "bulletin";
-const hypertext = themeTemplate(config.design) === "standard" && ((config.design as any)?.theme_id || "hypertext-diary") === "hypertext-diary";
+const themeId = String((config.design as any)?.theme_id || "hypertext-diary");
+const hypertext = themeId === "hypertext-diary";
 const department = new URL(config.publicUrl).hostname === "smallproblems.dashless.blog";
-const demoStyles = [
-  ["bulletin", "Bulletin"],
-  ["hypertext-diary", "Hypertext Diary"],
-  ["field-notes", "Field Notes"],
-  ["after-hours", "After Hours"],
-  ["sunroom", "Sunroom"],
-  ["mono-press", "Mono Press"],
-] as const;
+const demoStyles = themes.map(({ id, name }) => [id, name] as const);
 const canonical = new URL(Astro.url.pathname, config.publicUrl).toString();
 const pageKind = article ? "article" : Astro.url.pathname === "/" ? "home" : Astro.url.pathname.startsWith(`/${config.postsPath}/`) ? "archive" : Astro.url.pathname.startsWith("/search/") ? "search" : Astro.url.pathname.startsWith(`/${config.topicsPath}/`) || Astro.url.pathname.startsWith(`/${config.tagsPath}/`) ? "taxonomy" : Astro.url.pathname === "/404.html" ? "404" : "page";
 const displayHost = new URL(config.publicUrl).hostname || "localhost";
@@ -56,16 +52,16 @@ const structuredData = article ? {
 ---
 
 <!doctype html>
-<html lang={config.language || "en"} data-design={config.design && "theme_id" in config.design ? String(config.design.theme_id) : "hypertext-diary"} data-palette={config.design?.palette} data-type={config.design?.typography} data-layout={config.design?.layout} data-demo-site={department ? "small-problems" : undefined}>
+<html lang={config.language || "en"} data-design={themeId} data-palette={config.design?.palette} data-type={config.design?.typography} data-layout={config.design?.layout} data-demo-style={department ? undefined : themeId} data-demo-site={department ? "small-problems" : undefined}>
   <head>
     <meta charset="UTF-8" />
     {department && <script is:inline>{`(() => {
-      const allowed = new Set(["bulletin", "hypertext-diary", "field-notes", "after-hours", "sunroom", "mono-press"]);
+      const allowed = new Set(${JSON.stringify(themes.map(({ id }) => id))});
       let style = new URL(location.href).searchParams.get("style");
       if (!style) { try { style = localStorage.getItem("small-problems-style"); } catch {} }
       if (style && allowed.has(style)) document.documentElement.dataset.demoStyle = style;
     })();`}</script>}
-    {(bulletin ? [bulletinStyles] : [globalStyles, presetStyles, themeStyles]).map(href => <link rel="stylesheet" href={href} />)}
+    {(bulletin ? [bulletinStyles, rebuiltThemeStyles] : [globalStyles, presetStyles, themeStyles, rebuiltThemeStyles]).map(href => <link rel="stylesheet" href={href} />)}
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="color-scheme" content="light dark" />
@@ -115,7 +111,7 @@ const structuredData = article ? {
     <a class="skip-link" href="#main-content">Skip to content</a>
     {!bulletin && <div class="page-grid" aria-hidden="true"></div>}
     <div class={bulletin ? "bulletin-frame" : "site-frame"}>
-      {bulletin ? <header class="bulletin-header"><a class="bulletin-brand" href={sitePath("/")} data-astro-prefetch aria-label={`${config.siteName} — home`}><span class="bulletin-emblem" aria-hidden="true">✳</span><span>{department && <small>The Department of</small>}<strong>{department ? 'Small Problems' : config.siteName}</strong></span></a><div class="edition-identity" aria-hidden="true"><span data-edition="bulletin">THE DEPARTMENT BULLETIN</span><span data-edition="hypertext-diary">SMALL PROBLEMS / ONLINE</span><span data-edition="field-notes">FIELD NOTES · VOL. 04</span><span data-edition="after-hours">AFTER HOURS // LIVE</span><span data-edition="sunroom">A QUIET EDITION</span><span data-edition="mono-press">SMALL PROBLEMS DAILY</span></div><nav aria-label="Main navigation">{navigation.map((item:any)=><a href={item.url} data-astro-prefetch aria-current={isCurrent(item.url)?'page':undefined}>{item.label.toLowerCase() === 'latest' ? 'Home' : item.label.charAt(0).toUpperCase()+item.label.slice(1).toLowerCase()}</a>)}<button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme">NIGHT MODE</button></nav></header> : <header class="site-header">
+      {bulletin ? <PublicationHeader navigation={navigation} themeId={themeId} department={department} isCurrent={isCurrent} /> : <header class="site-header">
         <div class="browser-bar">
           <div class="browser-dots" aria-hidden="true"><span></span><span></span><span></span></div>
           <p><span aria-hidden="true">⌂</span> https://{displayHost}{Astro.url.pathname}</p>
@@ -151,7 +147,7 @@ const structuredData = article ? {
         <div class="hypertext-rail-note"><span aria-hidden="true">▰</span><p>Small things<br />last longer<br />here.</p></div>
       </aside>}
       <main id="main-content"><slot /></main>
-      {bulletin ? <footer class="bulletin-footer"><p><strong>{config.siteName}</strong><br/>{department ? 'No concern too minor. No investigation on schedule.' : config.siteDescription}</p><div><a href={sitePath("/rss.xml")}>RSS</a><a href="#main-content">Back to top ↑</a></div></footer> : <footer class="site-footer">
+      {bulletin ? <footer class="bulletin-footer"><p><strong>{config.siteName}</strong><br/>{department ? 'No concern too minor. No investigation on schedule.' : config.siteDescription}</p><div><a href={sitePath("/rss.xml")}>RSS</a><a href="#main-content">Back to top ↑</a><button class="oddity-switch" id="oddity-switch" type="button" aria-pressed="false" title="There may be another way in">DO NOT PRESS</button></div></footer> : <footer class="site-footer">
         <div>{usesTeddyMark ? <img class="footer-teddy" src="/teddy-logo.png" alt="" width="512" height="512" /> : <span class="footer-star" aria-hidden="true">✦</span>}<p><strong>{config.siteName}</strong><br />A small corner of the big internet.</p></div>
         <p>Made with curiosity and unreasonable enthusiasm.<br /><a href={sitePath("/rss.xml")} data-astro-reload>Subscribe via RSS</a> · <a href="#main-content">Back to top ↑</a></p>
         <div class="footer-curiosities">
@@ -202,7 +198,7 @@ const structuredData = article ? {
         }
 
         const styleSwitcher = document.querySelector<HTMLDetailsElement>("#style-switcher");
-        const styleButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-demo-style]")];
+        const styleButtons = [...document.querySelectorAll<HTMLButtonElement>("button[data-demo-style]")];
         const validStyles = new Set(styleButtons.map((item) => item.dataset.demoStyle));
         const syncDemoStyle = (style: string) => {
           if (!validStyles.has(style)) return;
@@ -262,8 +258,8 @@ const structuredData = article ? {
           oddityButton.addEventListener("click", () => setOddity(document.body.dataset.oddity !== "true"));
         }
 
-        if (!dashlessWindow.__dashlessSecretBound) {
-          dashlessWindow.__dashlessSecretBound = true;
+        if (document.documentElement.dataset.dashlessSecretBound !== "true") {
+          document.documentElement.dataset.dashlessSecretBound = "true";
           let secretBuffer = "";
           document.addEventListener("keydown", (event) => {
             const target = event.target as HTMLElement | null;

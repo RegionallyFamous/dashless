@@ -1,0 +1,18 @@
+---
+import { plainText } from "../lib/dashless.mjs";
+const { story, themeId = "bulletin" } = Astro.props;
+const description = plainText(story.excerpt || story.content).slice(0, 220);
+---
+
+<section class:list={["publication-lead", "bulletin-lead", `publication-lead--${themeId}`, { "without-image": !story.featuredImage }]} aria-label="Featured story">
+  {story.featuredImage && <a class="publication-lead-media" href={story.url} aria-label={story.title}>
+    <img src={story.featuredImage.src} alt={story.featuredImage.alt || ""} width={story.featuredImage.width} height={story.featuredImage.height} fetchpriority="high" />
+  </a>}
+  <div class="publication-lead-copy bulletin-lead-copy">
+    <p class="eyebrow">THE LEAD REPORT</p>
+    {story.categoryTerms?.[0] && <a class="publication-category" href={story.categoryTerms[0].url}>{story.categoryTerms[0].name}</a>}
+    <h2><a href={story.url}>{story.title}</a></h2>
+    {description && <p>{description}</p>}
+    <a class="publication-read" href={story.url}>Read the investigation <span aria-hidden="true">↗</span></a>
+  </div>
+</section>

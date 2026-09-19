@@ -1,0 +1,24 @@
+---
+import { config, sitePath } from "../lib/dashless.mjs";
+const { navigation = [], themeId = "bulletin", department = false, isCurrent } = Astro.props;
+const label = (value: string) => value.toLowerCase() === "latest" ? "Home" : value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+---
+
+<header class:list={["publication-header", "bulletin-header", `publication-header--${themeId}`]} data-theme-header={themeId}>
+  <a class="publication-brand bulletin-brand" href={sitePath("/")} data-astro-prefetch aria-label={`${config.siteName} — home`}>
+    <span class="publication-emblem bulletin-emblem" aria-hidden="true">✳</span>
+    <span>{department && <small>The Department of</small>}<strong>{department ? "Small Problems" : config.siteName}</strong></span>
+  </a>
+  <div class="publication-edition edition-identity" aria-hidden="true">
+    <span data-edition="bulletin">THE DEPARTMENT BULLETIN</span>
+    <span data-edition="hypertext-diary">SMALL PROBLEMS / ONLINE</span>
+    <span data-edition="field-notes">FIELD NOTES · VOL. 04</span>
+    <span data-edition="after-hours">AFTER HOURS // LIVE</span>
+    <span data-edition="sunroom">A QUIET EDITION</span>
+    <span data-edition="mono-press">SMALL PROBLEMS DAILY</span>
+  </div>
+  <nav aria-label="Main navigation">
+    {navigation.map((item: any) => <a href={item.url} data-astro-prefetch aria-current={isCurrent(item.url) ? "page" : undefined}>{label(item.label)}</a>)}
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme">NIGHT MODE</button>
+  </nav>
+</header>

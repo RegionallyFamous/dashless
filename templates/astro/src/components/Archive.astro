@@ -6,9 +6,9 @@ const { title, description, posts, current = 1, total = 1, base } = Astro.props 
 const design = config.design as any;
 ---
 
-<header class="archive-header retro-window">
+<header class="publication-archive-header archive-header retro-window">
   <div class="window-bar"><span>{title}</span><span aria-hidden="true">— □ ×</span></div>
   <div><p class="eyebrow">{design?.theme_id === "bulletin" ? "FROM THE ARCHIVE" : "DIRECTORY LISTING"}</p><h1>{title}</h1>{description && <p>{description}</p>}</div>
 </header>
-{posts.length ? <div class="archive-grid">{posts.map((story: any) => <StoryCard story={story} />)}</div> : <section class="empty-state"><h2>Nothing here yet.</h2><p>Published stories will appear here automatically.</p></section>}
+{posts.length ? <div class="publication-archive-grid archive-grid">{posts.map((story: any) => <StoryCard story={story} />)}</div> : <section class="publication-empty empty-state"><h2>Nothing here yet.</h2><p>Published stories will appear here automatically.</p></section>}
 <Pagination current={current} total={total} base={base} />

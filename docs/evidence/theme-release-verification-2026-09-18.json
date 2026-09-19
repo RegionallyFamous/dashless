@@ -1,0 +1,13 @@
+{
+  "verified_at": "2026-09-18T19:23:20Z",
+  "url": "https://smallproblems.dashless.blog/?style=field-notes",
+  "status": 200,
+  "release_id": "20260918T131803000Z-8eb689",
+  "selected_theme": "field-notes",
+  "live_theme": "field-notes",
+  "checks": [
+    "fresh cache-busting request",
+    "X-Dashless-Release header matched",
+    "browser-resolved selected theme matched"
+  ]
+}
